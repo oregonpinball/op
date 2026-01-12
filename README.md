@@ -29,6 +29,10 @@ Installation of Erlang happens first, as Elixir depends on it.  To install via `
 
 ## Starting your server
 
+For the first boot, you'll need to install the `npm` dependencies we have:
+
+1. `npm ci --prefix assets/`
+
 From the root directory (what you cloned from Git), run:
 
 1. `mix deps.get`
