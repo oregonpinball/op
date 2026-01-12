@@ -25,14 +25,9 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/op";
 import topbar from "../vendor/topbar";
 
-import { ColorModeHook } from "./storybook/color_mode_hook";
-import { SearchHook } from "./storybook/search_hook";
-import { SidebarHook } from "./storybook/sidebar_hook";
-import { StoryHook } from "./storybook/story_hook";
-
-
 // Import React mounting functionality
-import { mountReactComponents, ReactMount } from "./react_mount";
+import { mountReactComponents, ReactMount } from "./react/react_mount";
+import { initializeDispatchListeners } from "./dispatch";
 
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -40,10 +35,10 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, ReactMount, SearchHook, StoryHook, SidebarHook, ColorModeHook },
+  hooks: { ...colocatedHooks, ReactMount },
 });
 
-  window.storybook = { Hooks: { ColorModeHook, SearchHook, SidebarHook, StoryHook}, Params: {}, Uploaders: {} };
+
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
@@ -58,56 +53,13 @@ liveSocket.connect();
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
 
-(function () {
-  window.storybook = { Hooks: {}, Params: {}, Uploaders: {} };
-})();
-
 // Mount React components on page load
 document.addEventListener("DOMContentLoaded", () => {
   mountReactComponents();
 });
 
-// ______ _                 _       _
-// |  _  (_)               | |     | |
-// | | | |_ ___ _ __   __ _| |_ ___| |__
-// | | | | / __| '_ \ / _` | __/ __| '_ \
-// | |/ /| \__ \ |_) | (_| | || (__| | | |
-// |___/ |_|___/ .__/ \__,_|\__\___|_| |_|
-//             | |
-//             |_|
-// Listeners from `JS.dispatch/2` calls in Elixir components
-window.addEventListener("op:toggle", (e) => {
-  const $sheet = e.target;
-
-  // Find and show children with data-sheet-bg or data-sheet-content
-  const $sheetBg = $sheet.querySelector("[data-sheet-bg]")
-  const $sheetContent = $sheet.querySelector("[data-sheet-content]")
-  console.debug("op:toggle received", { $sheet, $sheetBg, $sheetContent })
-
-  
-
-
-
-  if ($sheet.classList.contains("hidden")) {
-    $sheet.classList.remove("hidden")
-    $sheetContent.classList.remove("hidden")
-    $sheetContent.classList.add("animate-slide-in-right")
-    document.body.classList.add("overflow-hidden")
-  } else {
-    $sheetContent.classList.remove("animate-slide-in-right")
-    $sheetContent.classList.add("animate-slide-out-right")
-    $sheetContent.addEventListener(
-      "animationend",
-      () => {
-        $sheet.classList.add("hidden")
-        $sheetContent.classList.add("hidden")
-        $sheetContent.classList.remove("animate-slide-out-right")
-        document.body.classList.remove("overflow-hidden")
-      },
-      { once: true }
-    )
-  }
-});
+// Initialize custom dispatch listeners
+initializeDispatchListeners();
 
 // The lines below enable quality of life phoenix_live_reload
 // development features:

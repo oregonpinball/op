@@ -4,6 +4,7 @@ defmodule OPWeb.Storybook do
     content_path: Path.expand("../../storybook", __DIR__),
     # assets path are remote path, not local file-system paths
     css_path: "/assets/css/app.css",
+    js_path: "/assets/js/storybook.js",
     color_mode: true,
     color_mode_sandbox_dark_class: "dark",
     sandbox_class: "op-storybook-sandbox"
