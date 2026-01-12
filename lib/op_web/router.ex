@@ -21,6 +21,12 @@ defmodule OPWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    get "/tournaments", TournamentController, :index
+
+
+    # TODO: Remove later, developer testing route for rendering
+    # React components based on Phoenix-rendered templates
     get "/react", PageController, :react
   end
 
