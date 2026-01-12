@@ -9,7 +9,7 @@ defmodule OP.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"OP", "contact@example.com"})
+      |> from({System.get_env("EMAIL_FROM_NAME", "OP"), System.get_env("EMAIL_FROM_ADDRESS", "no-reply@localhost")})
       |> subject(subject)
       |> text_body(body)
 

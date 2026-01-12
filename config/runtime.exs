@@ -61,6 +61,15 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # ## Configuring the mailer
+  #
+  # In production you need to configure the mailer to use a different adapter.
+  # Here is an example configuration for Mailgun:
+  #
+  config :op, OP.Mailer,
+    adapter: Swoosh.Adapters.Postmark,
+    api_key: System.get_env("POSTMARK_API_KEY")
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
@@ -92,16 +101,6 @@ if config_env() == :prod do
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
-
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :op, OP.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
   #
   # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
   # and Finch out-of-the-box. This configuration is typically done at
