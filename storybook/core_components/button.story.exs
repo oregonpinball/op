@@ -11,14 +11,6 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
         slots: ["Click me"]
       },
       %Variation{
-        id: :neutral,
-        description: "Neutral colored button",
-        attributes: %{
-          color: "neutral"
-        },
-        slots: ["Neutral"]
-      },
-      %Variation{
         id: :primary,
         description: "Primary colored button",
         attributes: %{
@@ -152,15 +144,6 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
             slots: ["External Link"]
           }
         ]
-      },
-      %Variation{
-        id: :disabled,
-        description: "Disabled button",
-        attributes: %{
-          disabled: true,
-          color: "primary"
-        },
-        slots: ["Disabled"]
       }
     ]
   end

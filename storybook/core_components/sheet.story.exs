@@ -7,9 +7,9 @@ defmodule Storybook.CoreComponents.Sheet do
 
   def template do
     """
-    <button phx-click={toggle("#:variation_id")} class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+    <.button phx-click={toggle("#:variation_id")}>
       Open Sheet
-    </button>
+    </.button>
     <.psb-variation/>
     """
   end
@@ -59,68 +59,6 @@ defmodule Storybook.CoreComponents.Sheet do
         ]
       },
       %Variation{
-        id: :detail_pane,
-        description: "Sheet with detailed content",
-        attributes: %{
-          id: "detail-sheet"
-        },
-        slots: [
-          """
-          <div class="space-y-4">
-            <h2 class="text-2xl font-bold">Item Details</h2>
-            <div class="space-y-2">
-              <div>
-                <span class="font-semibold">Name:</span>
-                <span class="ml-2">Product Name</span>
-              </div>
-              <div>
-                <span class="font-semibold">Description:</span>
-                <p class="mt-1">This is a detailed description of the item with more information about its features and benefits.</p>
-              </div>
-              <div>
-                <span class="font-semibold">Price:</span>
-                <span class="ml-2">$99.99</span>
-              </div>
-            </div>
-            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Add to Cart
-            </button>
-          </div>
-          """
-        ]
-      },
-      %Variation{
-        id: :form_sheet,
-        description: "Sheet with a form",
-        attributes: %{
-          id: "form-sheet"
-        },
-        slots: [
-          """
-          <div class="space-y-4">
-            <h2 class="text-xl font-bold">Contact Form</h2>
-            <form class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">Name</label>
-                <input type="text" class="w-full px-3 py-2 border rounded-lg" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Email</label>
-                <input type="email" class="w-full px-3 py-2 border rounded-lg" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Message</label>
-                <textarea class="w-full px-3 py-2 border rounded-lg" rows="4"></textarea>
-              </div>
-              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Submit
-              </button>
-            </form>
-          </div>
-          """
-        ]
-      },
-      %Variation{
         id: :long_content,
         description: "Sheet with scrollable long content",
         attributes: %{
@@ -131,7 +69,7 @@ defmodule Storybook.CoreComponents.Sheet do
           <div class="space-y-4">
             <h2 class="text-xl font-bold">Long Content</h2>
             <p>This sheet contains long scrollable content to demonstrate overflow behavior.</p>
-            #{Enum.map_join(1..20, "\n", fn i -> "<p>Paragraph #{i}: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>" end)}
+            #{Enum.map_join(1..35, "\n", fn i -> "<p>Paragraph #{i}: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>" end)}
           </div>
           """
         ]
