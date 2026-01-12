@@ -9,6 +9,10 @@ defmodule OP.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
+    field :role, Ecto.Enum,
+      values: [:system_admin, :td, :player],
+      default: :player
+
     timestamps(type: :utc_datetime)
   end
 

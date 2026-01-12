@@ -74,6 +74,10 @@ defmodule OPWeb do
 
       # Include general helpers for rendering HTML
       unquote(html_helpers())
+
+      def is_system_admin?(%OP.Accounts.Scope{} = scope) do
+        scope.role == :system_admin
+      end
     end
   end
 
