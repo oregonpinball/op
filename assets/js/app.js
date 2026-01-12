@@ -25,6 +25,12 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/op";
 import topbar from "../vendor/topbar";
 
+import { ColorModeHook } from "./storybook/color_mode_hook";
+import { SearchHook } from "./storybook/search_hook";
+import { SidebarHook } from "./storybook/sidebar_hook";
+import { StoryHook } from "./storybook/story_hook";
+
+
 // Import React mounting functionality
 import { mountReactComponents, ReactMount } from "./react_mount";
 
@@ -34,9 +40,10 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, ReactMount },
+  hooks: { ...colocatedHooks, ReactMount, SearchHook, StoryHook, SidebarHook, ColorModeHook },
 });
 
+  window.storybook = { Hooks: { ColorModeHook, SearchHook, SidebarHook, StoryHook}, Params: {}, Uploaders: {} };
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
@@ -50,6 +57,10 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+(function () {
+  window.storybook = { Hooks: {}, Params: {}, Uploaders: {} };
+})();
 
 // Mount React components on page load
 document.addEventListener("DOMContentLoaded", () => {

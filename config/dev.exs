@@ -56,7 +56,8 @@ config :op, OPWeb.Endpoint,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/op_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+      ~r"lib/op_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$",
+      ~r"lib/op_web/storybook/.*(exs)$"
     ]
   ]
 

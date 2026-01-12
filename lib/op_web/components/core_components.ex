@@ -95,7 +95,7 @@ defmodule OPWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    base = "inline-flex border rounded transition-colors font-medium"
+    base = "inline-flex border rounded transition-colors font-medium hover:cursor-pointer"
 
     colors =
       %{

@@ -6,6 +6,7 @@
 @source "../js";
 @source "../../lib/op_web";
 
+@import "./fonts.css";
 @import "./typography.css";
 @import "./animations.css";
 

@@ -56,6 +56,8 @@ COPY priv priv
 
 COPY lib lib
 
+COPY storybook storybook
+
 # Compile the release
 RUN mix compile
 

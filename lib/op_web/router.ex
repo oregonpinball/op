@@ -3,6 +3,7 @@ defmodule OPWeb.Router do
   use OPWeb, :router
 
   import OPWeb.UserAuth
+  import PhoenixStorybook.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -16,6 +17,10 @@ defmodule OPWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  scope "/" do
+    storybook_assets()
   end
 
   scope "/", OPWeb do
@@ -46,6 +51,9 @@ defmodule OPWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+
+    # Storybook
+    live_storybook "/storybook", backend_module: OPWeb.Storybook
   end
 
   ## Authenticated routes
