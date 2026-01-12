@@ -1,5 +1,7 @@
 defmodule OP.Tournaments.Tournament do
   use Ecto.Schema
+  use OP.Sluggable
+
   import Ecto.Changeset
 
   alias OP.Accounts.User
@@ -12,6 +14,8 @@ defmodule OP.Tournaments.Tournament do
     field :external_url, :string
 
     field :name, :string
+    field :slug, :string
+
     # HTML-formatted column to integrate with TipTap
     field :description, :string
 
@@ -82,8 +86,10 @@ defmodule OP.Tournaments.Tournament do
       :event_booster_multiplier,
       :first_place_value,
       :organizer_id,
-      :season_id
+      :season_id,
+      :slug
     ])
+    |> generate_slug()
     |> validate_required([:name, :start_at])
     |> validate_number(:base_value, greater_than_or_equal_to: 0.0)
     |> validate_number(:tva_rating, greater_than_or_equal_to: 0.0)
