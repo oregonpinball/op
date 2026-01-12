@@ -2,10 +2,11 @@
 
 ## Dependencies
 
-* Erlang 24+, ideally latest (OTP 28)
-* Elixir 1.18+, ideally latest (1.19)
+* Erlang 26+, (Dockerfile @ 27.3.2)
+* Elixir 1.18+, (Dockerfile @ 1.19.2)
+* `npm` (basically any Node version, only used to `npm install`, not build)
 
-There is no NodeJS requirement, as this project uses `esbuild` natively and does not have any external build system (e.g. WebPack).
+There is no NodeJS requirement _outside of installing the assets once initially_, as this project uses `esbuild` natively and does not have any external build system (e.g. WebPack).
 
 ## Setup
 
