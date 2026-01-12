@@ -1,3 +1,13 @@
 <Layouts.app flash={@flash}>
-  <div data-react-component="HelloWorld"></div>
+  <h1>Open Pinball Player Ranking</h1>
+  <p>Track player rankings, tournament results, and ratings across competitive pinball events.</p>
+
+  <div class="grid grid-cols-3">
+    <div>
+      <.link navigate={~p"/players"}>
+        Players
+      </.link>
+    </div>
+  </div>
+
 </Layouts.app>

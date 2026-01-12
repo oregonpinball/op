@@ -21,6 +21,7 @@ defmodule OPWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/react", PageController, :react
   end
 
   ## Authentication routes

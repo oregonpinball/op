@@ -1,0 +1,33 @@
+defmodule OP.Leagues.SeasonRanking do
+  use Ecto.Schema
+  import Ecto.Changeset
+
+  alias OP.Leagues.Season
+  alias OP.Players.Player
+
+  schema "season_rankings" do
+    field :is_rated, :boolean, default: false
+
+    # Glicko
+    field :rating, :float, default: 1500.0
+    field :rating_deviation, :float, default: 200.0
+
+    # Overall leaderboard data, e.g. position #1 - #100
+    field :ranking, :integer
+
+    belongs_to :player, Player
+    belongs_to :season, Season
+
+    timestamps(type: :utc_datetime)
+  end
+
+  @doc false
+  def changeset(season_ranking, attrs) do
+    season_ranking
+    |> cast(attrs, [:is_rated, :rating, :rating_deviation, :ranking, :player_id, :season_id])
+    |> validate_required([:player_id, :season_id])
+    |> validate_number(:rating, greater_than_or_equal_to: 0)
+    |> validate_number(:ranking, greater_than: 0)
+    |> unique_constraint([:player_id, :season_id], name: :season_rankings_player_id_season_id_index)
+  end
+end
