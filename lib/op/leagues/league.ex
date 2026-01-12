@@ -4,6 +4,7 @@ defmodule OP.Leagues.League do
   import Ecto.Changeset
 
   alias OP.Accounts.User
+  alias OP.Leagues.Season
 
   schema "leagues" do
     field :name, :string
@@ -14,6 +15,7 @@ defmodule OP.Leagues.League do
     field :slug, :string
 
     belongs_to :author, User
+    has_many :seasons, Season
 
     timestamps(type: :utc_datetime)
   end

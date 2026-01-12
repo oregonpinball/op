@@ -6,7 +6,6 @@ defmodule OP.Leagues do
   import Ecto.Query, warn: false
   alias OP.Repo
 
-  alias OP.Accounts.Scope
   alias OP.Leagues.{League, Season}
 
   # League functions
@@ -20,12 +19,7 @@ defmodule OP.Leagues do
       [%League{}, ...]
 
   """
-  def list_leagues(%Scope{} = _current_scope) do
-    Repo.all(League)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_leagues(_) do
+  def list_leagues(_scope) do
     Repo.all(League)
   end
 
@@ -38,16 +32,9 @@ defmodule OP.Leagues do
       [%League{}, ...]
 
   """
-  def list_leagues_with_preloads(%Scope{} = _current_scope) do
+  def list_leagues_with_preloads(_scope) do
     League
-    |> preload([:author])
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_leagues_with_preloads(_) do
-    League
-    |> preload([:author])
+    |> preload([:author, seasons: [rankings: :player]])
     |> Repo.all()
   end
 
@@ -60,9 +47,8 @@ defmodule OP.Leagues do
       [%League{}, ...]
 
   """
-  def list_my_leagues(%Scope{user: %{id: user_id}}) do
+  def list_my_leagues(_scope) do
     League
-    |> where([l], l.author_id == ^user_id)
     |> order_by([l], desc: l.inserted_at)
     |> Repo.all()
   end
@@ -81,10 +67,7 @@ defmodule OP.Leagues do
       ** (Ecto.NoResultsError)
 
   """
-  def get_league!(%Scope{} = _current_scope, id), do: Repo.get!(League, id)
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_league!(_, id), do: Repo.get!(League, id)
+  def get_league!(_scope, id), do: Repo.get!(League, id)
 
   @doc """
   Gets a single league with preloaded associations.
@@ -100,16 +83,9 @@ defmodule OP.Leagues do
       ** (Ecto.NoResultsError)
 
   """
-  def get_league_with_preloads!(%Scope{} = _current_scope, id) do
+  def get_league_with_preloads!(_scope, id) do
     League
-    |> preload([:author])
-    |> Repo.get!(id)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_league_with_preloads!(_, id) do
-    League
-    |> preload([:author])
+    |> preload([:author, :seasons])
     |> Repo.get!(id)
   end
 
@@ -125,12 +101,7 @@ defmodule OP.Leagues do
       nil
 
   """
-  def get_league_by_slug(%Scope{} = _current_scope, slug) when is_binary(slug) do
-    Repo.get_by(League, slug: slug)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_league_by_slug(_, slug) when is_binary(slug) do
+  def get_league_by_slug(_scope, slug) when is_binary(slug) do
     Repo.get_by(League, slug: slug)
   end
 
@@ -146,16 +117,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_league(scope, attrs \\ %{})
-
-  def create_league(%Scope{} = _current_scope, attrs) do
-    %League{}
-    |> League.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def create_league(_, attrs) do
+  def create_league(_scope, attrs \\ %{}) do
     %League{}
     |> League.changeset(attrs)
     |> Repo.insert()
@@ -173,14 +135,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_league(%Scope{} = _current_scope, %League{} = league, attrs) do
-    league
-    |> League.changeset(attrs)
-    |> Repo.update()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def update_league(_, %League{} = league, attrs) do
+  def update_league(_scope, %League{} = league, attrs) do
     league
     |> League.changeset(attrs)
     |> Repo.update()
@@ -198,12 +153,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_league(%Scope{} = _current_scope, %League{} = league) do
-    Repo.delete(league)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def delete_league(_, %League{} = league) do
+  def delete_league(_scope, %League{} = league) do
     Repo.delete(league)
   end
 
@@ -231,12 +181,7 @@ defmodule OP.Leagues do
       [%Season{}, ...]
 
   """
-  def list_seasons(%Scope{} = _current_scope) do
-    Repo.all(Season)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_seasons(_) do
+  def list_seasons(_scope) do
     Repo.all(Season)
   end
 
@@ -249,14 +194,7 @@ defmodule OP.Leagues do
       [%Season{}, ...]
 
   """
-  def list_seasons_with_preloads(%Scope{} = _current_scope) do
-    Season
-    |> preload([:league])
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_seasons_with_preloads(_) do
+  def list_seasons_with_preloads(_scope) do
     Season
     |> preload([:league])
     |> Repo.all()
@@ -271,15 +209,7 @@ defmodule OP.Leagues do
       [%Season{}, ...]
 
   """
-  def list_seasons_by_league(%Scope{} = _current_scope, league_id) do
-    Season
-    |> where([s], s.league_id == ^league_id)
-    |> order_by([s], desc: s.start_at)
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_seasons_by_league(_, league_id) do
+  def list_seasons_by_league(_scope, league_id) do
     Season
     |> where([s], s.league_id == ^league_id)
     |> order_by([s], desc: s.start_at)
@@ -295,17 +225,7 @@ defmodule OP.Leagues do
       [%Season{}, ...]
 
   """
-  def list_active_seasons(%Scope{} = _current_scope) do
-    now = DateTime.utc_now()
-
-    Season
-    |> where([s], s.start_at <= ^now and s.end_at >= ^now)
-    |> order_by([s], asc: s.start_at)
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_active_seasons(_) do
+  def list_active_seasons(_scope) do
     now = DateTime.utc_now()
 
     Season
@@ -323,17 +243,7 @@ defmodule OP.Leagues do
       [%Season{}, ...]
 
   """
-  def list_upcoming_seasons(%Scope{} = _current_scope) do
-    now = DateTime.utc_now()
-
-    Season
-    |> where([s], s.start_at > ^now)
-    |> order_by([s], asc: s.start_at)
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_upcoming_seasons(_) do
+  def list_upcoming_seasons(_scope) do
     now = DateTime.utc_now()
 
     Season
@@ -356,10 +266,7 @@ defmodule OP.Leagues do
       ** (Ecto.NoResultsError)
 
   """
-  def get_season!(%Scope{} = _current_scope, id), do: Repo.get!(Season, id)
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_season!(_, id), do: Repo.get!(Season, id)
+  def get_season!(_scope, id), do: Repo.get!(Season, id)
 
   @doc """
   Gets a single season with preloaded associations.
@@ -375,14 +282,7 @@ defmodule OP.Leagues do
       ** (Ecto.NoResultsError)
 
   """
-  def get_season_with_preloads!(%Scope{} = _current_scope, id) do
-    Season
-    |> preload([:league])
-    |> Repo.get!(id)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_season_with_preloads!(_, id) do
+  def get_season_with_preloads!(_scope, id) do
     Season
     |> preload([:league])
     |> Repo.get!(id)
@@ -400,12 +300,7 @@ defmodule OP.Leagues do
       nil
 
   """
-  def get_season_by_slug(%Scope{} = _current_scope, slug) when is_binary(slug) do
-    Repo.get_by(Season, slug: slug)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_season_by_slug(_, slug) when is_binary(slug) do
+  def get_season_by_slug(_scope, slug) when is_binary(slug) do
     Repo.get_by(Season, slug: slug)
   end
 
@@ -421,16 +316,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_season(scope, attrs \\ %{})
-
-  def create_season(%Scope{} = _current_scope, attrs) do
-    %Season{}
-    |> Season.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def create_season(_, attrs) do
+  def create_season(_scope, attrs \\ %{}) do
     %Season{}
     |> Season.changeset(attrs)
     |> Repo.insert()
@@ -448,14 +334,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_season(%Scope{} = _current_scope, %Season{} = season, attrs) do
-    season
-    |> Season.changeset(attrs)
-    |> Repo.update()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def update_season(_, %Season{} = season, attrs) do
+  def update_season(_scope, %Season{} = season, attrs) do
     season
     |> Season.changeset(attrs)
     |> Repo.update()
@@ -473,12 +352,7 @@ defmodule OP.Leagues do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_season(%Scope{} = _current_scope, %Season{} = season) do
-    Repo.delete(season)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def delete_season(_, %Season{} = season) do
+  def delete_season(_scope, %Season{} = season) do
     Repo.delete(season)
   end
 

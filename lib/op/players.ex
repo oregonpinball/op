@@ -6,7 +6,6 @@ defmodule OP.Players do
   import Ecto.Query, warn: false
   alias OP.Repo
 
-  alias OP.Accounts.Scope
   alias OP.Players.Player
 
   @doc """
@@ -18,12 +17,7 @@ defmodule OP.Players do
       [%Player{}, ...]
 
   """
-  def list_players(%Scope{} = _current_scope) do
-    Repo.all(Player)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_players(_) do
+  def list_players(_scope) do
     Repo.all(Player)
   end
 
@@ -36,14 +30,7 @@ defmodule OP.Players do
       [%Player{}, ...]
 
   """
-  def list_players_with_preloads(%Scope{} = _current_scope) do
-    Player
-    |> preload([:user])
-    |> Repo.all()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_players_with_preloads(_) do
+  def list_players_with_preloads(_scope) do
     Player
     |> preload([:user])
     |> Repo.all()
@@ -63,10 +50,7 @@ defmodule OP.Players do
       ** (Ecto.NoResultsError)
 
   """
-  def get_player!(%Scope{} = _current_scope, id), do: Repo.get!(Player, id)
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_player!(_, id), do: Repo.get!(Player, id)
+  def get_player!(_scope, id), do: Repo.get!(Player, id)
 
   @doc """
   Gets a single player with preloaded associations.
@@ -82,14 +66,7 @@ defmodule OP.Players do
       ** (Ecto.NoResultsError)
 
   """
-  def get_player_with_preloads!(%Scope{} = _current_scope, id) do
-    Player
-    |> preload([:user])
-    |> Repo.get!(id)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_player_with_preloads!(_, id) do
+  def get_player_with_preloads!(_scope, id) do
     Player
     |> preload([:user])
     |> Repo.get!(id)
@@ -107,12 +84,7 @@ defmodule OP.Players do
       nil
 
   """
-  def get_player_by_slug(%Scope{} = _current_scope, slug) when is_binary(slug) do
-    Repo.get_by(Player, slug: slug)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_player_by_slug(_, slug) when is_binary(slug) do
+  def get_player_by_slug(_scope, slug) when is_binary(slug) do
     Repo.get_by(Player, slug: slug)
   end
 
@@ -128,12 +100,7 @@ defmodule OP.Players do
       nil
 
   """
-  def get_player_by_external_id(%Scope{} = _current_scope, external_id) when is_binary(external_id) do
-    Repo.get_by(Player, external_id: external_id)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_player_by_external_id(_, external_id) when is_binary(external_id) do
+  def get_player_by_external_id(_scope, external_id) when is_binary(external_id) do
     Repo.get_by(Player, external_id: external_id)
   end
 
@@ -149,16 +116,7 @@ defmodule OP.Players do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_player(scope, attrs \\ %{})
-
-  def create_player(%Scope{} = _current_scope, attrs) do
-    %Player{}
-    |> Player.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def create_player(_, attrs) do
+  def create_player(_scope, attrs \\ %{}) do
     %Player{}
     |> Player.changeset(attrs)
     |> Repo.insert()
@@ -176,14 +134,7 @@ defmodule OP.Players do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_player(%Scope{} = _current_scope, %Player{} = player, attrs) do
-    player
-    |> Player.changeset(attrs)
-    |> Repo.update()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def update_player(_, %Player{} = player, attrs) do
+  def update_player(_scope, %Player{} = player, attrs) do
     player
     |> Player.changeset(attrs)
     |> Repo.update()
@@ -201,12 +152,7 @@ defmodule OP.Players do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_player(%Scope{} = _current_scope, %Player{} = player) do
-    Repo.delete(player)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def delete_player(_, %Player{} = player) do
+  def delete_player(_scope, %Player{} = player) do
     Repo.delete(player)
   end
 

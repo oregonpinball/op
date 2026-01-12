@@ -4,9 +4,21 @@
 
   <div class="grid grid-cols-3">
     <div>
-      <.link navigate={~p"/players"}>
-        Players
-      </.link>
+      <div :for={league <- @leagues} class="mt-2">
+        <.link navigate={~p"/leagues/#{league.slug}"}>
+          {league.name}
+
+          <div :for={season <- league.seasons} class="ml-4 mt-1">
+            <.link navigate={~p"/seasons/#{season.slug}"}>
+              {season.name}
+            </.link>
+
+            <div :for={rank <- season.rankings} class="ml-4 mt-1">
+              {rank.ranking} - {rank.player.name}
+            </div>
+          </div>
+        </.link>
+      </div>
     </div>
   </div>
 

@@ -6,7 +6,6 @@ defmodule OP.Locations do
   import Ecto.Query, warn: false
   alias OP.Repo
 
-  alias OP.Accounts.Scope
   alias OP.Locations.Location
 
   @doc """
@@ -18,12 +17,7 @@ defmodule OP.Locations do
       [%Location{}, ...]
 
   """
-  def list_locations(%Scope{} = _current_scope) do
-    Repo.all(Location)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_locations(_) do
+  def list_locations(_scope) do
     Repo.all(Location)
   end
 
@@ -41,10 +35,7 @@ defmodule OP.Locations do
       ** (Ecto.NoResultsError)
 
   """
-  def get_location!(%Scope{} = _current_scope, id), do: Repo.get!(Location, id)
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_location!(_, id), do: Repo.get!(Location, id)
+  def get_location!(_scope, id), do: Repo.get!(Location, id)
 
   @doc """
   Gets a location by slug.
@@ -58,12 +49,7 @@ defmodule OP.Locations do
       nil
 
   """
-  def get_location_by_slug(%Scope{} = _current_scope, slug) when is_binary(slug) do
-    Repo.get_by(Location, slug: slug)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_location_by_slug(_, slug) when is_binary(slug) do
+  def get_location_by_slug(_scope, slug) when is_binary(slug) do
     Repo.get_by(Location, slug: slug)
   end
 
@@ -79,12 +65,7 @@ defmodule OP.Locations do
       nil
 
   """
-  def get_location_by_external_id(%Scope{} = _current_scope, external_id) when is_binary(external_id) do
-    Repo.get_by(Location, external_id: external_id)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def get_location_by_external_id(_, external_id) when is_binary(external_id) do
+  def get_location_by_external_id(_scope, external_id) when is_binary(external_id) do
     Repo.get_by(Location, external_id: external_id)
   end
 
@@ -100,16 +81,7 @@ defmodule OP.Locations do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_location(scope, attrs \\ %{})
-
-  def create_location(%Scope{} = _current_scope, attrs) do
-    %Location{}
-    |> Location.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def create_location(_, attrs) do
+  def create_location(_scope, attrs \\ %{}) do
     %Location{}
     |> Location.changeset(attrs)
     |> Repo.insert()
@@ -127,14 +99,7 @@ defmodule OP.Locations do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_location(%Scope{} = _current_scope, %Location{} = location, attrs) do
-    location
-    |> Location.changeset(attrs)
-    |> Repo.update()
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def update_location(_, %Location{} = location, attrs) do
+  def update_location(_scope, %Location{} = location, attrs) do
     location
     |> Location.changeset(attrs)
     |> Repo.update()
@@ -152,12 +117,7 @@ defmodule OP.Locations do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_location(%Scope{} = _current_scope, %Location{} = location) do
-    Repo.delete(location)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def delete_location(_, %Location{} = location) do
+  def delete_location(_scope, %Location{} = location) do
     Repo.delete(location)
   end
 

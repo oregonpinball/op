@@ -6,4 +6,10 @@ defmodule OPWeb.TournamentController do
 
     render(conn, :index, tournaments: tournaments)
   end
+
+  def show(conn, %{"id" => id}) do
+    tournament = OP.Tournaments.get_tournament!(conn.assigns.current_scope, id)
+
+    render(conn, :show, tournament: tournament)
+  end
 end

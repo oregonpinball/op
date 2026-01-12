@@ -15,7 +15,7 @@ import Ecto.Query
 require Logger
 
 alias OP.Repo
-alias OP.Leagues.{League, Season, SeasonRanking}
+alias OP.Leagues.{League, Season, Ranking}
 alias OP.Players.Player
 alias OP.Accounts.User
 alias OP.Tournaments.{Standing, Tournament}
@@ -95,16 +95,16 @@ defmodule SeedHelpers do
     end
   end
 
-  def upsert_season_ranking(repo, attrs) do
-    case repo.get_by(SeasonRanking, player_id: attrs.player_id, season_id: attrs.season_id) do
+  def upsert_ranking(repo, attrs) do
+    case repo.get_by(Ranking, player_id: attrs.player_id, season_id: attrs.season_id) do
       nil ->
-        %SeasonRanking{}
-        |> SeasonRanking.changeset(attrs)
+        %Ranking{}
+        |> Ranking.changeset(attrs)
         |> repo.insert!()
 
       existing ->
         existing
-        |> SeasonRanking.changeset(attrs)
+        |> Ranking.changeset(attrs)
         |> repo.update!()
     end
   end
@@ -511,7 +511,7 @@ Logger.info("✓ Created #{standing_count} tournament standings")
 Logger.info("Calculating season rankings...")
 
 seasons = Repo.all(Season)
-total_season_rankings = 0
+total_rankings = 0
 
 for season <- seasons do
   # Get all standings for tournaments in this season
@@ -552,7 +552,7 @@ for season <- seasons do
       is_rated = stats.event_count >= 1
       rating = 1500
 
-      SeedHelpers.upsert_season_ranking(Repo, %{
+      SeedHelpers.upsert_ranking(Repo, %{
         player_id: stats.player_id,
         season_id: season.id,
         ranking: ranking,
@@ -564,11 +564,11 @@ for season <- seasons do
       })
     end)
 
-    total_season_rankings = total_season_rankings + length(player_stats)
+    total_rankings = total_rankings + length(player_stats)
   end
 end
 
-ranking_count = Repo.aggregate(SeasonRanking, :count)
+ranking_count = Repo.aggregate(Ranking, :count)
 
 Logger.info(
   "✓ Calculated #{ranking_count} season player rankings across #{length(seasons)} seasons"
@@ -584,4 +584,4 @@ Logger.info("  - #{Repo.aggregate(League, :count)} leagues")
 Logger.info("  - #{Repo.aggregate(Season, :count)} seasons")
 Logger.info("  - #{Repo.aggregate(Tournament, :count)} tournaments")
 Logger.info("  - #{Repo.aggregate(Standing, :count)} standings")
-Logger.info("  - #{Repo.aggregate(SeasonRanking, :count)} season player rankings")
+Logger.info("  - #{Repo.aggregate(Ranking, :count)} season player rankings")

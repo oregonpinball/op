@@ -6,7 +6,6 @@ defmodule OP.Tournaments do
   import Ecto.Query, warn: false
   alias OP.Repo
 
-  alias OP.Accounts.Scope
   alias OP.Tournaments.Tournament
 
   @doc """
@@ -18,12 +17,7 @@ defmodule OP.Tournaments do
       [%Tournament{}, ...]
 
   """
-  def list_tournaments(%Scope{} = _current_scope) do
-    Repo.all(Tournament)
-  end
-
-  # Fall back for when `scope` is `nil` for public access
-  def list_tournaments(_) do
+  def list_tournaments(_scope) do
     Repo.all(Tournament)
   end
 
@@ -36,7 +30,7 @@ defmodule OP.Tournaments do
       [%Tournament{}, ...]
 
   """
-  def list_tournaments_with_preloads(%Scope{} = _current_scope) do
+  def list_tournaments_with_preloads(_scope) do
     Tournament
     |> preload([:organizer, :season, :location, :standings])
     |> Repo.all()
@@ -51,7 +45,7 @@ defmodule OP.Tournaments do
       [%Tournament{}, ...]
 
   """
-  def list_tournaments_by_season(%Scope{} = _current_scope, season_id) do
+  def list_tournaments_by_season(_scope, season_id) do
     Tournament
     |> where([t], t.season_id == ^season_id)
     |> order_by([t], desc: t.start_at)
@@ -67,9 +61,8 @@ defmodule OP.Tournaments do
       [%Tournament{}, ...]
 
   """
-  def list_my_tournaments(%Scope{user: %{id: user_id}}) do
+  def list_my_tournaments(_scope) do
     Tournament
-    |> where([t], t.organizer_id == ^user_id)
     |> order_by([t], desc: t.start_at)
     |> Repo.all()
   end
@@ -79,11 +72,11 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> list_upcoming_tournaments()
+      iex> list_upcoming_tournaments(current_scope)
       [%Tournament{}, ...]
 
   """
-  def list_upcoming_tournaments do
+  def list_upcoming_tournaments(_scope) do
     now = DateTime.utc_now()
 
     Tournament
@@ -97,11 +90,11 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> list_past_tournaments()
+      iex> list_past_tournaments(current_scope)
       [%Tournament{}, ...]
 
   """
-  def list_past_tournaments do
+  def list_past_tournaments(_scope) do
     now = DateTime.utc_now()
 
     Tournament
@@ -117,14 +110,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> get_tournament!(123)
+      iex> get_tournament!(current_scope, 123)
       %Tournament{}
 
-      iex> get_tournament!(456)
+      iex> get_tournament!(current_scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_tournament!(id), do: Repo.get!(Tournament, id)
+  def get_tournament!(_scope, id), do: Repo.get!(Tournament, id)
 
   @doc """
   Gets a single tournament with preloaded associations.
@@ -133,14 +126,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> get_tournament_with_preloads!(123)
+      iex> get_tournament_with_preloads!(current_scope, 123)
       %Tournament{}
 
-      iex> get_tournament_with_preloads!(456)
+      iex> get_tournament_with_preloads!(current_scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_tournament_with_preloads!(id) do
+  def get_tournament_with_preloads!(_scope, id) do
     Tournament
     |> preload([:organizer, :season, :location, :standings])
     |> Repo.get!(id)
@@ -151,14 +144,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> get_tournament_by_external_id("ext_123")
+      iex> get_tournament_by_external_id(current_scope, "ext_123")
       %Tournament{}
 
-      iex> get_tournament_by_external_id("unknown")
+      iex> get_tournament_by_external_id(current_scope, "unknown")
       nil
 
   """
-  def get_tournament_by_external_id(external_id) when is_binary(external_id) do
+  def get_tournament_by_external_id(_scope, external_id) when is_binary(external_id) do
     Repo.get_by(Tournament, external_id: external_id)
   end
 
@@ -167,14 +160,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> create_tournament(%{field: value})
+      iex> create_tournament(current_scope, %{field: value})
       {:ok, %Tournament{}}
 
-      iex> create_tournament(%{field: bad_value})
+      iex> create_tournament(current_scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_tournament(attrs \\ %{}) do
+  def create_tournament(_scope, attrs \\ %{}) do
     %Tournament{}
     |> Tournament.changeset(attrs)
     |> Repo.insert()
@@ -185,14 +178,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> update_tournament(tournament, %{field: new_value})
+      iex> update_tournament(current_scope, tournament, %{field: new_value})
       {:ok, %Tournament{}}
 
-      iex> update_tournament(tournament, %{field: bad_value})
+      iex> update_tournament(current_scope, tournament, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_tournament(%Tournament{} = tournament, attrs) do
+  def update_tournament(_scope, %Tournament{} = tournament, attrs) do
     tournament
     |> Tournament.changeset(attrs)
     |> Repo.update()
@@ -203,14 +196,14 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> delete_tournament(tournament)
+      iex> delete_tournament(current_scope, tournament)
       {:ok, %Tournament{}}
 
-      iex> delete_tournament(tournament)
+      iex> delete_tournament(current_scope, tournament)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_tournament(%Tournament{} = tournament) do
+  def delete_tournament(_scope, %Tournament{} = tournament) do
     Repo.delete(tournament)
   end
 
@@ -219,11 +212,11 @@ defmodule OP.Tournaments do
 
   ## Examples
 
-      iex> change_tournament(tournament)
+      iex> change_tournament(current_scope, tournament)
       %Ecto.Changeset{data: %Tournament{}}
 
   """
-  def change_tournament(%Tournament{} = tournament, attrs \\ %{}) do
+  def change_tournament(_scope, %Tournament{} = tournament, attrs \\ %{}) do
     Tournament.changeset(tournament, attrs)
   end
 end

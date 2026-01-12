@@ -3,7 +3,7 @@ defmodule OP.Leagues.Season do
   use OP.Sluggable
   import Ecto.Changeset
 
-  alias OP.Leagues.League
+  alias OP.Leagues.{League, Ranking}
 
   schema "seasons" do
     field :name, :string
@@ -19,6 +19,7 @@ defmodule OP.Leagues.Season do
     field :end_at, :utc_datetime
 
     belongs_to :league, League
+    has_many :rankings, Ranking
 
     timestamps(type: :utc_datetime)
   end
