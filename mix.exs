@@ -11,7 +11,8 @@ defmodule OP.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      licenses: ["AGPL-3.0-or-later"]
     ]
   end
 

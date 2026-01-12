@@ -30,6 +30,7 @@ defmodule OPWeb.Router do
     get "/tournaments", TournamentController, :index
     get "/leagues/:slug", LeagueController, :show
     get "/seasons/:slug", SeasonController, :show
+    get "/players/:slug", PlayerController, :show
 
     # TODO: Remove later, developer testing route for rendering
     # React components based on Phoenix-rendered templates

@@ -14,7 +14,8 @@
             </.link>
 
             <div :for={rank <- season.rankings} class="ml-4 mt-1">
-              {rank.ranking} - {rank.player.name}
+              {rank.ranking} -
+              <.link navigate={~p"/players/#{rank.player.slug}"}>{rank.player.name}</.link>
             </div>
           </div>
         </.link>
