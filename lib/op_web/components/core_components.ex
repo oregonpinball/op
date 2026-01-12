@@ -87,15 +87,42 @@ defmodule OPWeb.CoreComponents do
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :string
-  attr :variant, :string, values: ~w(primary)
+  attr :color, :string,
+    default: "primary",
+    values: ~w(neutral primary secondary info success warning error invisible),
+    doc: "the color variant of the button"
+  attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    base = "inline-flex border rounded transition-colors font-medium"
+
+    colors =
+      %{
+        "neutral" => "bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
+        "primary" => "bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
+        "secondary" => "bg-purple-200 text-purple-800 border-purple-300 hover:bg-purple-300 dark:bg-purple-100",
+        "info" => "bg-blue-200 text-blue-800 border-blue-300 hover:bg-blue-300 dark:bg-blue-100",
+        "success" => "bg-green-200 text-green-800 border-green-300 hover:bg-green-300 dark:bg-green-100",
+        "warning" => "bg-yellow-200 text-yellow-800 border-yellow-300 hover:bg-yellow-300 dark:bg-yellow-100",
+        "error" => "bg-red-200 text-red-800 border-red-300 hover:bg-red-300 dark:bg-red-100",
+        "invisible" => "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
+      }
+
+    sizes =
+      %{
+        "xs" => "text-xs p-0.5",
+        "sm" => "text-sm p-0.5",
+        "md" => "text-base py-1 px-2",
+        "lg" => "text-base p-2",
+        "xl" => "text-lg py-2 px-4"
+      }
+
+
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        [base, Map.fetch!(colors, assigns[:color]), Map.fetch!(sizes, assigns[:size])]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do

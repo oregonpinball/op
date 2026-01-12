@@ -36,7 +36,7 @@ defmodule OPWeb.Layouts do
   def app(assigns) do
     ~H"""
     <.sheet id="mobile-nav">
-      <.nav_buttons current_scope={@current_scope} class="flex-col" is_mobile?={true} />
+      <.nav_buttons current_scope={@current_scope} is_mobile?={true} />
     </.sheet>
 
     <nav class="sticky top-0 bg-white border-b-2 p-2">
@@ -66,7 +66,7 @@ defmodule OPWeb.Layouts do
   def nav_buttons(assigns) do
     class =
       if assigns.is_mobile?,
-        do: assigns.class <> " flex-col",
+        do: assigns.class <> " flex flex-col",
         else: assigns.class <> " hidden md:flex items-center"
 
     assigns = Map.put(assigns, :class, class)
@@ -74,9 +74,9 @@ defmodule OPWeb.Layouts do
     ~H"""
     <ul class={[@class]}>
       <li class="grow">
-        <.link navigate={~p"/"}>
+        <.button navigate={~p"/"} color="invisible">
           <span class="font-semibold">Open Pinball</span>
-        </.link>
+        </.button>
       </li>
       <%= if @current_scope do %>
         <li>
@@ -93,10 +93,10 @@ defmodule OPWeb.Layouts do
         </li>
       <% else %>
         <li>
-          <.link href={~p"/users/register"}>Register</.link>
+          <.button navigate={~p"/users/register"} color="invisible">Register</.button>
         </li>
         <li>
-          <.link href={~p"/users/log-in"}>Log in</.link>
+          <.button navigate={~p"/users/log-in"}>Log in</.button>
         </li>
       <% end %>
     </ul>
@@ -108,7 +108,7 @@ defmodule OPWeb.Layouts do
         </.link>
       </li>
       <li class="">
-        <.button phx-click={toggle("#mobile-nav")}>
+        <.button phx-click={toggle("#mobile-nav")} color="invisible">
           <.icon name="hero-bars-3" class="size-6 text-black dark:text-white hover:cursor-pointer" />
         </.button>
       </li>
