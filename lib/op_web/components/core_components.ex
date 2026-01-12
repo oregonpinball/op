@@ -87,10 +87,12 @@ defmodule OPWeb.CoreComponents do
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :string
+
   attr :color, :string,
     default: "secondary",
     values: ~w(primary secondary info success warning error invisible),
     doc: "the color variant of the button"
+
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
   slot :inner_block, required: true
 
@@ -99,13 +101,18 @@ defmodule OPWeb.CoreComponents do
 
     colors =
       %{
-        "primary" => "bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
-        "secondary" => "bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
+        "primary" =>
+          "bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
+        "secondary" =>
+          "bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
         "info" => "bg-sky-800 text-sky-50 border-sky-950 hover:bg-sky-900 dark:bg-blue-100",
-        "success" => "bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
-        "warning" => "bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
+        "success" =>
+          "bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
+        "warning" =>
+          "bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
         "error" => "bg-red-800 text-red-50 border-red-950 hover:bg-red-900 dark:bg-red-100",
-        "invisible" => "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
+        "invisible" =>
+          "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
       }
 
     sizes =
@@ -116,8 +123,6 @@ defmodule OPWeb.CoreComponents do
         "lg" => "text-base p-2",
         "xl" => "text-lg py-2 px-4"
       }
-
-
 
     assigns =
       assign_new(assigns, :class, fn ->
@@ -427,11 +432,17 @@ defmodule OPWeb.CoreComponents do
     ~H"""
     <div id={@id} class="hidden z-100 fixed inset-0">
       <div class="fixed inset-0 bg-black/60 pointer-events-none" data-sheet-bg />
-      <div class="outline-hidden fixed inset-0 flex justify-end animate-slide-in-right" data-sheet-content>
+      <div
+        class="outline-hidden fixed inset-0 flex justify-end animate-slide-in-right"
+        data-sheet-content
+      >
         <div class="p-4 min-w-3/4 md:min-w-1/4 overflow-y-auto relative bg-slate-100 border-l-4 dark:bg-slate-800 shadow-base flex flex-col">
           <div class="flex justify-end sticky top-0">
             <button phx-click={toggle("##{@id}")} class="" aria-label="Close">
-              <.icon name="hero-x-mark" class="size-6 text-black dark:text-white hover:cursor-pointer" />
+              <.icon
+                name="hero-x-mark"
+                class="size-6 text-black dark:text-white hover:cursor-pointer"
+              />
             </button>
           </div>
 

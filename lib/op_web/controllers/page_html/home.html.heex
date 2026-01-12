@@ -1,24 +1,92 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <h1>Open Pinball Player Ranking</h1>
-  <p>Track player rankings, tournament results, and ratings across competitive pinball events.</p>
+  <div class="text-center">
+    <h1 class="text-5xl font-bold text-center mt-6 text-slate-900">Open Pinball</h1>
+    <p class="mt-4 font-medium text-2xl text-slate-700">
+      Track player rankings, tournament results, and ratings across competitive pinball events.
+    </p>
+  </div>
 
-  <div class="grid grid-cols-3">
-    <div>
-      <div :for={league <- @leagues} class="mt-2">
-        <.link navigate={~p"/leagues/#{league.slug}"}>
-          {league.name}
-
-          <div :for={season <- league.seasons} class="ml-4 mt-1">
-            <.link navigate={~p"/seasons/#{season.slug}"}>
-              {season.name}
-            </.link>
-
-            <div :for={rank <- season.rankings} class="ml-4 mt-1">
-              {rank.ranking} -
-              <.link navigate={~p"/players/#{rank.player.slug}"}>{rank.player.name}</.link>
-            </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 mt-4 gap-4">
+    <div class="col-span-1">
+      <div class="grid grid-cols-2 gap-4">
+        <div :if={is_map(@seasons.open)}>
+          <h2 class="text-2xl font-medium p-2 bg-white border-2 rounded-lg text-center">{@seasons.open.name}</h2>
+          <div :for={rank <- @seasons.open.rankings} class="ml-4 mt-1">
+            {rank.ranking} -
+            <.link navigate={~p"/players/#{rank.player.slug}"}>{rank.player.name}</.link>
           </div>
-        </.link>
+        </div>
+        <div :if={is_map(@seasons.womens)}>
+          <h2 class="text-2xl font-medium p-2 bg-white border-2 rounded-lg text-center">{@seasons.womens.name}</h2>
+          <div :for={rank <- @seasons.womens.rankings} class="ml-4 mt-1">
+            {rank.ranking} -
+            <.link navigate={~p"/players/#{rank.player.slug}"}>{rank.player.name}</.link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h1 class="text-3xl font-semibold">Upcoming tournaments</h1>
+
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="space-y-4 order-2 md:order-1 md:col-span-3">
+          <%= for tournament <- @tournaments do %>
+            <.link
+              href={"#tournament-#{tournament.id}"}
+              class="bg-white block border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 hover:scale-101 transition-all group"
+            >
+              <div class="grid grid-cols-3">
+                <div class="col-span-3 md:col-span-2">
+                  <div class="relative block mx-auto md:hidden">
+                    <div class="block mx-auto md:hidden h-32 bg-[url('/images/wedgehead.webp')] bg-cover rounded"></div>
+                    <div class="absolute top-0 right-0 flex justify-end p-2">
+                      <div class="bg-white size-12 border-2 border-gray-200 rounded-full bg-cover bg-[url('/images/dogsoccer.png')]"></div>
+                    </div>
+                  </div>
+
+                  <div class="p-4">
+                    <div class="flex flex-col">
+                      <h3 class="text-2xl font-semibold text-gray-900">Monthly League Finals</h3>
+                    </div>
+                    <p class="font-medium mt-1">
+                      Mon, May 9
+                      <.icon name="hero-clock" class="size-4 inline stroke-black relative -top-0.5" />
+                      5:00 PM PST
+                    </p>
+                    <%= if Ecto.assoc_loaded?(tournament.location) && tournament.location.name do %>
+                      <p class="text-gray-700">@ {tournament.location.name}</p>
+                    <% end %>
+                    <p class="text-gray-500 text-sm mt-1">Hosted by Dog Soccer Entertainment</p>
+
+                    <div class="inline-flex space-x-1 mt-2">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">$5</span>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Open</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hidden md:flex md:items-end md:justify-end">
+                  <div class="top-0 w-full h-full text-right bg-cover bg-no-repeat [--mask-stop:25%] group-hover:[--mask-stop:20%] bg-[url('/images/wedgehead.webp')] [-webkit-mask-image:linear-gradient(115deg,transparent_0%,transparent_calc(var(--mask-stop)-1px),black_var(--mask-stop),black_100%)] mask-[linear-gradient(115deg,transparent_0%,transparent_calc(var(--mask-stop)-1px),black_var(--mask-stop),black_100%)] transition-[--mask-stop] duration-300 ease-in-out rounded-r-lg">
+                    <div class="flex justify-end p-2">
+                      <div class="bg-white size-12 border-2 border-gray-200 rounded-full bg-cover bg-[url('/images/dogsoccer.png')]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </.link>
+          <% end %>
+        </div>
+
+        <div class="order-1 md:order-2 space-x-1 md:space-y-1">
+          <h1>Filters</h1>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Women's</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Open</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Certified</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Major</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Chaos</span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Starts early</span>
+        </div>
       </div>
     </div>
   </div>

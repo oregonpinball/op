@@ -45,7 +45,7 @@ defmodule OPWeb.Layouts do
       </div>
     </nav>
 
-    <main class="container mx-auto">
+    <main class="container mx-auto p-4">
       {render_slot(@inner_block)}
     </main>
 

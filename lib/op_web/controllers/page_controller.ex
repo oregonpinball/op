@@ -3,7 +3,21 @@ defmodule OPWeb.PageController do
 
   def home(conn, _params) do
     leagues = OP.Leagues.list_leagues_with_preloads(conn.assigns.current_scope)
-    render(conn, :home, leagues: leagues)
+
+    seasons =
+      Enum.map(leagues, & &1.seasons)
+      |> List.flatten()
+
+    # TODO: Need to implement a better way of finding these, a starring system or something.
+    seasons = %{
+      open: Enum.find(seasons, fn s -> String.contains?(s.slug, "open") end),
+      womens: Enum.find(seasons, fn s -> String.contains?(s.slug, "womens") end),
+    }
+
+    # TODO :Scope back to upcoming
+    tournaments = OP.Tournaments.list_tournaments(conn.assigns.current_scope)
+
+    render(conn, :home, leagues: leagues, seasons: seasons, tournaments: tournaments)
   end
 
   def react(conn, _params) do
