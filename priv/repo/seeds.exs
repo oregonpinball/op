@@ -190,10 +190,11 @@ end
 Logger.info("Creating default admin user...")
 admin_password = "AdminPassword123!"
 
-admin = SeedHelpers.upsert_user(Repo, %{
-  email: "admin@example.com",
-  password: admin_password
-})
+admin =
+  SeedHelpers.upsert_user(Repo, %{
+    email: "admin@example.com",
+    password: admin_password
+  })
 
 Logger.info("✓ Created admin user (admin@example.com / #{admin_password})")
 

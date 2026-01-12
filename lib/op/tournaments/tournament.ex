@@ -20,8 +20,27 @@ defmodule OP.Tournaments.Tournament do
     field :end_at, :utc_datetime
 
     field :tgp_config, :map
-    field :event_booster, Ecto.Enum, values: [:none, :certified, :certified_plus, :championship_series, :major], default: :none
-    field :qualifying_format, Ecto.Enum, values: [:single_elimination, :double_elimination, :match_play, :best_game, :card_qualifying, :pin_golf, :flip_frenzy, :strike_format, :target_match_play, :hybrid, :none], default: :none
+
+    field :event_booster, Ecto.Enum,
+      values: [:none, :certified, :certified_plus, :championship_series, :major],
+      default: :none
+
+    field :qualifying_format, Ecto.Enum,
+      values: [
+        :single_elimination,
+        :double_elimination,
+        :match_play,
+        :best_game,
+        :card_qualifying,
+        :pin_golf,
+        :flip_frenzy,
+        :strike_format,
+        :target_match_play,
+        :hybrid,
+        :none
+      ],
+      default: :none
+
     field :allows_opt_out, :boolean, default: false
 
     field :base_value, :float

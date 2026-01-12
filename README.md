@@ -30,9 +30,10 @@ Installation of Erlang happens first, as Elixir depends on it.  To install via `
 
 From the root directory (what you cloned from Git), run:
 
-1. `mix ecto.reset`
+1. `mix deps.get`
+2. `mix ecto.reset`
     * This should create, migrate, and seed your SQLite3 database (in `/db`).
         * `mix ecto.create`, `mix ecto.migrate`, `mix ecto.seed`
-2. `iex -S mix phx.server`
+3. `iex -S mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.

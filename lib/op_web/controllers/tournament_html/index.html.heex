@@ -1,12 +1,9 @@
-<h1> Tournaments </h1>
+<h1>Tournaments</h1>
 <ul>
-    <li :for={tournament <- @tournaments} >
-      <strong><%= tournament.name %></strong>
-      <br/>
-      Location: <%= tournament.location_id %>
-      <br/>
-      Organizer ID: <%= tournament.organizer_id %>
-      <br/>
-      Season ID: <%= tournament.season_id %>
-    </li>
+  <li :for={tournament <- @tournaments}>
+    <strong>{tournament.name}</strong>
+    <br /> Location: {tournament.location_id}
+    <br /> Organizer ID: {tournament.organizer_id}
+    <br /> Season ID: {tournament.season_id}
+  </li>
 </ul>

@@ -60,7 +60,6 @@ defmodule OPWeb.Router do
     post "/users/update-password", UserSessionController, :update_password
   end
 
-
   ## Development
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:op, :dev_routes) do
