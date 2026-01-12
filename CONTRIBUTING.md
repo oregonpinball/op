@@ -48,6 +48,17 @@ This project uses `mix format` for code formatting. You can format your code man
 mix format
 ```
 
+### IDE
+
+This project works best with IDEs that support **ElixirLS** (Elixir Language Server) for features like autocomplete, go-to-definition, inline documentation, and code formatting.
+
+**Recommended IDE:**
+
+- **Visual Studio Code** - Most popular option with ElixirLS support
+  - Extension: [ElixirLS](https://marketplace.visualstudio.com/items?itemName=JakeBecker.elixir-ls) by Jake Becker
+  - Extension: [Phoenix Framework](https://marketplace.visualstudio.com/items?itemName=phoenixframework.phoenix) for additional Phoenix-specific features
+
+
 #### Format on Save in VS Code
 
 To automatically format Elixir files on save in Visual Studio Code:
