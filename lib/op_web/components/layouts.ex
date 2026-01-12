@@ -35,11 +35,13 @@ defmodule OPWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <nav class="sticky top-0">
+    <.sheet id="mobile-nav">
+      <.nav_buttons current_scope={@current_scope} class="flex-col" is_mobile?={true} />
+    </.sheet>
+
+    <nav class="sticky top-0 bg-white border-b-2 p-2">
       <div class="container mx-auto">
-        <.link navigate={~p"/"} class="">
-          <span class="font-semibold">Open Pinball</span>
-        </.link>
+        <.nav_buttons current_scope={@current_scope} />
       </div>
     </nav>
 
@@ -48,6 +50,66 @@ defmodule OPWeb.Layouts do
     </main>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  Renders navigation buttons for the layout for normal and mobile.
+  """
+  attr :current_scope, :map,
+    default: nil,
+    doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+
+  attr :class, :string, default: "", doc: "additional classes for the nav container"
+  attr :is_mobile?, :boolean, default: false, doc: "whether the nav is for mobile view"
+
+  def nav_buttons(assigns) do
+    class =
+      if assigns.is_mobile?,
+        do: assigns.class <> " flex-col",
+        else: assigns.class <> " hidden md:flex items-center"
+
+    assigns = Map.put(assigns, :class, class)
+
+    ~H"""
+    <ul class={[@class]}>
+      <li class="grow">
+        <.link navigate={~p"/"}>
+          <span class="font-semibold">Open Pinball</span>
+        </.link>
+      </li>
+      <%= if @current_scope do %>
+        <li>
+          {@current_scope.user.email}
+        </li>
+        <li>
+          <.link href={~p"/users/settings"}>Settings</.link>
+        </li>
+        <li>
+          <.link href={~p"/users/log-out"} method="delete">Log out</.link>
+        </li>
+      <% else %>
+        <li>
+          <.link href={~p"/users/register"}>Register</.link>
+        </li>
+        <li>
+          <.link href={~p"/users/log-in"}>Log in</.link>
+        </li>
+      <% end %>
+    </ul>
+
+    <ul :if={!@is_mobile?} class="flex justify-end md:hidden">
+      <li class="grow">
+        <.link navigate={~p"/"}>
+          <span class="font-semibold">Open Pinball</span>
+        </.link>
+      </li>
+      <li class="">
+        <.button phx-click={toggle("#mobile-nav")}>
+          <.icon name="hero-bars-3" class="size-6 text-black dark:text-white hover:cursor-pointer" />
+        </.button>
+      </li>
+    </ul>
     """
   end
 

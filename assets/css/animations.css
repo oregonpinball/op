@@ -1,0 +1,26 @@
+@theme {
+  --animate-slide-in-right: slide-in-right 0.15s ease-in forwards;
+  --animate-slide-out-right: slide-out-right 0.15s ease-in forwards;
+
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(5%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(5%);
+      opacity: 0;
+    }
+  }
+}

@@ -390,6 +390,33 @@ defmodule OPWeb.CoreComponents do
   end
 
   @doc """
+  Renders a slide-over sheet that enters from the right side of the screen.
+
+  Useful for mobile navigation menus or detail panes.
+  """
+  attr :id, :string, required: true
+  slot :inner_block, required: true
+
+  def sheet(assigns) do
+    ~H"""
+    <div id={@id} class="hidden z-100 fixed inset-0">
+      <div class="fixed inset-0 bg-black/60 pointer-events-none" data-sheet-bg />
+      <div class="outline-hidden fixed inset-0 flex justify-end animate-slide-in-right" data-sheet-content>
+        <div class="p-4 min-w-3/4 md:min-w-1/4 overflow-y-auto relative bg-slate-100 border-l-4 dark:bg-slate-800 shadow-base flex flex-col">
+          <div class="flex justify-end sticky top-0">
+            <button phx-click={toggle("##{@id}")} class="" aria-label="Close">
+              <.icon name="hero-x-mark" class="size-6 text-black dark:text-white hover:cursor-pointer" />
+            </button>
+          </div>
+
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.
@@ -417,6 +444,10 @@ defmodule OPWeb.CoreComponents do
   end
 
   ## JS Commands
+
+  def toggle(_js \\ %JS{}, selector) do
+    JS.dispatch("op:toggle", to: "#{selector}")
+  end
 
   def show(js \\ %JS{}, selector) do
     JS.show(js,

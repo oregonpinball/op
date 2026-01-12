@@ -7,6 +7,7 @@
 @source "../../lib/op_web";
 
 @import "./typography.css";
+@import "./animations.css";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
