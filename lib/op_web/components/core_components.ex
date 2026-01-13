@@ -215,26 +215,24 @@ defmodule OPWeb.CoreComponents do
     colors =
       %{
         "primary" =>
-          "bg-emerald-800 text-emerald-50 border-emerald-950 dark:bg-rose-100",
+          "bg-emerald-700 text-emerald-50 border-emerald-800 dark:bg-rose-100",
         "secondary" =>
           "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-100",
-        "info" => "bg-sky-800 text-sky-50 border-sky-950 dark:bg-blue-100",
+        "info" => "bg-sky-700 text-sky-50 border-sky-800 dark:bg-blue-100",
         "success" =>
           "bg-green-700 text-green-50 border-green-800 dark:bg-green-100",
         "warning" =>
-          "bg-yellow-600 text-yellow-50 border-yellow-800 dark:bg-yellow-100",
-        "error" => "bg-red-800 text-red-50 border-red-950 dark:bg-red-100",
-        "invisible" =>
-          "bg-transparent text-inherit border-transparent dark:hover:bg-slate-800"
+          "bg-yellow-600 text-yellow-50 border-yellow-700 dark:bg-yellow-100",
+        "error" => "bg-red-800 text-red-50 border-red-800 dark:bg-red-100"
       }
 
     sizes =
       %{
         "xs" => "text-xs px-0.5",
         "sm" => "text-xs px-1",
-        "md" => "text-xs px-2",
-        "lg" => "text-base px-1.5",
-        "xl" => "text-base px-2"
+        "md" => "text-xs px-2 py-0.5",
+        "lg" => "text-base px-1.5 py-1",
+        "xl" => "text-lg px-2 py-1"
       }
 
     assigns = Map.put(assigns, :class, [base, Map.fetch!(colors, assigns[:color]), Map.fetch!(sizes, assigns[:size]), assigns.class])
