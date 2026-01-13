@@ -39,7 +39,7 @@ defmodule OPWeb.Layouts do
       <.nav_buttons current_scope={@current_scope} is_mobile?={true} />
     </.sheet>
 
-    <nav class="sticky top-0 bg-white border-b-2 p-2">
+    <nav class="sticky top-0 bg-white border-b-2 p-2 z-10">
       <div class="container mx-auto">
         <.nav_buttons current_scope={@current_scope} />
       </div>
@@ -67,7 +67,7 @@ defmodule OPWeb.Layouts do
     class =
       if assigns.is_mobile?,
         do: assigns.class <> " flex flex-col",
-        else: assigns.class <> " hidden md:flex items-center"
+        else: assigns.class <> " hidden md:flex items-center space-x-2"
 
     assigns = Map.put(assigns, :class, class)
 

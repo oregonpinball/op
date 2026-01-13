@@ -7,106 +7,240 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
     [
       %Variation{
         id: :default,
-        description: "Default button with primary color",
+        description: "Default button with secondary color and solid variant",
         slots: ["Click me"]
       },
-      %Variation{
-        id: :primary,
-        description: "Primary colored button",
-        attributes: %{
-          color: "primary"
-        },
-        slots: ["Primary"]
-      },
-      %Variation{
-        id: :secondary,
-        description: "Secondary colored button",
-        attributes: %{
-          color: "secondary"
-        },
-        slots: ["Secondary"]
-      },
-      %Variation{
-        id: :info,
-        description: "Info colored button",
-        attributes: %{
-          color: "info"
-        },
-        slots: ["Info"]
-      },
-      %Variation{
-        id: :success,
-        description: "Success colored button",
-        attributes: %{
-          color: "success"
-        },
-        slots: ["Success"]
-      },
-      %Variation{
-        id: :warning,
-        description: "Warning colored button",
-        attributes: %{
-          color: "warning"
-        },
-        slots: ["Warning"]
-      },
-      %Variation{
-        id: :error,
-        description: "Error colored button",
-        attributes: %{
-          color: "error"
-        },
-        slots: ["Error"]
-      },
-      %Variation{
-        id: :invisible,
-        description: "Invisible button with transparent background",
-        attributes: %{
-          color: "invisible"
-        },
-        slots: ["Invisible"]
-      },
       %VariationGroup{
-        id: :sizes,
-        description: "Button sizes",
+        id: :colors_solid,
+        description: "Solid variant buttons (all colors)",
         variations: [
           %Variation{
-            id: :xs,
-            description: "Extra small button",
+            id: :primary_solid,
+            description: "Primary solid button",
             attributes: %{
-              size: "xs"
+              color: "primary",
+              variant: "solid"
+            },
+            slots: ["Primary"]
+          },
+          %Variation{
+            id: :secondary_solid,
+            description: "Secondary solid button",
+            attributes: %{
+              color: "secondary",
+              variant: "solid"
+            },
+            slots: ["Secondary"]
+          },
+          %Variation{
+            id: :info_solid,
+            description: "Info solid button",
+            attributes: %{
+              color: "info",
+              variant: "solid"
+            },
+            slots: ["Info"]
+          },
+          %Variation{
+            id: :success_solid,
+            description: "Success solid button",
+            attributes: %{
+              color: "success",
+              variant: "solid"
+            },
+            slots: ["Success"]
+          },
+          %Variation{
+            id: :warning_solid,
+            description: "Warning solid button",
+            attributes: %{
+              color: "warning",
+              variant: "solid"
+            },
+            slots: ["Warning"]
+          },
+          %Variation{
+            id: :error_solid,
+            description: "Error solid button",
+            attributes: %{
+              color: "error",
+              variant: "solid"
+            },
+            slots: ["Error"]
+          }
+        ]
+      },
+      %VariationGroup{
+        id: :colors_invisible,
+        description: "Invisible variant buttons (all colors)",
+        variations: [
+          %Variation{
+            id: :primary_invisible,
+            description: "Primary invisible button",
+            attributes: %{
+              color: "primary",
+              variant: "invisible"
+            },
+            slots: ["Primary"]
+          },
+          %Variation{
+            id: :secondary_invisible,
+            description: "Secondary invisible button",
+            attributes: %{
+              color: "secondary",
+              variant: "invisible"
+            },
+            slots: ["Secondary"]
+          },
+          %Variation{
+            id: :info_invisible,
+            description: "Info invisible button",
+            attributes: %{
+              color: "info",
+              variant: "invisible"
+            },
+            slots: ["Info"]
+          },
+          %Variation{
+            id: :success_invisible,
+            description: "Success invisible button",
+            attributes: %{
+              color: "success",
+              variant: "invisible"
+            },
+            slots: ["Success"]
+          },
+          %Variation{
+            id: :warning_invisible,
+            description: "Warning invisible button",
+            attributes: %{
+              color: "warning",
+              variant: "invisible"
+            },
+            slots: ["Warning"]
+          },
+          %Variation{
+            id: :error_invisible,
+            description: "Error invisible button",
+            attributes: %{
+              color: "error",
+              variant: "invisible"
+            },
+            slots: ["Error"]
+          }
+        ]
+      },
+      %VariationGroup{
+        id: :colors_underline,
+        description: "Underline variant buttons (all colors)",
+        variations: [
+          %Variation{
+            id: :primary_underline,
+            description: "Primary underline button",
+            attributes: %{
+              color: "primary",
+              variant: "underline"
+            },
+            slots: ["Primary"]
+          },
+          %Variation{
+            id: :secondary_underline,
+            description: "Secondary underline button",
+            attributes: %{
+              color: "secondary",
+              variant: "underline"
+            },
+            slots: ["Secondary"]
+          },
+          %Variation{
+            id: :info_underline,
+            description: "Info underline button",
+            attributes: %{
+              color: "info",
+              variant: "underline"
+            },
+            slots: ["Info"]
+          },
+          %Variation{
+            id: :success_underline,
+            description: "Success underline button",
+            attributes: %{
+              color: "success",
+              variant: "underline"
+            },
+            slots: ["Success"]
+          },
+          %Variation{
+            id: :warning_underline,
+            description: "Warning underline button",
+            attributes: %{
+              color: "warning",
+              variant: "underline"
+            },
+            slots: ["Warning"]
+          },
+          %Variation{
+            id: :error_underline,
+            description: "Error underline button",
+            attributes: %{
+              color: "error",
+              variant: "underline"
+            },
+            slots: ["Error"]
+          }
+        ]
+      },
+      %VariationGroup{
+        id: :sizes_solid,
+        description: "Button sizes (solid variant)",
+        variations: [
+          %Variation{
+            id: :xs_solid,
+            description: "Extra small solid button",
+            attributes: %{
+              size: "xs",
+              variant: "solid",
+              color: "primary"
             },
             slots: ["Extra Small"]
           },
           %Variation{
-            id: :sm,
-            description: "Small button",
+            id: :sm_solid,
+            description: "Small solid button",
             attributes: %{
-              size: "sm"
+              size: "sm",
+              variant: "solid",
+              color: "primary"
             },
             slots: ["Small"]
           },
           %Variation{
-            id: :md,
-            description: "Medium button (default)",
+            id: :md_solid,
+            description: "Medium solid button (default)",
             attributes: %{
-              size: "md"
+              size: "md",
+              variant: "solid",
+              color: "primary"
             },
             slots: ["Medium"]
           },
           %Variation{
-            id: :lg,
-            description: "Large button",
+            id: :lg_solid,
+            description: "Large solid button",
             attributes: %{
-              size: "lg"
+              size: "lg",
+              variant: "solid",
+              color: "primary"
             },
             slots: ["Large"]
           },
           %Variation{
-            id: :xl,
-            description: "Extra large button",
+            id: :xl_solid,
+            description: "Extra large solid button",
             attributes: %{
-              size: "xl"
+              size: "xl",
+              variant: "solid",
+              color: "primary"
             },
             slots: ["Extra Large"]
           }
@@ -121,7 +255,8 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
             description: "Button with navigate link",
             attributes: %{
               navigate: "/",
-              color: "primary"
+              color: "primary",
+              variant: "solid"
             },
             slots: ["Go Home"]
           },
@@ -130,7 +265,8 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
             description: "Button with patch link",
             attributes: %{
               patch: "/",
-              color: "secondary"
+              color: "secondary",
+              variant: "solid"
             },
             slots: ["Patch Route"]
           },
@@ -139,7 +275,8 @@ defmodule OPWeb.Storybook.CoreComponents.Button do
             description: "Button with href",
             attributes: %{
               href: "https://example.com",
-              color: "info"
+              color: "info",
+              variant: "underline"
             },
             slots: ["External Link"]
           }

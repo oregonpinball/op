@@ -93,40 +93,91 @@ defmodule OPWeb.CoreComponents do
     values: ~w(primary secondary info success warning error invisible),
     doc: "the color variant of the button"
 
+  attr :variant, :string,
+    default: "solid",
+    values: ~w(solid invisible underline),
+    doc: "the variant of the button"
+
+
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    base = "inline-flex border rounded transition-colors font-medium hover:cursor-pointer"
+    base = "inline-flex rounded transition-colors font-medium hover:cursor-pointer"
 
     colors =
       %{
-        "primary" =>
-          "bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
-        "secondary" =>
-          "bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
-        "info" => "bg-sky-800 text-sky-50 border-sky-950 hover:bg-sky-900 dark:bg-blue-100",
-        "success" =>
-          "bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
-        "warning" =>
-          "bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
-        "error" => "bg-red-800 text-red-50 border-red-950 hover:bg-red-900 dark:bg-red-100",
-        "invisible" =>
-          "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
+        "primary" => %{
+          "solid" => "border bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
+          "invisible" => "bg-transparent text-emerald-800 border-transparent hover:bg-emerald-100 dark:text-emerald-100 dark:hover:bg-emerald-900",
+          "underline" => "bg-transparent underline decoration-emerald-500 hover:bg-slate-100/90"
+        },
+        "secondary" => %{
+          "solid" => "border bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
+          "invisible" => "bg-transparent text-slate-800 border-transparent hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800",
+          "underline" => "bg-transparent underline decoration-slate-400 hover:bg-slate-100/90"
+        },
+        "info" => %{
+          "solid" => "border bg-sky-800 text-sky-50 border-sky-950 hover:bg-sky-900 dark:bg-blue-100",
+          "invisible" => "bg-transparent text-sky-800 border-transparent hover:bg-sky-100 dark:text-sky-100 dark:hover:bg-sky-900",
+          "underline" => "bg-transparent underline decoration-sky-500 hover:bg-slate-100/90"
+        },
+        "success" => %{
+          "solid" => "border bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
+          "invisible" => "bg-transparent text-green-700 border-transparent hover:bg-green-100 dark:text-green-100 dark:hover:bg-green-900",
+          "underline" => "bg-transparent underline decoration-green-500 hover:bg-slate-100/90"
+        },
+        "warning" => %{
+          "solid" => "border bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
+          "invisible" => "bg-transparent text-yellow-600 border-transparent hover:bg-yellow-100 dark:text-yellow-100 dark:hover:bg-yellow-800",
+          "underline" => "bg-transparent underline decoration-yellow-500 hover:bg-slate-100/90"
+        },
+        "error" => %{
+          "solid" => "border bg-red-800 text-red-50 border-red-950 hover:bg-red-900 dark:bg-red-100",
+          "invisible" => "bg-transparent text-red-800 border-transparent hover:bg-red-100 dark:text-red-100 dark:hover:bg-red-900",
+          "underline" => "bg-transparent underline decoration-red-500 hover:bg-slate-100/90"
+        },
+        "invisible" => %{
+          "solid" => "border bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
+          "invisible" => "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
+          "underline" => "bg-transparent underline decoration-current hover:bg-slate-100/90"
+        }
       }
 
     sizes =
       %{
-        "xs" => "text-xs p-0.5",
-        "sm" => "text-sm p-0.5",
-        "md" => "text-base py-1 px-2",
-        "lg" => "text-base p-2",
-        "xl" => "text-lg py-2 px-4"
+        "xs" => %{
+          "solid" => "text-xs p-0.5",
+          "invisible" => "text-xs p-0.5",
+          "underline" => ""
+        },
+        "sm" => %{
+          "solid" => "text-sm p-0.5",
+          "invisible" => "text-sm p-0.5",
+          "underline" => ""
+        },
+        "md" => %{
+          "solid" => "text-base py-1 px-2",
+          "invisible" => "text-base py-1 px-2",
+          "underline" => ""
+        },
+        "lg" => %{
+          "solid" => "text-base p-2",
+          "invisible" => "text-base p-2",
+          "underline" => ""
+        },
+        "xl" => %{
+          "solid" => "text-lg py-2 px-4",
+          "invisible" => "text-lg py-2 px-4",
+          "underline" => ""
+        }
       }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        [base, Map.fetch!(colors, assigns[:color]), Map.fetch!(sizes, assigns[:size])]
+        color_classes = colors |> Map.fetch!(assigns[:color]) |> Map.fetch!(assigns[:variant])
+        size_classes = sizes |> Map.fetch!(assigns[:size]) |> Map.fetch!(assigns[:variant])
+        [base, color_classes, size_classes]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -142,6 +193,60 @@ defmodule OPWeb.CoreComponents do
       </button>
       """
     end
+  end
+
+  @doc """
+  Renders
+  """
+  attr :class, :string, default: ""
+  attr :color, :string,
+    default: "secondary",
+    values: ~w(primary secondary info success warning error invisible),
+    doc: "the color variant of the button"
+
+  attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    base = "inline-flex items-center truncate rounded-lg border font-medium transition-all"
+
+    colors =
+      %{
+        "primary" =>
+          "bg-emerald-800 text-emerald-50 border-emerald-950 dark:bg-rose-100",
+        "secondary" =>
+          "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-100",
+        "info" => "bg-sky-800 text-sky-50 border-sky-950 dark:bg-blue-100",
+        "success" =>
+          "bg-green-700 text-green-50 border-green-800 dark:bg-green-100",
+        "warning" =>
+          "bg-yellow-600 text-yellow-50 border-yellow-800 dark:bg-yellow-100",
+        "error" => "bg-red-800 text-red-50 border-red-950 dark:bg-red-100",
+        "invisible" =>
+          "bg-transparent text-inherit border-transparent dark:hover:bg-slate-800"
+      }
+
+    sizes =
+      %{
+        "xs" => "text-xs px-0.5",
+        "sm" => "text-xs px-1",
+        "md" => "text-xs px-2",
+        "lg" => "text-base px-1.5",
+        "xl" => "text-base px-2"
+      }
+
+    assigns = Map.put(assigns, :class, [base, Map.fetch!(colors, assigns[:color]), Map.fetch!(sizes, assigns[:size]), assigns.class])
+
+
+    ~H"""
+    <span class={@class}>
+      <span>
+        {render_slot(@inner_block)}
+      </span>
+    </span>
+    """
   end
 
   @doc """
