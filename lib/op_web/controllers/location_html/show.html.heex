@@ -1,0 +1,29 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    {@location.name}
+    <:subtitle>Location details</:subtitle>
+  </.header>
+
+  <div class="mt-6">
+    <.list>
+      <:item :if={@location.address} title="Address">
+        {@location.address}
+        <span :if={@location.address_2}>, {@location.address_2}</span>
+      </:item>
+      <:item :if={@location.city || @location.state || @location.postal_code} title="City">
+        <span :if={@location.city}>{@location.city}</span>
+        <span :if={@location.state}>, {@location.state}</span>
+        <span :if={@location.postal_code}>{@location.postal_code}</span>
+      </:item>
+      <:item :if={@location.country} title="Country">{@location.country}</:item>
+    </.list>
+  </div>
+
+  <div class="mt-6">
+    <.link navigate={~p"/locations"}>
+      <.button variant="invisible">
+        <.icon name="hero-arrow-left" class="mr-1" /> Back to locations
+      </.button>
+    </.link>
+  </div>
+</Layouts.app>
