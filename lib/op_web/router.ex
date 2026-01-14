@@ -1,5 +1,4 @@
 defmodule OPWeb.Router do
-  alias OP.Leagues.Season
   use OPWeb, :router
 
   import OPWeb.UserAuth

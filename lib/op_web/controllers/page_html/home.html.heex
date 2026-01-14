@@ -69,7 +69,7 @@
         <div class="space-y-4 order-2 md:order-1 md:col-span-3">
           <%= for tournament <- @tournaments do %>
             <.link
-              navigate={~p"/tournaments/#{tournament.slug}"}
+              navigate={~p"/tournaments"}
               class="bg-white block border-2 border-slate-300 shadow-xs rounded-lg hover:border-emerald-700 hover:bg-slate-50 hover:scale-101 transition-all group"
             >
               <div class="grid grid-cols-3">
