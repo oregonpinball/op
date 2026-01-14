@@ -589,7 +589,7 @@ defmodule OPWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="relative hidden rounded-xl bg-zinc-900 border border-zinc-800 p-8 shadow-lg shadow-zinc-700/10 ring-1 ring-zinc-700/10 transition"
+              class="relative hidden rounded-xl bg-white border border-gray-200 p-8 shadow-lg shadow-gray-700/10 ring-1 ring-gray-700/10 transition"
             >
               <div class="absolute top-4 right-4">
                 <button

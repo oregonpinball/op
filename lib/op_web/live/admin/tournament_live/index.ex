@@ -21,7 +21,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         </:actions>
       </.header>
 
-      <div class="mt-6 bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+      <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
         <.form
           for={@filter_form}
           id="tournament-filters"
@@ -71,7 +71,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         </.form>
       </div>
 
-      <div class="mt-4 flex items-center justify-between text-sm text-zinc-400">
+      <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
         <span>
           <%= if @tournaments_empty? do %>
             No tournaments found
@@ -85,22 +85,22 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       </div>
 
       <div id="tournaments" phx-update="stream" class="mt-4 space-y-4">
-        <div id="empty-tournaments" class="hidden only:block text-center py-8 text-zinc-500">
+        <div id="empty-tournaments" class="hidden only:block text-center py-8 text-gray-500">
           No tournaments match your filters. Try adjusting your search criteria.
         </div>
         <div
           :for={{id, tournament} <- @streams.tournaments}
           id={id}
-          class="flex items-center justify-between p-4 bg-zinc-900 rounded-lg border border-zinc-800"
+          class="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
         >
           <div class="flex-1">
             <.link
               navigate={~p"/admin/tournaments/#{tournament}"}
-              class="text-lg font-semibold text-white hover:text-blue-400"
+              class="text-lg font-semibold text-gray-900 hover:text-blue-600"
             >
               {tournament.name}
             </.link>
-            <div class="text-sm text-zinc-400 mt-1">
+            <div class="text-sm text-gray-500 mt-1">
               <span :if={tournament.start_at}>
                 {Calendar.strftime(tournament.start_at, "%B %d, %Y at %I:%M %p")}
               </span>
@@ -165,13 +165,13 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       <.link
         :if={@page > 1}
         patch={pagination_url(@filter_form, @page - 1)}
-        class="px-3 py-2 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800 rounded-lg hover:bg-zinc-700 transition"
+        class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
       >
         <.icon name="hero-chevron-left" class="w-4 h-4 inline" /> Previous
       </.link>
       <span
         :if={@page == 1}
-        class="px-3 py-2 text-sm font-medium text-zinc-600 cursor-not-allowed"
+        class="px-3 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
       >
         <.icon name="hero-chevron-left" class="w-4 h-4 inline" /> Previous
       </span>
@@ -179,7 +179,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       <%= for page_num <- visible_pages(@page, @total_pages) do %>
         <%= cond do %>
           <% page_num == :ellipsis -> %>
-            <span class="px-3 py-2 text-zinc-500">...</span>
+            <span class="px-3 py-2 text-gray-400">...</span>
           <% page_num == @page -> %>
             <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg">
               {page_num}
@@ -187,7 +187,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
           <% true -> %>
             <.link
               patch={pagination_url(@filter_form, page_num)}
-              class="px-3 py-2 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800 rounded-lg hover:bg-zinc-700 transition"
+              class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
             >
               {page_num}
             </.link>
@@ -197,13 +197,13 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       <.link
         :if={@page < @total_pages}
         patch={pagination_url(@filter_form, @page + 1)}
-        class="px-3 py-2 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800 rounded-lg hover:bg-zinc-700 transition"
+        class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
       >
         Next <.icon name="hero-chevron-right" class="w-4 h-4 inline" />
       </.link>
       <span
         :if={@page >= @total_pages}
-        class="px-3 py-2 text-sm font-medium text-zinc-600 cursor-not-allowed"
+        class="px-3 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
       >
         Next <.icon name="hero-chevron-right" class="w-4 h-4 inline" />
       </span>
