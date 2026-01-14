@@ -168,4 +168,25 @@ defmodule OP.Players do
   def change_player(%Player{} = player, attrs \\ %{}) do
     Player.changeset(player, attrs)
   end
+
+  @doc """
+  Searches players by name using a case-insensitive partial match.
+
+  ## Examples
+
+      iex> search_players(current_scope, "john")
+      [%Player{name: "John Doe"}, ...]
+
+  """
+  def search_players(_scope, query) when is_binary(query) and byte_size(query) > 0 do
+    search_term = "%#{query}%"
+
+    Player
+    |> where([p], like(fragment("lower(?)", p.name), fragment("lower(?)", ^search_term)))
+    |> order_by([p], asc: p.name)
+    |> limit(10)
+    |> Repo.all()
+  end
+
+  def search_players(_scope, _query), do: []
 end

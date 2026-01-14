@@ -35,3 +35,9 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# Configure Req.Test for mocking HTTP requests in tests
+config :op, :req_options, plug: {Req.Test, OP.Matchplay.Client}
+
+# Configure a test API token for Matchplay tests
+config :op, :matchplay_api_token, "test-api-token"
