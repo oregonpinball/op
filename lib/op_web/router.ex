@@ -35,6 +35,8 @@ defmodule OPWeb.Router do
     get "/leagues/:slug", LeagueController, :show
     get "/seasons/:slug", SeasonController, :show
     get "/players/:slug", PlayerController, :show
+    get "/locations", LocationController, :index
+    get "/locations/:slug", LocationController, :show
 
     # TODO: Remove later, developer testing route for rendering
     # React components based on Phoenix-rendered templates
@@ -69,6 +71,14 @@ defmodule OPWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+
+    live_session :require_system_admin,
+      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
+      live "/admin/dashboard", AdminLive.Dashboard, :index
+      live "/admin/locations", LocationLive.Index, :index
+      live "/admin/locations/new", LocationLive.Form, :new
+      live "/admin/locations/:slug/edit", LocationLive.Form, :edit
+    end
   end
 
   ## Development

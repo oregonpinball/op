@@ -1,0 +1,30 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Locations
+    <:subtitle>Browse pinball venues</:subtitle>
+  </.header>
+
+  <div class="mt-6">
+    <div :if={@locations == []} class="text-base-content/70">
+      No locations found.
+    </div>
+
+    <div :if={@locations != []} class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div :for={location <- @locations} class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title">
+            <.link navigate={~p"/locations/#{location.slug}"} class="hover:underline">
+              {location.name}
+            </.link>
+          </h2>
+          <p :if={location.city && location.state} class="text-base-content/70">
+            {location.city}, {location.state}
+          </p>
+          <p :if={location.address} class="text-sm text-base-content/60">
+            {location.address}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>
