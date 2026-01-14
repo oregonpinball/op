@@ -81,6 +81,19 @@ defmodule OPWeb.Router do
     end
   end
 
+  ## Admin routes
+  scope "/admin", OPWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_admin,
+      on_mount: [{OPWeb.UserAuth, :require_admin}] do
+      live "/tournaments", TournamentLive.Index, :index
+      live "/tournaments/new", TournamentLive.Index, :new
+      live "/tournaments/:id/edit", TournamentLive.Index, :edit
+      live "/tournaments/:id", TournamentLive.Show, :show
+    end
+  end
+
   ## Development
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:op, :dev_routes) do

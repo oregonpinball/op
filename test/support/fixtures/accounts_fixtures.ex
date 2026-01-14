@@ -41,6 +41,25 @@ defmodule OP.AccountsFixtures do
     user
   end
 
+  def admin_user_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+    set_user_role(user, :system_admin)
+  end
+
+  def td_user_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+    set_user_role(user, :td)
+  end
+
+  defp set_user_role(user, role) do
+    {:ok, user} =
+      user
+      |> Ecto.Changeset.change(role: role)
+      |> OP.Repo.update()
+
+    user
+  end
+
   def user_scope_fixture do
     user = user_fixture()
     user_scope_fixture(user)
