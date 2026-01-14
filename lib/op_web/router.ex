@@ -1,5 +1,4 @@
 defmodule OPWeb.Router do
-  alias OP.Leagues.Season
   use OPWeb, :router
 
   import OPWeb.UserAuth
@@ -64,6 +63,9 @@ defmodule OPWeb.Router do
       on_mount: [{OPWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+
+      # Matchplay import
+      live "/import", ImportLive, :index
     end
 
     post "/users/update-password", UserSessionController, :update_password

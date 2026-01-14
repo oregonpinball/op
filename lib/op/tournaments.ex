@@ -219,4 +219,23 @@ defmodule OP.Tournaments do
   def change_tournament(_scope, %Tournament{} = tournament, attrs \\ %{}) do
     Tournament.changeset(tournament, attrs)
   end
+
+  alias OP.Tournaments.Standing
+
+  @doc """
+  Deletes all standings for a given tournament.
+
+  Used when re-importing a tournament to replace existing standings.
+
+  ## Examples
+
+      iex> delete_standings_by_tournament_id(current_scope, tournament_id)
+      {5, nil}
+
+  """
+  def delete_standings_by_tournament_id(_scope, tournament_id) do
+    Standing
+    |> where([s], s.tournament_id == ^tournament_id)
+    |> Repo.delete_all()
+  end
 end
