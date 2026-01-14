@@ -53,6 +53,302 @@ defmodule OPWeb.PlayerLiveTest do
     end
   end
 
+  describe "Index - search" do
+    setup :register_and_log_in_system_admin
+
+    test "filters players by search term", %{conn: conn} do
+      player_fixture(nil, %{name: "John Doe"})
+      player_fixture(nil, %{name: "Jane Smith"})
+
+      {:ok, lv, html} = live(conn, ~p"/admin/players")
+
+      assert html =~ "John Doe"
+      assert html =~ "Jane Smith"
+
+      html =
+        lv
+        |> form("#player-filters", %{"search" => "john"})
+        |> render_change()
+
+      assert html =~ "John Doe"
+      refute html =~ "Jane Smith"
+    end
+
+    test "shows no results message when search has no matches", %{conn: conn} do
+      player_fixture(nil, %{name: "Test Player"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players")
+
+      html =
+        lv
+        |> form("#player-filters", %{"search" => "nonexistent"})
+        |> render_change()
+
+      assert html =~ "No players match your search criteria"
+    end
+
+    test "preserves search in URL", %{conn: conn} do
+      player_fixture(nil, %{name: "John Doe"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players")
+
+      lv
+      |> form("#player-filters", %{"search" => "john"})
+      |> render_change()
+
+      assert_patch(lv, ~p"/admin/players?search=john")
+    end
+
+    test "loads with search from URL params", %{conn: conn} do
+      player_fixture(nil, %{name: "John Doe"})
+      player_fixture(nil, %{name: "Jane Smith"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?search=john")
+
+      assert html =~ "John Doe"
+      refute html =~ "Jane Smith"
+    end
+  end
+
+  describe "Index - filters" do
+    setup :register_and_log_in_system_admin
+
+    test "filters by linked status - linked", %{conn: conn} do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      {:ok, lv, html} = live(conn, ~p"/admin/players")
+
+      assert html =~ "Linked Player"
+      assert html =~ "Unlinked Player"
+
+      html =
+        lv
+        |> form("#player-filters", %{"linked" => "linked"})
+        |> render_change()
+
+      assert html =~ "Linked Player"
+      refute html =~ "Unlinked Player"
+    end
+
+    test "filters by linked status - unlinked", %{conn: conn} do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players")
+
+      html =
+        lv
+        |> form("#player-filters", %{"linked" => "unlinked"})
+        |> render_change()
+
+      refute html =~ "Linked Player"
+      assert html =~ "Unlinked Player"
+    end
+
+    test "clears filter when selecting all", %{conn: conn} do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players?linked=linked")
+
+      html =
+        lv
+        |> form("#player-filters", %{"linked" => ""})
+        |> render_change()
+
+      assert html =~ "Linked Player"
+      assert html =~ "Unlinked Player"
+    end
+
+    test "preserves filter in URL", %{conn: conn} do
+      player_fixture(nil, %{name: "Test Player"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players")
+
+      lv
+      |> form("#player-filters", %{"linked" => "linked"})
+      |> render_change()
+
+      assert_patch(lv, ~p"/admin/players?linked=linked")
+    end
+
+    test "loads with filter from URL params", %{conn: conn} do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?linked=unlinked")
+
+      refute html =~ "Linked Player"
+      assert html =~ "Unlinked Player"
+    end
+
+    test "combines search and filter", %{conn: conn} do
+      user = user_fixture()
+      linked_john = player_fixture(nil, %{name: "John Linked"})
+      {:ok, _} = Players.link_user(nil, linked_john, user.id)
+      _unlinked_john = player_fixture(nil, %{name: "John Unlinked"})
+      linked_jane = player_fixture(nil, %{name: "Jane Linked"})
+      {:ok, _} = Players.link_user(nil, linked_jane, user.id)
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players")
+
+      html =
+        lv
+        |> form("#player-filters", %{"search" => "john", "linked" => "linked"})
+        |> render_change()
+
+      assert html =~ "John Linked"
+      refute html =~ "John Unlinked"
+      refute html =~ "Jane Linked"
+    end
+  end
+
+  describe "Index - pagination" do
+    setup :register_and_log_in_system_admin
+
+    test "shows pagination when more than one page", %{conn: conn} do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players")
+
+      assert html =~ "25 players total"
+      # Should have pagination nav
+      assert html =~ "aria-label=\"Pagination\""
+      # Should show page 2 link
+      assert html =~ "page=2"
+    end
+
+    test "does not show pagination when only one page", %{conn: conn} do
+      player_fixture(nil, %{name: "Only Player"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players")
+
+      refute html =~ "aria-label=\"Pagination\""
+    end
+
+    test "navigates to next page", %{conn: conn} do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players")
+
+      # Page 1 shows first 20 players (alphabetically)
+      assert html =~ "Player 01"
+      assert html =~ "Player 20"
+      refute html =~ "Player 21"
+
+      # Navigate to page 2
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?page=2")
+
+      refute html =~ "Player 01"
+      assert html =~ "Player 21"
+      assert html =~ "Player 25"
+    end
+
+    test "preserves filters when paginating", %{conn: conn} do
+      user = user_fixture()
+
+      for i <- 1..25 do
+        player = player_fixture(nil, %{name: "Linked #{String.pad_leading("#{i}", 2, "0")}"})
+        {:ok, _} = Players.link_user(nil, player, user.id)
+      end
+
+      for i <- 1..5 do
+        player_fixture(nil, %{name: "Unlinked #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?linked=linked&page=2")
+
+      # Should only show linked players on page 2
+      assert html =~ "Linked 21"
+      refute html =~ "Unlinked"
+    end
+
+    test "resets to page 1 when filter changes", %{conn: conn} do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/players?page=2")
+
+      lv
+      |> form("#player-filters", %{"search" => "player"})
+      |> render_change()
+
+      # Filter change should reset to page 1 (no page param in URL)
+      assert_patch(lv, ~p"/admin/players?search=player")
+    end
+
+    test "loads correct page from URL params", %{conn: conn} do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?page=2")
+
+      refute html =~ "Player 01"
+      assert html =~ "Player 21"
+    end
+
+    test "handles invalid page number gracefully", %{conn: conn} do
+      player_fixture(nil, %{name: "Test Player"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?page=invalid")
+
+      assert html =~ "Test Player"
+    end
+
+    test "handles page number 0 gracefully", %{conn: conn} do
+      player_fixture(nil, %{name: "Test Player"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?page=0")
+
+      assert html =~ "Test Player"
+    end
+  end
+
+  describe "Index - total count" do
+    setup :register_and_log_in_system_admin
+
+    test "shows total count in subtitle", %{conn: conn} do
+      for i <- 1..5 do
+        player_fixture(nil, %{name: "Player #{i}"})
+      end
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players")
+
+      assert html =~ "5 players total"
+    end
+
+    test "shows filtered count", %{conn: conn} do
+      player_fixture(nil, %{name: "John Doe"})
+      player_fixture(nil, %{name: "John Smith"})
+      player_fixture(nil, %{name: "Jane Doe"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/players?search=john")
+
+      assert html =~ "2 players total"
+    end
+
+    test "shows no players yet when empty", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/players")
+
+      assert html =~ "No players yet"
+    end
+  end
+
   describe "Index - unauthorized access" do
     test "redirects if not logged in", %{conn: conn} do
       assert {:error, redirect} = live(conn, ~p"/admin/players")

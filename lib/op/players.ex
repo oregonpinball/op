@@ -36,6 +36,69 @@ defmodule OP.Players do
     |> Repo.all()
   end
 
+  @default_page_size 20
+
+  @doc """
+  Returns a paginated list of players with preloaded associations.
+
+  ## Options
+
+    * `:page` - The page number (default: 1)
+    * `:page_size` - The number of items per page (default: 20)
+    * `:search` - Search term for player name (optional)
+    * `:linked` - Filter by linked status: "linked", "unlinked", or nil for all
+
+  ## Examples
+
+      iex> list_players_paginated(current_scope, page: 1, search: "john")
+      %{players: [%Player{}], total_count: 10, page: 1, page_size: 20, total_pages: 1}
+
+  """
+  def list_players_paginated(_scope, opts \\ []) do
+    page = max(Keyword.get(opts, :page, 1), 1)
+    page_size = Keyword.get(opts, :page_size, @default_page_size)
+    search = Keyword.get(opts, :search)
+    linked = Keyword.get(opts, :linked)
+
+    base_query =
+      Player
+      |> apply_search_filter(search)
+      |> apply_linked_filter(linked)
+
+    total_count = Repo.aggregate(base_query, :count)
+    total_pages = max(ceil(total_count / page_size), 1)
+
+    players =
+      base_query
+      |> order_by([p], asc: p.name)
+      |> preload([:user])
+      |> limit(^page_size)
+      |> offset(^((page - 1) * page_size))
+      |> Repo.all()
+
+    %{
+      players: players,
+      total_count: total_count,
+      page: page,
+      page_size: page_size,
+      total_pages: total_pages
+    }
+  end
+
+  defp apply_search_filter(query, nil), do: query
+  defp apply_search_filter(query, ""), do: query
+
+  defp apply_search_filter(query, search) when is_binary(search) do
+    search_term = "%#{search}%"
+    where(query, [p], like(fragment("lower(?)", p.name), fragment("lower(?)", ^search_term)))
+  end
+
+  defp apply_linked_filter(query, nil), do: query
+  defp apply_linked_filter(query, ""), do: query
+  defp apply_linked_filter(query, "linked"), do: where(query, [p], not is_nil(p.user_id))
+  defp apply_linked_filter(query, "unlinked"), do: where(query, [p], is_nil(p.user_id))
+  defp apply_linked_filter(query, _), do: query
+
   @doc """
   Gets a single player.
 

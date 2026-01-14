@@ -162,6 +162,162 @@ defmodule OP.PlayersTest do
     end
   end
 
+  describe "list_players_paginated/2" do
+    test "returns paginated results with defaults" do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      result = Players.list_players_paginated(nil)
+
+      assert result.page == 1
+      assert result.page_size == 20
+      assert result.total_count == 25
+      assert result.total_pages == 2
+      assert length(result.players) == 20
+    end
+
+    test "returns correct page when specified" do
+      for i <- 1..25 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      result = Players.list_players_paginated(nil, page: 2)
+
+      assert result.page == 2
+      assert length(result.players) == 5
+    end
+
+    test "respects custom page_size" do
+      for i <- 1..15 do
+        player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
+      end
+
+      result = Players.list_players_paginated(nil, page_size: 5)
+
+      assert result.page_size == 5
+      assert result.total_pages == 3
+      assert length(result.players) == 5
+    end
+
+    test "filters by search term" do
+      player_fixture(nil, %{name: "John Doe"})
+      player_fixture(nil, %{name: "Jane Smith"})
+      player_fixture(nil, %{name: "Bob Johnson"})
+
+      result = Players.list_players_paginated(nil, search: "john")
+
+      assert result.total_count == 2
+      names = Enum.map(result.players, & &1.name)
+      assert "John Doe" in names
+      assert "Bob Johnson" in names
+    end
+
+    test "search is case insensitive" do
+      player_fixture(nil, %{name: "John Doe"})
+
+      result = Players.list_players_paginated(nil, search: "JOHN")
+
+      assert result.total_count == 1
+    end
+
+    test "filters by linked status - linked" do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      result = Players.list_players_paginated(nil, linked: "linked")
+
+      assert result.total_count == 1
+      assert hd(result.players).name == "Linked Player"
+    end
+
+    test "filters by linked status - unlinked" do
+      user = user_fixture()
+      linked_player = player_fixture(nil, %{name: "Linked Player"})
+      {:ok, _} = Players.link_user(nil, linked_player, user.id)
+      _unlinked_player = player_fixture(nil, %{name: "Unlinked Player"})
+
+      result = Players.list_players_paginated(nil, linked: "unlinked")
+
+      assert result.total_count == 1
+      assert hd(result.players).name == "Unlinked Player"
+    end
+
+    test "combines search and filter" do
+      user = user_fixture()
+      linked_john = player_fixture(nil, %{name: "John Linked"})
+      {:ok, _} = Players.link_user(nil, linked_john, user.id)
+      _unlinked_john = player_fixture(nil, %{name: "John Unlinked"})
+      _linked_jane = player_fixture(nil, %{name: "Jane Linked"})
+
+      result = Players.list_players_paginated(nil, search: "john", linked: "linked")
+
+      assert result.total_count == 1
+      assert hd(result.players).name == "John Linked"
+    end
+
+    test "returns empty result for no matches" do
+      player_fixture(nil, %{name: "Test Player"})
+
+      result = Players.list_players_paginated(nil, search: "nonexistent")
+
+      assert result.total_count == 0
+      assert result.players == []
+      assert result.total_pages == 1
+    end
+
+    test "preloads user association" do
+      user = user_fixture()
+      player = player_fixture(nil, %{name: "Player With User"})
+      {:ok, _} = Players.link_user(nil, player, user.id)
+
+      result = Players.list_players_paginated(nil)
+
+      loaded_player = hd(result.players)
+      assert Ecto.assoc_loaded?(loaded_player.user)
+      assert loaded_player.user.id == user.id
+    end
+
+    test "orders by name ascending" do
+      player_fixture(nil, %{name: "Zack"})
+      player_fixture(nil, %{name: "Alice"})
+      player_fixture(nil, %{name: "Mike"})
+
+      result = Players.list_players_paginated(nil)
+
+      names = Enum.map(result.players, & &1.name)
+      assert names == ["Alice", "Mike", "Zack"]
+    end
+
+    test "handles page number less than 1" do
+      player_fixture(nil, %{name: "Test"})
+
+      result = Players.list_players_paginated(nil, page: 0)
+      assert result.page == 1
+
+      result = Players.list_players_paginated(nil, page: -5)
+      assert result.page == 1
+    end
+
+    test "ignores empty search string" do
+      player_fixture(nil, %{name: "Test"})
+
+      result = Players.list_players_paginated(nil, search: "")
+
+      assert result.total_count == 1
+    end
+
+    test "ignores empty linked filter" do
+      player_fixture(nil, %{name: "Test"})
+
+      result = Players.list_players_paginated(nil, linked: "")
+
+      assert result.total_count == 1
+    end
+  end
+
   describe "search_players/2" do
     test "finds players by partial name match" do
       player_fixture(nil, %{name: "John Doe"})
