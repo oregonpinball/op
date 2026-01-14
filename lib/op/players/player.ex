@@ -24,4 +24,23 @@ defmodule OP.Players.Player do
     |> generate_slug()
     |> validate_required([:name, :slug])
   end
+
+  @doc """
+  Changeset for scrubbing (anonymizing) a player.
+
+  Sets standard anonymized values and regenerates the slug.
+  This preserves the record for historical tournament data while
+  removing personally identifiable information.
+  """
+  def scrub_changeset(player) do
+    player
+    |> change(%{
+      name: "Deleted Player",
+      external_id: nil,
+      user_id: nil,
+      slug: nil
+    })
+    |> generate_slug()
+    |> validate_required([:name, :slug])
+  end
 end

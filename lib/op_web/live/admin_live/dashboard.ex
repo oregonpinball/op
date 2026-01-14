@@ -22,6 +22,12 @@ defmodule OPWeb.AdminLive.Dashboard do
           href={~p"/admin/tournaments"}
           icon="hero-trophy"
         />
+        <.admin_card
+          title="Players"
+          description="Manage player profiles and user links"
+          href={~p"/admin/players"}
+          icon="hero-users"
+        />
       </div>
     </Layouts.app>
     """
