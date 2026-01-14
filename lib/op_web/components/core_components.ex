@@ -98,7 +98,6 @@ defmodule OPWeb.CoreComponents do
     values: ~w(solid invisible underline),
     doc: "the variant of the button"
 
-
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
   slot :inner_block, required: true
 
@@ -108,38 +107,52 @@ defmodule OPWeb.CoreComponents do
     colors =
       %{
         "primary" => %{
-          "solid" => "border bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
-          "invisible" => "bg-transparent text-emerald-800 border-transparent hover:bg-emerald-100 dark:text-emerald-100 dark:hover:bg-emerald-900",
+          "solid" =>
+            "border bg-emerald-800 text-emerald-50 border-emerald-950 hover:bg-emerald-900 dark:bg-rose-100",
+          "invisible" =>
+            "bg-transparent text-emerald-800 border-transparent hover:bg-emerald-100 dark:text-emerald-100 dark:hover:bg-emerald-900",
           "underline" => "bg-transparent underline decoration-emerald-500 hover:bg-slate-100/90"
         },
         "secondary" => %{
-          "solid" => "border bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
-          "invisible" => "bg-transparent text-slate-800 border-transparent hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800",
+          "solid" =>
+            "border bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 dark:bg-slate-100",
+          "invisible" =>
+            "bg-transparent text-slate-800 border-transparent hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800",
           "underline" => "bg-transparent underline decoration-slate-400 hover:bg-slate-100/90"
         },
         "info" => %{
-          "solid" => "border bg-sky-800 text-sky-50 border-sky-950 hover:bg-sky-900 dark:bg-blue-100",
-          "invisible" => "bg-transparent text-sky-800 border-transparent hover:bg-sky-100 dark:text-sky-100 dark:hover:bg-sky-900",
+          "solid" =>
+            "border bg-sky-800 text-sky-50 border-sky-950 hover:bg-sky-900 dark:bg-blue-100",
+          "invisible" =>
+            "bg-transparent text-sky-800 border-transparent hover:bg-sky-100 dark:text-sky-100 dark:hover:bg-sky-900",
           "underline" => "bg-transparent underline decoration-sky-500 hover:bg-slate-100/90"
         },
         "success" => %{
-          "solid" => "border bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
-          "invisible" => "bg-transparent text-green-700 border-transparent hover:bg-green-100 dark:text-green-100 dark:hover:bg-green-900",
+          "solid" =>
+            "border bg-green-700 text-green-50 border-green-800 hover:bg-green-800 dark:bg-green-100",
+          "invisible" =>
+            "bg-transparent text-green-700 border-transparent hover:bg-green-100 dark:text-green-100 dark:hover:bg-green-900",
           "underline" => "bg-transparent underline decoration-green-500 hover:bg-slate-100/90"
         },
         "warning" => %{
-          "solid" => "border bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
-          "invisible" => "bg-transparent text-yellow-600 border-transparent hover:bg-yellow-100 dark:text-yellow-100 dark:hover:bg-yellow-800",
+          "solid" =>
+            "border bg-yellow-600 text-yellow-50 border-yellow-800 hover:bg-yellow-700 dark:bg-yellow-100",
+          "invisible" =>
+            "bg-transparent text-yellow-600 border-transparent hover:bg-yellow-100 dark:text-yellow-100 dark:hover:bg-yellow-800",
           "underline" => "bg-transparent underline decoration-yellow-500 hover:bg-slate-100/90"
         },
         "error" => %{
-          "solid" => "border bg-red-800 text-red-50 border-red-950 hover:bg-red-900 dark:bg-red-100",
-          "invisible" => "bg-transparent text-red-800 border-transparent hover:bg-red-100 dark:text-red-100 dark:hover:bg-red-900",
+          "solid" =>
+            "border bg-red-800 text-red-50 border-red-950 hover:bg-red-900 dark:bg-red-100",
+          "invisible" =>
+            "bg-transparent text-red-800 border-transparent hover:bg-red-100 dark:text-red-100 dark:hover:bg-red-900",
           "underline" => "bg-transparent underline decoration-red-500 hover:bg-slate-100/90"
         },
         "invisible" => %{
-          "solid" => "border bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
-          "invisible" => "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
+          "solid" =>
+            "border bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
+          "invisible" =>
+            "bg-transparent text-inherit border-transparent hover:bg-slate-100 dark:hover:bg-slate-800",
           "underline" => "bg-transparent underline decoration-current hover:bg-slate-100/90"
         }
       }
@@ -199,6 +212,7 @@ defmodule OPWeb.CoreComponents do
   Renders
   """
   attr :class, :string, default: ""
+
   attr :color, :string,
     default: "secondary",
     values: ~w(primary secondary info success warning error invisible),
@@ -214,15 +228,11 @@ defmodule OPWeb.CoreComponents do
 
     colors =
       %{
-        "primary" =>
-          "bg-emerald-700 text-emerald-50 border-emerald-800 dark:bg-rose-100",
-        "secondary" =>
-          "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-100",
+        "primary" => "bg-emerald-700 text-emerald-50 border-emerald-800 dark:bg-rose-100",
+        "secondary" => "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-100",
         "info" => "bg-sky-700 text-sky-50 border-sky-800 dark:bg-blue-100",
-        "success" =>
-          "bg-green-700 text-green-50 border-green-800 dark:bg-green-100",
-        "warning" =>
-          "bg-yellow-600 text-yellow-50 border-yellow-700 dark:bg-yellow-100",
+        "success" => "bg-green-700 text-green-50 border-green-800 dark:bg-green-100",
+        "warning" => "bg-yellow-600 text-yellow-50 border-yellow-700 dark:bg-yellow-100",
         "error" => "bg-red-800 text-red-50 border-red-800 dark:bg-red-100"
       }
 
@@ -235,8 +245,13 @@ defmodule OPWeb.CoreComponents do
         "xl" => "text-lg px-2 py-1"
       }
 
-    assigns = Map.put(assigns, :class, [base, Map.fetch!(colors, assigns[:color]), Map.fetch!(sizes, assigns[:size]), assigns.class])
-
+    assigns =
+      Map.put(assigns, :class, [
+        base,
+        Map.fetch!(colors, assigns[:color]),
+        Map.fetch!(sizes, assigns[:size]),
+        assigns.class
+      ])
 
     ~H"""
     <span class={@class}>

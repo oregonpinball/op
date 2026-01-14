@@ -53,7 +53,7 @@ defmodule OPWeb.Router do
     delete "/users/log-out", UserSessionController, :delete
 
     # Storybook
-    live_storybook "/storybook", backend_module: OPWeb.Storybook
+    live_storybook("/storybook", backend_module: OPWeb.Storybook)
   end
 
   ## Authenticated routes
