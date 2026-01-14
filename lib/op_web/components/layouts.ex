@@ -82,9 +82,6 @@ defmodule OPWeb.Layouts do
         <li>
           {@current_scope.user.email}
         </li>
-        <li :if={is_system_admin?(@current_scope)}>
-          <.link href={~p"/admin/dashboard"}>Admin Dashboard</.link>
-        </li>
         <li>
           <.link href={~p"/users/settings"}>Settings</.link>
         </li>
