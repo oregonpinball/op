@@ -25,3 +25,11 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
       - run: mix test
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t op:pr-check .
