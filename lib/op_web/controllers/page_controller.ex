@@ -11,7 +11,7 @@ defmodule OPWeb.PageController do
     # TODO: Need to implement a better way of finding these, a starring system or something.
     seasons = %{
       open: Enum.find(seasons, fn s -> String.contains?(s.slug, "open") end),
-      womens: Enum.find(seasons, fn s -> String.contains?(s.slug, "womens") end),
+      womens: Enum.find(seasons, fn s -> String.contains?(s.slug, "womens") end)
     }
 
     # TODO :Scope back to upcoming
