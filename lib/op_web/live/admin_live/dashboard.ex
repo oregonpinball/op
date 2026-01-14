@@ -16,6 +16,12 @@ defmodule OPWeb.AdminLive.Dashboard do
           href={~p"/admin/locations"}
           icon="hero-map-pin"
         />
+        <.admin_card
+          title="Tournaments"
+          description="Manage pinball tournaments and events"
+          href={~p"/admin/tournaments"}
+          icon="hero-trophy"
+        />
       </div>
     </Layouts.app>
     """
