@@ -194,7 +194,7 @@ defmodule OPWeb.ImportLive do
         <span class="text-slate-700">{@mapping.local_player.name}</span>
       <% :create_new -> %>
         <span class="text-amber-700 italic">Will create: {@mapping.matchplay_name}</span>
-      <% type when type in [:suggested, :manual] -> %>
+      <% :manual -> %>
         <span class="text-slate-700">{@mapping.local_player.name}</span>
         <button
           type="button"
@@ -204,6 +204,30 @@ defmodule OPWeb.ImportLive do
         >
           <.icon name="hero-x-mark" class="size-4" />
         </button>
+      <% :suggested -> %>
+        <div class="space-y-2">
+          <div class="flex flex-wrap gap-1">
+            <%= for player <- @mapping.suggested_players do %>
+              <button
+                type="button"
+                phx-click="select_player"
+                phx-value-index={@index}
+                phx-value-player-id={player.id}
+                class="inline-flex items-center px-2 py-1 rounded text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              >
+                {player.name}
+              </button>
+            <% end %>
+          </div>
+          <button
+            type="button"
+            phx-click="create_new_player"
+            phx-value-index={@index}
+            class="text-sm text-amber-600 hover:text-amber-700"
+          >
+            Create New Instead
+          </button>
+        </div>
       <% :unmatched -> %>
         <div class="space-y-2">
           <%= if @mapping.suggested_players != [] do %>
@@ -595,6 +619,10 @@ defmodule OPWeb.ImportLive do
   end
 
   defp format_date(_), do: ""
+
+  defp format_error(:api_token_required) do
+    "Matchplay API token is required. Please set the MATCHPLAY_API_TOKEN environment variable."
+  end
 
   defp format_error(%OP.Matchplay.Errors.NotFoundError{resource_id: id}) do
     "Tournament #{id} not found on Matchplay. Please check the ID and try again."

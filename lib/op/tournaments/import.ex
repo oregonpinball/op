@@ -59,15 +59,20 @@ defmodule OP.Tournaments.Import do
   def fetch_tournament_preview(matchplay_id, opts \\ []) do
     client = Client.new(Keyword.take(opts, [:api_token]))
 
-    with {:ok, tournament} <- Client.get_tournament(client, matchplay_id),
-         {:ok, standings} <- Client.get_standings(client, matchplay_id) do
-      player_mappings = analyze_player_mappings(standings)
+    # Require API token to be configured
+    if is_nil(client.api_token) or client.api_token == "" do
+      {:error, :api_token_required}
+    else
+      with {:ok, tournament} <- Client.get_tournament(client, matchplay_id),
+           {:ok, standings} <- Client.get_standings(client, matchplay_id) do
+        player_mappings = analyze_player_mappings(standings)
 
-      {:ok,
-       %{
-         tournament: tournament,
-         player_mappings: player_mappings
-       }}
+        {:ok,
+         %{
+           tournament: tournament,
+           player_mappings: player_mappings
+         }}
+      end
     end
   end
 

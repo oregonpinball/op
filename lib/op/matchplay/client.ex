@@ -8,6 +8,7 @@ defmodule OP.Matchplay.Client do
 
   @base_url "https://app.matchplay.events/api"
   @default_timeout 30_000
+  @req_options Application.compile_env(:op, :req_options, [])
 
   defstruct [:api_token, :base_url, :timeout]
 
@@ -27,8 +28,15 @@ defmodule OP.Matchplay.Client do
   """
   @spec new(keyword()) :: t()
   def new(opts \\ []) do
+    api_token =
+      if Keyword.has_key?(opts, :api_token) do
+        opts[:api_token]
+      else
+        Application.get_env(:op, :matchplay_api_token)
+      end
+
     %__MODULE__{
-      api_token: opts[:api_token] || Application.get_env(:op, :matchplay_api_token),
+      api_token: api_token,
       base_url: opts[:base_url] || @base_url,
       timeout: opts[:timeout] || @default_timeout
     }
@@ -61,8 +69,9 @@ defmodule OP.Matchplay.Client do
   defp request(%__MODULE__{} = client, path) do
     url = client.base_url <> path
     headers = build_headers(client)
+    opts = [headers: headers, receive_timeout: client.timeout] ++ @req_options
 
-    case Req.get(url, headers: headers, receive_timeout: client.timeout) do
+    case Req.get(url, opts) do
       {:ok, %Req.Response{status: 200, body: body}} ->
         {:ok, body}
 

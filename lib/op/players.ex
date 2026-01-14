@@ -182,7 +182,7 @@ defmodule OP.Players do
     search_term = "%#{query}%"
 
     Player
-    |> where([p], ilike(p.name, ^search_term))
+    |> where([p], like(fragment("lower(?)", p.name), fragment("lower(?)", ^search_term)))
     |> order_by([p], asc: p.name)
     |> limit(10)
     |> Repo.all()

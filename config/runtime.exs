@@ -22,7 +22,10 @@ end
 
 # Matchplay API token (optional - only needed for private tournaments)
 # This is read at runtime and can be set via environment variable
-config :op, :matchplay_api_token, System.get_env("MATCHPLAY_API_TOKEN")
+# Don't override in test environment (test.exs sets a mock token)
+if config_env() != :test do
+  config :op, :matchplay_api_token, System.get_env("MATCHPLAY_API_TOKEN")
+end
 
 if config_env() == :prod do
   database_path =
