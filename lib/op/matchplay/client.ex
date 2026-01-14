@@ -43,13 +43,14 @@ defmodule OP.Matchplay.Client do
   end
 
   @doc """
-  Fetches a single tournament from Matchplay.
+  Fetches a single tournament from Matchplay with player data included.
 
   Returns the tournament data wrapped in `{:ok, map()}` or an error tuple.
+  The response includes a "players" array with player names and IDs.
   """
   @spec get_tournament(t(), integer() | String.t()) :: {:ok, map()} | {:error, Exception.t()}
   def get_tournament(%__MODULE__{} = client, id) do
-    case request(client, "/tournaments/#{id}") do
+    case request(client, "/tournaments/#{id}?includePlayers=true") do
       {:ok, %{"data" => data}} -> {:ok, data}
       {:ok, body} -> {:ok, body}
       {:error, _} = error -> error
@@ -76,8 +77,14 @@ defmodule OP.Matchplay.Client do
         {:ok, body}
 
       {:ok, %Req.Response{status: 404}} ->
-        # Extract ID from path for error message
-        resource_id = path |> String.split("/") |> List.last()
+        # Extract ID from path for error message (strip query params)
+        resource_id =
+          path
+          |> String.split("?")
+          |> List.first()
+          |> String.split("/")
+          |> List.last()
+
         {:error, NotFoundError.exception(resource_id: resource_id)}
 
       {:ok, %Req.Response{status: status, body: body}} ->

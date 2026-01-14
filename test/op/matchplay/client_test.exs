@@ -118,7 +118,9 @@ defmodule OP.Matchplay.ClientTest do
       assert {:ok, data} = Client.get_standings(client, 12345)
       assert is_list(data)
       assert length(data) == 3
-      assert hd(data)["name"] == "Alice Smith"
+      # Standings only contain playerId and position (no name)
+      assert hd(data)["playerId"] == 101
+      assert hd(data)["position"] == 1
     end
 
     test "returns NotFoundError for 404 response" do

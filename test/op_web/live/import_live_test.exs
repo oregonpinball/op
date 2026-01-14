@@ -183,13 +183,16 @@ defmodule OPWeb.ImportLiveTest do
       conn: conn,
       scope: scope
     } do
-      # Create player with matchplay external_id
+      # Create player with matchplay external_id (using claimedBy userId)
       _auto_player =
         player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Auto User"})
 
+      # Tournament includes player with playerId=201, claimedBy=1001
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 1001, "name" => "Auto User", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(201, "Auto User", 1001)]
+        }),
+        standings_response([{201, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -207,9 +210,12 @@ defmodule OPWeb.ImportLiveTest do
       # Create player with exact matching name
       _suggested_player = player_fixture(scope, %{name: "Match Me"})
 
+      # Tournament player has no claimedBy, so external_id will be playerId
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 2001, "name" => "Match Me", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(202, "Match Me", nil)]
+        }),
+        standings_response([{202, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -224,9 +230,12 @@ defmodule OPWeb.ImportLiveTest do
     end
 
     test "continue button is disabled when unmatched players exist", %{conn: conn} do
+      # Player with no claimedBy and no name match in DB
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 9999, "name" => "Unknown Player", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(999, "Unknown Player", nil)]
+        }),
+        standings_response([{999, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -257,8 +266,10 @@ defmodule OPWeb.ImportLiveTest do
 
     test "create_new_player sets match_type to create_new", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 9999, "name" => "Unknown Player", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(999, "Unknown Player", nil)]
+        }),
+        standings_response([{999, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -281,8 +292,10 @@ defmodule OPWeb.ImportLiveTest do
 
     test "search_player returns matching players", %{conn: conn, searchable_player: player} do
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 9999, "name" => "Unknown", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(999, "Unknown", nil)]
+        }),
+        standings_response([{999, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -320,8 +333,10 @@ defmodule OPWeb.ImportLiveTest do
 
     test "displays import summary with counts", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 1001, "name" => "Auto Player", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -345,8 +360,10 @@ defmodule OPWeb.ImportLiveTest do
 
     test "back_to_match returns to match_players step", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 1001, "name" => "Auto Player", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -388,8 +405,11 @@ defmodule OPWeb.ImportLiveTest do
 
     test "shows success step on successful import", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(%{"tournamentId" => 12345}),
-        [%{"userId" => 1001, "name" => "Auto Player", "position" => 1}]
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "players" => [tournament_player(401, "Auto Player", 1001)]
+        }),
+        standings_response([{401, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -416,8 +436,11 @@ defmodule OPWeb.ImportLiveTest do
 
     test "displays import results", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(%{"tournamentId" => 55555}),
-        [%{"userId" => 1001, "name" => "Auto Player", "position" => 1}]
+        tournament_response(%{
+          "tournamentId" => 55555,
+          "players" => [tournament_player(501, "Auto Player", 1001)]
+        }),
+        standings_response([{501, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")
@@ -476,8 +499,10 @@ defmodule OPWeb.ImportLiveTest do
 
     test "reset clears state and returns to enter_id", %{conn: conn} do
       stub_matchplay_api(
-        tournament_response(),
-        [%{"userId" => 1, "name" => "Player", "position" => 1}]
+        tournament_response(%{
+          "players" => [tournament_player(601, "Player", nil)]
+        }),
+        standings_response([{601, 1}])
       )
 
       {:ok, view, _html} = live(conn, ~p"/import")

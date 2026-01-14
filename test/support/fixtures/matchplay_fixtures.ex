@@ -1,12 +1,25 @@
 defmodule OP.MatchplayFixtures do
   @moduledoc """
   Test fixtures for Matchplay API responses and player mappings.
+
+  Note: The Matchplay API returns player data in two places:
+  - Tournament endpoint with `?includePlayers=true` returns a `players` array
+    with `playerId`, `name`, and `claimedBy` (global userId)
+  - Standings endpoint returns only `playerId` and `position` (no names)
+
+  The import process joins these two responses to get complete player info.
   """
 
   @doc """
-  Returns a sample Matchplay tournament API response.
+  Returns a sample Matchplay tournament API response with players included.
+
+  The `players` array contains the player names and IDs needed for import.
   """
   def tournament_response(attrs \\ %{}) do
+    # Extract players from attrs or use defaults
+    players = Map.get(attrs, "players", default_tournament_players())
+    attrs_without_players = Map.delete(attrs, "players")
+
     Map.merge(
       %{
         "tournamentId" => 12345,
@@ -14,51 +27,72 @@ defmodule OP.MatchplayFixtures do
         "startUtc" => "2024-03-15T18:00:00Z",
         "endUtc" => "2024-03-15T22:00:00Z",
         "link" => "https://app.matchplay.events/tournaments/12345",
-        "status" => "completed"
+        "status" => "completed",
+        "players" => players
       },
-      attrs
+      attrs_without_players
     )
   end
 
   @doc """
   Returns a sample Matchplay standings API response.
 
-  Takes a list of `{user_id, name}` tuples, or uses defaults.
-  """
-  def standings_response(players \\ nil) do
-    players = players || default_standings_players()
+  Note: The real API only returns `playerId` and `position`, not names.
+  Names come from the tournament's `players` array instead.
 
-    players
-    |> Enum.with_index(1)
-    |> Enum.map(fn {{user_id, name}, position} ->
-      %{
-        "userId" => user_id,
-        "name" => name,
-        "position" => position
-      }
+  Takes a list of standings maps or `{player_id, position}` tuples, or uses defaults.
+  """
+  def standings_response(standings \\ nil) do
+    standings = standings || default_standings()
+
+    Enum.map(standings, fn
+      {player_id, position} ->
+        %{"playerId" => player_id, "position" => position}
+
+      %{} = standing ->
+        standing
     end)
   end
 
   @doc """
-  Returns a single standing entry for the API response.
+  Returns a single standing entry for the API response (real format without name).
   """
-  def standing_entry(user_id, name, position) do
-    %{
-      "userId" => user_id,
-      "name" => name,
-      "position" => position
-    }
+  def standing_entry(player_id, position) do
+    %{"playerId" => player_id, "position" => position}
   end
 
   @doc """
-  Default player list for standings.
+  Default players array for tournament response.
+
+  Each player has:
+  - `playerId` - tournament-specific ID used in standings
+  - `name` - player's display name
+  - `claimedBy` - global Matchplay userId (nil if unclaimed)
   """
-  def default_standings_players do
+  def default_tournament_players do
     [
-      {1001, "Alice Smith"},
-      {1002, "Bob Jones"},
-      {1003, "Charlie Brown"}
+      %{"playerId" => 101, "name" => "Alice Smith", "claimedBy" => 1001},
+      %{"playerId" => 102, "name" => "Bob Jones", "claimedBy" => 1002},
+      %{"playerId" => 103, "name" => "Charlie Brown", "claimedBy" => 1003}
     ]
+  end
+
+  @doc """
+  Default standings list.
+  """
+  def default_standings do
+    [
+      %{"playerId" => 101, "position" => 1},
+      %{"playerId" => 102, "position" => 2},
+      %{"playerId" => 103, "position" => 3}
+    ]
+  end
+
+  @doc """
+  Creates a tournament player entry.
+  """
+  def tournament_player(player_id, name, claimed_by \\ nil) do
+    %{"playerId" => player_id, "name" => name, "claimedBy" => claimed_by}
   end
 
   @doc """

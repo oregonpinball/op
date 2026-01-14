@@ -65,7 +65,10 @@ defmodule OP.Tournaments.Import do
     else
       with {:ok, tournament} <- Client.get_tournament(client, matchplay_id),
            {:ok, standings} <- Client.get_standings(client, matchplay_id) do
-        player_mappings = analyze_player_mappings(standings)
+        # Build a map of playerId -> player data from tournament.players
+        players_map = build_players_map(tournament["players"] || [])
+
+        player_mappings = analyze_player_mappings(standings, players_map)
 
         {:ok,
          %{
@@ -127,13 +130,28 @@ defmodule OP.Tournaments.Import do
 
   # Private functions
 
-  defp analyze_player_mappings(standings) do
+  defp build_players_map(players) do
+    Enum.reduce(players, %{}, fn player, acc ->
+      player_id = player["playerId"]
+      Map.put(acc, player_id, player)
+    end)
+  end
+
+  defp analyze_player_mappings(standings, players_map) do
     Enum.map(standings, fn standing ->
-      # Prefer userId over playerId
-      matchplay_id = standing["userId"] || standing["playerId"]
-      external_id = "matchplay:#{matchplay_id}"
-      name = standing["name"] || ""
+      player_id = standing["playerId"]
       position = standing["position"]
+
+      # Get player data from the tournament players list
+      player_data = Map.get(players_map, player_id, %{})
+
+      # Prefer claimedBy (global userId) over playerId for external_id
+      # claimedBy is the user's global Matchplay account ID
+      matchplay_id = player_data["claimedBy"] || player_id
+      external_id = "matchplay:#{matchplay_id}"
+
+      # Get name from player data (not in standings response)
+      name = player_data["name"] || ""
 
       # Try to find existing player by external_id
       case Players.get_player_by_external_id(nil, external_id) do
