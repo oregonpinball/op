@@ -58,7 +58,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     test "shows empty state when no tournaments", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
 
-      assert html =~ "No tournaments yet"
+      assert html =~ "No tournaments found"
     end
 
     test "navigates to new tournament form", %{conn: conn} do
