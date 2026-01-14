@@ -72,6 +72,7 @@ defmodule OPWeb.Router do
 
     live_session :require_system_admin,
       on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
+      live "/admin/dashboard", AdminLive.Dashboard, :index
       live "/admin/locations", LocationLive.Index, :index
       live "/admin/locations/new", LocationLive.Form, :new
       live "/admin/locations/:slug/edit", LocationLive.Form, :edit
