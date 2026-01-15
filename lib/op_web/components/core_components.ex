@@ -480,7 +480,7 @@ defmodule OPWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class="w-full table table-zebra">
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>
