@@ -235,13 +235,16 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Tournament")
-    |> assign(:tournament, Tournaments.get_tournament!(socket.assigns.current_scope, id))
+    |> assign(
+      :tournament,
+      Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, id)
+    )
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Tournament")
-    |> assign(:tournament, %Tournament{})
+    |> assign(:tournament, %Tournament{standings: []})
   end
 
   defp apply_action(socket, :index, _params) do

@@ -259,7 +259,7 @@ defmodule OP.Tournaments do
   """
   def get_tournament_with_preloads!(_scope, id) do
     Tournament
-    |> preload([:organizer, :season, :location, :standings])
+    |> preload([:organizer, :season, :location, standings: :player])
     |> Repo.get!(id)
   end
 

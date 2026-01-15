@@ -87,9 +87,15 @@ defmodule OP.Tournaments.Tournament do
       :first_place_value,
       :organizer_id,
       :season_id,
+      :location_id,
       :slug
     ])
     |> generate_slug()
+    |> cast_assoc(:standings,
+      with: &Standing.form_changeset/2,
+      sort_param: :standings_sort,
+      drop_param: :standings_drop
+    )
     |> validate_required([:name, :start_at])
     |> validate_number(:base_value, greater_than_or_equal_to: 0.0)
     |> validate_number(:tva_rating, greater_than_or_equal_to: 0.0)

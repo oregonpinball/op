@@ -48,4 +48,20 @@ defmodule OP.Tournaments.Standing do
     |> validate_number(:dynamic_points, greater_than_or_equal_to: 0.0)
     |> validate_number(:age_in_days, greater_than_or_equal_to: 0)
   end
+
+  @doc """
+  Changeset for nested form usage. Does not require tournament_id since it will
+  be set by the parent association.
+  """
+  def form_changeset(standing, attrs) do
+    standing
+    |> cast(attrs, [
+      :position,
+      :is_finals,
+      :opted_out,
+      :player_id
+    ])
+    |> validate_required([:position, :player_id])
+    |> validate_number(:position, greater_than_or_equal_to: 1)
+  end
 end
