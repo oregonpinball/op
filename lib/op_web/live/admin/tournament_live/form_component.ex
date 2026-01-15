@@ -115,8 +115,7 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
                     value="true"
                     checked={standing_form[:is_finals].value == true}
                     class="rounded border-zinc-300"
-                  />
-                  Finals
+                  /> Finals
                 </label>
                 <label class="flex items-center gap-2 text-sm">
                   <input
@@ -125,8 +124,7 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
                     value="true"
                     checked={standing_form[:opted_out].value == true}
                     class="rounded border-zinc-300"
-                  />
-                  Opted Out
+                  /> Opted Out
                 </label>
               </div>
               <button

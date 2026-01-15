@@ -181,7 +181,9 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                     {standing.player.name}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {if standing.total_points, do: :erlang.float_to_binary(standing.total_points, decimals: 2), else: "-"}
+                    {if standing.total_points,
+                      do: :erlang.float_to_binary(standing.total_points, decimals: 2),
+                      else: "-"}
                   </td>
                   <td class="px-3 py-2 text-sm text-center">
                     <span :if={standing.is_finals} class="text-green-600">✓</span>
