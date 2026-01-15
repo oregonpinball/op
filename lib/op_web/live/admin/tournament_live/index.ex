@@ -132,10 +132,10 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       </div>
 
       <.pagination
-        :if={@pagination.total_pages > 1}
         page={@pagination.page}
         total_pages={@pagination.total_pages}
-        filter_form={@filter_form}
+        path={~p"/admin/tournaments"}
+        params={filter_params_for_pagination(@filter_form)}
       />
 
       <.modal
@@ -155,62 +155,6 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         />
       </.modal>
     </Layouts.app>
-    """
-  end
-
-  attr :page, :integer, required: true
-  attr :total_pages, :integer, required: true
-  attr :filter_form, :any, required: true
-
-  defp pagination(assigns) do
-    ~H"""
-    <nav class="mt-6 flex items-center justify-center gap-2" aria-label="Pagination">
-      <.link
-        :if={@page > 1}
-        patch={pagination_url(@filter_form, @page - 1)}
-        class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-      >
-        <.icon name="hero-chevron-left" class="w-4 h-4 inline" /> Previous
-      </.link>
-      <span
-        :if={@page == 1}
-        class="px-3 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
-      >
-        <.icon name="hero-chevron-left" class="w-4 h-4 inline" /> Previous
-      </span>
-
-      <%= for page_num <- visible_pages(@page, @total_pages) do %>
-        <%= cond do %>
-          <% page_num == :ellipsis -> %>
-            <span class="px-3 py-2 text-gray-400">...</span>
-          <% page_num == @page -> %>
-            <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg">
-              {page_num}
-            </span>
-          <% true -> %>
-            <.link
-              patch={pagination_url(@filter_form, page_num)}
-              class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-            >
-              {page_num}
-            </.link>
-        <% end %>
-      <% end %>
-
-      <.link
-        :if={@page < @total_pages}
-        patch={pagination_url(@filter_form, @page + 1)}
-        class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-      >
-        Next <.icon name="hero-chevron-right" class="w-4 h-4 inline" />
-      </.link>
-      <span
-        :if={@page >= @total_pages}
-        class="px-3 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
-      >
-        Next <.icon name="hero-chevron-right" class="w-4 h-4 inline" />
-      </span>
-    </nav>
     """
   end
 
@@ -311,36 +255,15 @@ defmodule OPWeb.Admin.TournamentLive.Index do
     }
   end
 
-  defp pagination_url(filter_form, page) do
-    params =
-      %{
-        "page" => to_string(page),
-        "search" => filter_form[:search].value,
-        "location_id" => filter_form[:location_id].value,
-        "start_date" => filter_form[:start_date].value,
-        "end_date" => filter_form[:end_date].value
-      }
-      |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
-      |> Map.new()
-
-    ~p"/admin/tournaments?#{params}"
-  end
-
-  defp visible_pages(_current, total) when total <= 7 do
-    Enum.to_list(1..total)
-  end
-
-  defp visible_pages(current, total) do
-    cond do
-      current <= 4 ->
-        Enum.to_list(1..5) ++ [:ellipsis, total]
-
-      current >= total - 3 ->
-        [1, :ellipsis] ++ Enum.to_list((total - 4)..total)
-
-      true ->
-        [1, :ellipsis] ++ Enum.to_list((current - 1)..(current + 1)) ++ [:ellipsis, total]
-    end
+  defp filter_params_for_pagination(filter_form) do
+    %{
+      "search" => filter_form[:search].value,
+      "location_id" => filter_form[:location_id].value,
+      "start_date" => filter_form[:start_date].value,
+      "end_date" => filter_form[:end_date].value
+    }
+    |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
+    |> Map.new()
   end
 
   @impl true
@@ -402,7 +325,12 @@ defmodule OPWeb.Admin.TournamentLive.Index do
 
     socket =
       if tournaments == [] and pagination.page > 1 do
-        push_patch(socket, to: pagination_url(socket.assigns.filter_form, pagination.page - 1))
+        params =
+          socket.assigns.filter_form
+          |> filter_params_for_pagination()
+          |> Map.put("page", pagination.page - 1)
+
+        push_patch(socket, to: ~p"/admin/tournaments?#{params}")
       else
         socket
         |> assign(:pagination, pagination)
