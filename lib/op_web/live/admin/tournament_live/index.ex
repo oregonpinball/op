@@ -15,6 +15,9 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         Tournaments
         <:subtitle>Manage tournaments in the system</:subtitle>
         <:actions>
+          <.link navigate={~p"/import"}>
+            <.button variant="solid">Import from MatchPlay</.button>
+          </.link>
           <.link patch={~p"/admin/tournaments/new"}>
             <.button variant="solid">New Tournament</.button>
           </.link>
