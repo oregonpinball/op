@@ -37,6 +37,130 @@ defmodule OP.Tournaments do
   end
 
   @doc """
+  Returns a paginated list of tournaments with optional search and filters.
+
+  ## Options
+
+    * `:page` - Current page number (default: 1)
+    * `:per_page` - Items per page (default: 25)
+    * `:search` - Tournament name search string
+    * `:location_id` - Filter by location ID
+    * `:start_date` - Filter tournaments starting on or after this date
+    * `:end_date` - Filter tournaments starting on or before this date
+
+  ## Returns
+
+    A tuple `{tournaments, pagination_meta}` where pagination_meta contains:
+    * `:page` - Current page
+    * `:per_page` - Items per page
+    * `:total_count` - Total number of matching tournaments
+    * `:total_pages` - Total number of pages
+
+  ## Examples
+
+      iex> list_tournaments_paginated(current_scope, page: 1, search: "open")
+      {[%Tournament{}, ...], %{page: 1, per_page: 25, total_count: 50, total_pages: 2}}
+
+  """
+  def list_tournaments_paginated(_scope, opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 25)
+    search = Keyword.get(opts, :search)
+    location_id = Keyword.get(opts, :location_id)
+    start_date = Keyword.get(opts, :start_date)
+    end_date = Keyword.get(opts, :end_date)
+
+    base_query =
+      Tournament
+      |> preload([:organizer, :season, :location, :standings])
+      |> order_by([t], desc: t.start_at)
+
+    filtered_query =
+      base_query
+      |> filter_by_search(search)
+      |> filter_by_location(location_id)
+      |> filter_by_date_range(start_date, end_date)
+
+    total_count = Repo.aggregate(filtered_query, :count, :id)
+    total_pages = ceil(total_count / per_page)
+
+    tournaments =
+      filtered_query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    pagination_meta = %{
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: max(total_pages, 1)
+    }
+
+    {tournaments, pagination_meta}
+  end
+
+  defp filter_by_search(query, nil), do: query
+  defp filter_by_search(query, ""), do: query
+
+  defp filter_by_search(query, search) do
+    search_term = "%#{search}%"
+    where(query, [t], ilike(t.name, ^search_term))
+  end
+
+  defp filter_by_location(query, nil), do: query
+  defp filter_by_location(query, ""), do: query
+
+  defp filter_by_location(query, location_id) do
+    where(query, [t], t.location_id == ^location_id)
+  end
+
+  defp filter_by_date_range(query, nil, nil), do: query
+
+  defp filter_by_date_range(query, start_date, nil) when not is_nil(start_date) do
+    case date_to_datetime(start_date, :start) do
+      nil -> query
+      start_datetime -> where(query, [t], t.start_at >= ^start_datetime)
+    end
+  end
+
+  defp filter_by_date_range(query, nil, end_date) when not is_nil(end_date) do
+    case date_to_datetime(end_date, :end) do
+      nil -> query
+      end_datetime -> where(query, [t], t.start_at <= ^end_datetime)
+    end
+  end
+
+  defp filter_by_date_range(query, start_date, end_date) do
+    start_datetime = date_to_datetime(start_date, :start)
+    end_datetime = date_to_datetime(end_date, :end)
+
+    cond do
+      is_nil(start_datetime) and is_nil(end_datetime) -> query
+      is_nil(start_datetime) -> where(query, [t], t.start_at <= ^end_datetime)
+      is_nil(end_datetime) -> where(query, [t], t.start_at >= ^start_datetime)
+      true -> where(query, [t], t.start_at >= ^start_datetime and t.start_at <= ^end_datetime)
+    end
+  end
+
+  defp date_to_datetime(date_string, :start) when is_binary(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> DateTime.new!(date, ~T[00:00:00], "Etc/UTC")
+      _ -> nil
+    end
+  end
+
+  defp date_to_datetime(date_string, :end) when is_binary(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> DateTime.new!(date, ~T[23:59:59], "Etc/UTC")
+      _ -> nil
+    end
+  end
+
+  defp date_to_datetime(nil, _), do: nil
+  defp date_to_datetime(_, _), do: nil
+
+  @doc """
   Returns the list of tournaments filtered by season.
 
   ## Examples
@@ -135,7 +259,7 @@ defmodule OP.Tournaments do
   """
   def get_tournament_with_preloads!(_scope, id) do
     Tournament
-    |> preload([:organizer, :season, :location, :standings])
+    |> preload([:organizer, :season, :location, standings: :player])
     |> Repo.get!(id)
   end
 
