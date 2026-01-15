@@ -480,7 +480,7 @@ defmodule OPWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class="w-full table table-zebra">
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>
@@ -742,6 +742,87 @@ defmodule OPWeb.CoreComponents do
         {"transition-all ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
+  end
+
+  @doc """
+  Renders pagination controls.
+
+  ## Examples
+
+      <.pagination page={@page} total_pages={@total_pages} path={~p"/admin/players"} params={@params} />
+  """
+  attr :page, :integer, required: true
+  attr :total_pages, :integer, required: true
+  attr :path, :string, required: true
+  attr :params, :map, default: %{}
+
+  def pagination(assigns) do
+    ~H"""
+    <nav
+      :if={@total_pages > 1}
+      class="flex items-center justify-center gap-1 mt-6"
+      aria-label="Pagination"
+    >
+      <.link
+        :if={@page > 1}
+        patch={"#{@path}?#{URI.encode_query(Map.put(@params, "page", @page - 1))}"}
+        class="p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+        aria-label="Previous page"
+      >
+        <.icon name="hero-chevron-left" class="size-5" />
+      </.link>
+      <span :if={@page == 1} class="p-2 text-slate-400 dark:text-slate-600">
+        <.icon name="hero-chevron-left" class="size-5" />
+      </span>
+
+      <%= for page_num <- pagination_range(@page, @total_pages) do %>
+        <%= cond do %>
+          <% page_num == :ellipsis -> %>
+            <span class="px-2 text-slate-400">...</span>
+          <% page_num == @page -> %>
+            <span class="px-3 py-1 rounded bg-emerald-700 text-white font-medium">
+              {page_num}
+            </span>
+          <% true -> %>
+            <.link
+              patch={"#{@path}?#{URI.encode_query(Map.put(@params, "page", page_num))}"}
+              class="px-3 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              {page_num}
+            </.link>
+        <% end %>
+      <% end %>
+
+      <.link
+        :if={@page < @total_pages}
+        patch={"#{@path}?#{URI.encode_query(Map.put(@params, "page", @page + 1))}"}
+        class="p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+        aria-label="Next page"
+      >
+        <.icon name="hero-chevron-right" class="size-5" />
+      </.link>
+      <span :if={@page >= @total_pages} class="p-2 text-slate-400 dark:text-slate-600">
+        <.icon name="hero-chevron-right" class="size-5" />
+      </span>
+    </nav>
+    """
+  end
+
+  defp pagination_range(_current, total) when total <= 7 do
+    Enum.to_list(1..total)
+  end
+
+  defp pagination_range(current, total) do
+    cond do
+      current <= 3 ->
+        [1, 2, 3, 4, :ellipsis, total]
+
+      current >= total - 2 ->
+        [1, :ellipsis, total - 3, total - 2, total - 1, total]
+
+      true ->
+        [1, :ellipsis, current - 1, current, current + 1, :ellipsis, total]
+    end
   end
 
   @doc """

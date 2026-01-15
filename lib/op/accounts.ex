@@ -281,6 +281,31 @@ defmodule OP.Accounts do
     :ok
   end
 
+  ## User search
+
+  @doc """
+  Searches users by email using a case-insensitive partial match.
+
+  Returns up to 10 matching users.
+
+  ## Examples
+
+      iex> search_users("john")
+      [%User{email: "john@example.com"}, ...]
+
+  """
+  def search_users(query) when is_binary(query) and byte_size(query) > 0 do
+    search_term = "%#{query}%"
+
+    User
+    |> where([u], like(fragment("lower(?)", u.email), fragment("lower(?)", ^search_term)))
+    |> order_by([u], asc: u.email)
+    |> limit(10)
+    |> Repo.all()
+  end
+
+  def search_users(_query), do: []
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

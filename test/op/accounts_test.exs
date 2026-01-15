@@ -394,4 +394,50 @@ defmodule OP.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "search_users/1" do
+    test "returns users matching email query" do
+      user_fixture(%{email: "searchable@example.com"})
+      user_fixture(%{email: "other@example.com"})
+
+      results = Accounts.search_users("searchable")
+      assert length(results) == 1
+      assert hd(results).email == "searchable@example.com"
+    end
+
+    test "search is case insensitive" do
+      user_fixture(%{email: "searchable@example.com"})
+
+      results = Accounts.search_users("SEARCHABLE")
+      assert length(results) == 1
+      assert hd(results).email == "searchable@example.com"
+    end
+
+    test "returns empty list for no matches" do
+      user_fixture(%{email: "test@example.com"})
+
+      assert Accounts.search_users("nomatch") == []
+    end
+
+    test "returns empty list for empty query" do
+      user_fixture(%{email: "test@example.com"})
+
+      assert Accounts.search_users("") == []
+    end
+
+    test "returns empty list for nil query" do
+      user_fixture(%{email: "test@example.com"})
+
+      assert Accounts.search_users(nil) == []
+    end
+
+    test "limits results to 10" do
+      for i <- 1..15 do
+        user_fixture(%{email: "test#{i}@example.com"})
+      end
+
+      results = Accounts.search_users("test")
+      assert length(results) == 10
+    end
+  end
 end

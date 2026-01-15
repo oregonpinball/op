@@ -36,6 +36,69 @@ defmodule OP.Players do
     |> Repo.all()
   end
 
+  @default_page_size 20
+
+  @doc """
+  Returns a paginated list of players with preloaded associations.
+
+  ## Options
+
+    * `:page` - The page number (default: 1)
+    * `:page_size` - The number of items per page (default: 20)
+    * `:search` - Search term for player name (optional)
+    * `:linked` - Filter by linked status: "linked", "unlinked", or nil for all
+
+  ## Examples
+
+      iex> list_players_paginated(current_scope, page: 1, search: "john")
+      %{players: [%Player{}], total_count: 10, page: 1, page_size: 20, total_pages: 1}
+
+  """
+  def list_players_paginated(_scope, opts \\ []) do
+    page = max(Keyword.get(opts, :page, 1), 1)
+    page_size = Keyword.get(opts, :page_size, @default_page_size)
+    search = Keyword.get(opts, :search)
+    linked = Keyword.get(opts, :linked)
+
+    base_query =
+      Player
+      |> apply_search_filter(search)
+      |> apply_linked_filter(linked)
+
+    total_count = Repo.aggregate(base_query, :count)
+    total_pages = max(ceil(total_count / page_size), 1)
+
+    players =
+      base_query
+      |> order_by([p], asc: p.name)
+      |> preload([:user])
+      |> limit(^page_size)
+      |> offset(^((page - 1) * page_size))
+      |> Repo.all()
+
+    %{
+      players: players,
+      total_count: total_count,
+      page: page,
+      page_size: page_size,
+      total_pages: total_pages
+    }
+  end
+
+  defp apply_search_filter(query, nil), do: query
+  defp apply_search_filter(query, ""), do: query
+
+  defp apply_search_filter(query, search) when is_binary(search) do
+    search_term = "%#{search}%"
+    where(query, [p], like(fragment("lower(?)", p.name), fragment("lower(?)", ^search_term)))
+  end
+
+  defp apply_linked_filter(query, nil), do: query
+  defp apply_linked_filter(query, ""), do: query
+  defp apply_linked_filter(query, "linked"), do: where(query, [p], not is_nil(p.user_id))
+  defp apply_linked_filter(query, "unlinked"), do: where(query, [p], is_nil(p.user_id))
+  defp apply_linked_filter(query, _), do: query
+
   @doc """
   Gets a single player.
 
@@ -189,4 +252,78 @@ defmodule OP.Players do
   end
 
   def search_players(_scope, _query), do: []
+
+  @doc """
+  Gets a player by slug, raising if not found.
+
+  Returns the player with preloaded user association.
+
+  ## Examples
+
+      iex> get_player_by_slug!(current_scope, "my-player")
+      %Player{}
+
+      iex> get_player_by_slug!(current_scope, "unknown")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_player_by_slug!(_scope, slug) when is_binary(slug) do
+    Player
+    |> preload([:user])
+    |> Repo.get_by!(slug: slug)
+  end
+
+  @doc """
+  Scrubs (anonymizes) a player record.
+
+  Instead of deleting, this function:
+  - Sets name to "Deleted Player"
+  - Clears external_id
+  - Removes user_id link
+  - Regenerates slug
+
+  This preserves the record for historical tournament data while
+  removing personally identifiable information.
+
+  ## Examples
+
+      iex> scrub_player(current_scope, player)
+      {:ok, %Player{name: "Deleted Player", external_id: nil, user_id: nil}}
+
+  """
+  def scrub_player(_scope, %Player{} = player) do
+    player
+    |> Player.scrub_changeset()
+    |> Repo.update()
+  end
+
+  @doc """
+  Links a user account to a player.
+
+  ## Examples
+
+      iex> link_user(current_scope, player, user_id)
+      {:ok, %Player{user_id: user_id}}
+
+  """
+  def link_user(_scope, %Player{} = player, user_id) when is_integer(user_id) do
+    player
+    |> Ecto.Changeset.change(user_id: user_id)
+    |> Repo.update()
+  end
+
+  @doc """
+  Unlinks the user account from a player.
+
+  ## Examples
+
+      iex> unlink_user(current_scope, player)
+      {:ok, %Player{user_id: nil}}
+
+  """
+  def unlink_user(_scope, %Player{} = player) do
+    player
+    |> Ecto.Changeset.change(user_id: nil)
+    |> Repo.update()
+  end
 end
