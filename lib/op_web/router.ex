@@ -94,6 +94,16 @@ defmodule OPWeb.Router do
       live "/tournaments/new", TournamentLive.Index, :new
       live "/tournaments/:id/edit", TournamentLive.Index, :edit
       live "/tournaments/:id", TournamentLive.Show, :show
+
+      live "/leagues", LeagueLive.Index, :index
+      live "/leagues/new", LeagueLive.Form, :new
+      live "/leagues/:id/edit", LeagueLive.Form, :edit
+      live "/leagues/:id", LeagueLive.Show, :show
+
+      live "/seasons", SeasonLive.Index, :index
+      live "/seasons/new", SeasonLive.Form, :new
+      live "/seasons/:id/edit", SeasonLive.Form, :edit
+      live "/seasons/:id", SeasonLive.Show, :show
     end
   end
 
