@@ -453,8 +453,8 @@ defmodule OPWeb.PlayerLiveTest do
 
       html =
         lv
-        |> element("#user-search")
-        |> render_change(%{"user_search" => "searchable"})
+        |> form("#user-search-form", search: %{user_search: "searchable"})
+        |> render_change()
 
       assert html =~ "searchable@example.com"
     end
@@ -467,8 +467,8 @@ defmodule OPWeb.PlayerLiveTest do
 
       # Search for user
       lv
-      |> element("#user-search")
-      |> render_change(%{"user_search" => "linkme"})
+      |> form("#user-search-form", search: %{user_search: "linkme"})
+      |> render_change()
 
       # Link the user
       html =
@@ -515,8 +515,8 @@ defmodule OPWeb.PlayerLiveTest do
 
       html =
         lv
-        |> element("#user-search")
-        |> render_change(%{"user_search" => "nonexistent"})
+        |> form("#user-search-form", search: %{user_search: "nonexistent"})
+        |> render_change()
 
       assert html =~ "No users found matching"
     end

@@ -28,6 +28,12 @@ defmodule OPWeb.AdminLive.Dashboard do
           href={~p"/admin/players"}
           icon="hero-users"
         />
+        <.admin_card
+          title="Users"
+          description="Manage user accounts and roles"
+          href={~p"/admin/users"}
+          icon="hero-user-circle"
+        />
       </div>
     </Layouts.app>
     """

@@ -81,6 +81,8 @@ defmodule OPWeb.Router do
       live "/admin/players", PlayerLive.Index, :index
       live "/admin/players/new", PlayerLive.Form, :new
       live "/admin/players/:slug/edit", PlayerLive.Form, :edit
+      live "/admin/users", UserLive.Admin.Index, :index
+      live "/admin/users/:id/edit", UserLive.Admin.Form, :edit
     end
   end
 
