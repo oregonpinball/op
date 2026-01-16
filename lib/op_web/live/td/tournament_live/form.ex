@@ -1,4 +1,4 @@
-defmodule OPWeb.Admin.TournamentLive.FormComponent do
+defmodule OPWeb.TD.TournamentLive.Form do
   use OPWeb, :live_component
 
   alias OP.Tournaments

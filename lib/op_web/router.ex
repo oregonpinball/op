@@ -22,6 +22,9 @@ defmodule OPWeb.Router do
     storybook_assets()
   end
 
+  #
+  # PUBLIC routes
+  #
   scope "/", OPWeb do
     # Use the default browser pipeline, which notably
     # does NOT require the user to be authenticated.  This is
@@ -57,7 +60,9 @@ defmodule OPWeb.Router do
     live_storybook("/storybook", backend_module: OPWeb.Storybook)
   end
 
-  ## Authenticated routes
+  #
+  # AUTHN ROUTES
+  #
   scope "/", OPWeb do
     pipe_through [:browser, :require_authenticated_user]
 
@@ -71,32 +76,41 @@ defmodule OPWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
-
-    live_session :require_system_admin,
-      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
-      live "/admin/dashboard", AdminLive.Dashboard, :index
-      live "/admin/locations", LocationLive.Index, :index
-      live "/admin/locations/new", LocationLive.Form, :new
-      live "/admin/locations/:slug/edit", LocationLive.Form, :edit
-      live "/admin/players", PlayerLive.Index, :index
-      live "/admin/players/new", PlayerLive.Form, :new
-      live "/admin/players/:slug/edit", PlayerLive.Form, :edit
-      live "/admin/users", UserLive.Admin.Index, :index
-      live "/admin/users/:id/edit", UserLive.Admin.Form, :edit
-    end
   end
 
-  ## Admin routes
-  scope "/admin", OPWeb.Admin do
+  ## TD routes
+  scope "/td", OPWeb.TD do
     pipe_through [:browser, :require_authenticated_user]
 
+    # These are in `op_web/live/td/`
     live_session :require_admin,
       on_mount: [{OPWeb.UserAuth, :require_admin}] do
       live "/tournaments", TournamentLive.Index, :index
       live "/tournaments/new", TournamentLive.Index, :new
       live "/tournaments/:id/edit", TournamentLive.Index, :edit
       live "/tournaments/:id", TournamentLive.Show, :show
+    end
+  end
 
+  scope "/admin", OPWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user]
+
+    # These are in `op_web/live/admin/`
+    live_session :require_system_admin,
+      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
+      live "/dashboard", AdminLive.Dashboard, :index
+      live "/locations", LocationLive.Index, :index
+      live "/locations/new", LocationLive.Form, :new
+      live "/locations/:slug/edit", LocationLive.Form, :edit
+      live "/players", PlayerLive.Index, :index
+      live "/players/new", PlayerLive.Form, :new
+      live "/players/:slug/edit", PlayerLive.Form, :edit
+
+      # These need the .Admin namespacing removed
+      live "/users", UserLive.Index, :index
+      live "/users/:id/edit", UserLive.Form, :edit
+
+      # These need moved into the correct folder
       live "/leagues", LeagueLive.Index, :index
       live "/leagues/new", LeagueLive.Form, :new
       live "/leagues/:id/edit", LeagueLive.Form, :edit

@@ -1,4 +1,4 @@
-defmodule OPWeb.AdminLive.Dashboard do
+defmodule OPWeb.Admin.AdminLive.Dashboard do
   use OPWeb, :live_view
 
   @impl true
@@ -19,7 +19,7 @@ defmodule OPWeb.AdminLive.Dashboard do
         <.admin_card
           title="Tournaments"
           description="Manage pinball tournaments and events"
-          href={~p"/admin/tournaments"}
+          href={~p"/td/tournaments"}
           icon="hero-trophy"
         />
         <.admin_card

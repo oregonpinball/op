@@ -1,4 +1,4 @@
-defmodule OPWeb.Admin.TournamentLive.Index do
+defmodule OPWeb.TD.TournamentLive.Index do
   use OPWeb, :live_view
 
   alias OP.Locations
@@ -20,7 +20,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
               <.icon name="hero-arrow-up-tray" class="mr-1" /> Import from MatchPlay
             </.button>
           </.link>
-          <.button patch={~p"/admin/tournaments/new"} color="primary">
+          <.button patch={~p"/td/tournaments/new"} color="primary">
             <.icon name="hero-plus" class="mr-1" /> New Tournament
           </.button>
         </:actions>
@@ -136,7 +136,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       <.pagination
         page={@pagination.page}
         total_pages={@pagination.total_pages}
-        path={~p"/admin/tournaments"}
+        path={~p"/td/tournaments"}
         params={filter_params_for_pagination(@filter_form)}
       />
 
@@ -144,16 +144,16 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         :if={@live_action in [:new, :edit]}
         id="tournament-modal"
         show
-        on_cancel={JS.patch(~p"/admin/tournaments")}
+        on_cancel={JS.patch(~p"/td/tournaments")}
       >
         <.live_component
-          module={OPWeb.Admin.TournamentLive.FormComponent}
+          module={OPWeb.TD.TournamentLive.Form}
           id={@tournament.id || :new}
           title={@page_title}
           action={@live_action}
           tournament={@tournament}
           current_scope={@current_scope}
-          patch={~p"/admin/tournaments"}
+          patch={~p"/td/tournaments"}
         />
       </.modal>
     </Layouts.app>
@@ -269,7 +269,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   end
 
   @impl true
-  def handle_info({OPWeb.Admin.TournamentLive.FormComponent, {:saved, tournament}}, socket) do
+  def handle_info({OPWeb.TD.TournamentLive.Form, {:saved, tournament}}, socket) do
     _tournament =
       Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, tournament.id)
 
@@ -305,7 +305,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   end
 
   def handle_event("clear_filters", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/admin/tournaments")}
+    {:noreply, push_patch(socket, to: ~p"/td/tournaments")}
   end
 
   def handle_event("delete", %{"id" => id}, socket) do

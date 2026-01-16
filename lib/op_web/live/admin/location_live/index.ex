@@ -1,4 +1,4 @@
-defmodule OPWeb.LocationLive.Index do
+defmodule OPWeb.Admin.LocationLive.Index do
   use OPWeb, :live_view
 
   alias OP.Locations

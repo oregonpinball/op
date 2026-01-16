@@ -1,11 +1,13 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <div class="text-center">
     <%= if !is_nil(@current_scope) do %>
-      <h1 class="text-4xl font-bold text-center mt-6 text-slate-900 wrap-break-word">
+      <h1 class="text-4xl font-bold text-center mt-4 text-slate-900 wrap-break-word">
         Welcome back, {@current_scope.user.email}
       </h1>
       <div class="mt-4 flex items-center justify-center space-x-2">
-        <.button color="primary" size="lg">Add tournament</.button>
+        <.button color="primary" size="lg" navigate={~p"/td/tournaments/new"}>
+          Add tournament
+        </.button>
         <.button color="secondary" size="lg">Submit results</.button>
         <.button color="secondary" size="lg">View submissions</.button>
       </div>

@@ -8,19 +8,15 @@ defmodule OPWeb.UserLive.Login do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="container mx-auto">
-        <div class="text-center mb-8">
+        <div class="text-center">
           <.header>
-            <p>Log in</p>
+            <span class="text-4xl">Log in</span>
             <:subtitle>
-              <%= if @current_scope do %>
-                You need to reauthenticate to perform sensitive actions on your account.
-              <% else %>
-                Don't have an account? <.link
-                  navigate={~p"/users/register"}
-                  class="font-semibold text-brand hover:underline"
-                  phx-no-format
-                >Sign up</.link> for an account now.
-              <% end %>
+              Don't have an account? <.button
+                navigate={~p"/users/register"}
+                variant="invisible"
+                phx-no-format
+              >Sign up</.button> for an account now.
             </:subtitle>
           </.header>
         </div>

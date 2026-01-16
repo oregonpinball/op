@@ -1,4 +1,4 @@
-defmodule OPWeb.Admin.TournamentLiveTest do
+defmodule OPWeb.TD.TournamentLiveTest do
   use OPWeb.ConnCase
 
   import Phoenix.LiveViewTest
@@ -7,7 +7,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
 
   describe "Index - Authorization" do
     test "redirects non-authenticated users to login", %{conn: conn} do
-      assert {:error, redirect} = live(conn, ~p"/admin/tournaments")
+      assert {:error, redirect} = live(conn, ~p"/td/tournaments")
       assert {:redirect, %{to: path, flash: flash}} = redirect
       assert path == ~p"/users/log-in"
       assert %{"error" => "You must log in to access this page."} = flash
@@ -17,7 +17,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       user = user_fixture()
       conn = log_in_user(conn, user)
 
-      assert {:error, redirect} = live(conn, ~p"/admin/tournaments")
+      assert {:error, redirect} = live(conn, ~p"/td/tournaments")
       assert {:redirect, %{to: path, flash: flash}} = redirect
       assert path == ~p"/"
       assert %{"error" => "You must be an admin to access this page."} = flash
@@ -27,7 +27,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       user = admin_user_fixture()
       conn = log_in_user(conn, user)
 
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/td/tournaments")
       assert html =~ "Tournaments"
     end
 
@@ -35,7 +35,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       user = td_user_fixture()
       conn = log_in_user(conn, user)
 
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/td/tournaments")
       assert html =~ "Tournaments"
     end
   end
@@ -49,20 +49,20 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     test "lists all tournaments", %{conn: conn} do
       tournament = tournament_fixture(%{name: "Test Tournament"})
 
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/td/tournaments")
 
       assert html =~ "Tournaments"
       assert html =~ tournament.name
     end
 
     test "shows empty state when no tournaments", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/td/tournaments")
 
       assert html =~ "No tournaments found"
     end
 
     test "navigates to new tournament form", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments")
 
       assert lv |> element("a", "New Tournament") |> render_click() =~
                "New Tournament"
@@ -76,7 +76,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
 
     test "creates a new tournament with valid data", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments/new")
 
       start_at =
         DateTime.utc_now()
@@ -93,7 +93,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       })
       |> render_submit()
 
-      assert_patch(lv, ~p"/admin/tournaments")
+      assert_patch(lv, ~p"/td/tournaments")
 
       html = render(lv)
       assert html =~ "Tournament created successfully"
@@ -101,7 +101,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
 
     test "shows validation errors with invalid data", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments/new")
 
       result =
         lv
@@ -134,7 +134,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       })
       |> render_submit()
 
-      assert_patch(lv, ~p"/admin/tournaments")
+      assert_patch(lv, ~p"/td/tournaments")
 
       html = render(lv)
       assert html =~ "Tournament updated successfully"
@@ -165,7 +165,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
 
     test "deletes tournament from list", %{conn: conn, tournament: tournament} do
-      {:ok, lv, html} = live(conn, ~p"/admin/tournaments")
+      {:ok, lv, html} = live(conn, ~p"/td/tournaments")
 
       assert html =~ tournament.name
 

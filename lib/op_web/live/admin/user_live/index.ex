@@ -1,4 +1,4 @@
-defmodule OPWeb.UserLive.Admin.Index do
+defmodule OPWeb.Admin.UserLive.Index do
   use OPWeb, :live_view
 
   alias OP.Accounts
