@@ -2,7 +2,6 @@ defmodule OPWeb.Admin.LeagueLive.Index do
   use OPWeb, :live_view
 
   alias OP.Leagues
-  alias OP.Leagues.League
 
   @default_per_page 25
 

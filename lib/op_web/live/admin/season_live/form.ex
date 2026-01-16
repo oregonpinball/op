@@ -22,7 +22,12 @@ defmodule OPWeb.Admin.SeasonLive.Form do
         >
           <.input field={@form[:name]} type="text" label="Name" required />
           <.input field={@form[:description]} type="textarea" label="Description" />
-          <.input field={@form[:slug]} type="text" label="Slug" placeholder="Auto-generated if left blank" />
+          <.input
+            field={@form[:slug]}
+            type="text"
+            label="Slug"
+            placeholder="Auto-generated if left blank"
+          />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <.input
@@ -91,7 +96,12 @@ defmodule OPWeb.Admin.SeasonLive.Form do
 
   defp apply_action(socket, :new, params) do
     season = %Leagues.Season{}
-    season = if params["league_id"], do: %{season | league_id: String.to_integer(params["league_id"])}, else: season
+
+    season =
+      if params["league_id"],
+        do: %{season | league_id: String.to_integer(params["league_id"])},
+        else: season
+
     changeset = Leagues.change_season(season)
 
     socket

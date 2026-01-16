@@ -2,7 +2,6 @@ defmodule OPWeb.Admin.SeasonLive.Index do
   use OPWeb, :live_view
 
   alias OP.Leagues
-  alias OP.Leagues.Season
 
   @default_per_page 25
 
@@ -167,7 +166,9 @@ defmodule OPWeb.Admin.SeasonLive.Index do
       "end_date" => end_date
     }
 
-    seasons = list_seasons_filtered(socket.assigns.current_scope, search, league_id, start_date, end_date)
+    seasons =
+      list_seasons_filtered(socket.assigns.current_scope, search, league_id, start_date, end_date)
+
     total_count = length(seasons)
     per_page = @default_per_page
     total_pages = max(ceil(total_count / per_page), 1)
@@ -293,7 +294,9 @@ defmodule OPWeb.Admin.SeasonLive.Index do
     start_date = socket.assigns.filter_form[:start_date].value || ""
     end_date = socket.assigns.filter_form[:end_date].value || ""
 
-    seasons = list_seasons_filtered(socket.assigns.current_scope, search, league_id, start_date, end_date)
+    seasons =
+      list_seasons_filtered(socket.assigns.current_scope, search, league_id, start_date, end_date)
+
     total_count = length(seasons)
     per_page = @default_per_page
     total_pages = max(ceil(total_count / per_page), 1)

@@ -22,7 +22,12 @@ defmodule OPWeb.Admin.LeagueLive.Form do
         >
           <.input field={@form[:name]} type="text" label="Name" required />
           <.input field={@form[:description]} type="textarea" label="Description" />
-          <.input field={@form[:slug]} type="text" label="Slug" placeholder="Auto-generated if left blank" />
+          <.input
+            field={@form[:slug]}
+            type="text"
+            label="Slug"
+            placeholder="Auto-generated if left blank"
+          />
 
           <input type="hidden" name={@form[:author_id].name} value={@current_scope.user.id} />
 
