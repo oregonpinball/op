@@ -57,19 +57,15 @@ defmodule OPWeb.PlayerLive.Form do
             <div class="space-y-4">
               <p class="text-slate-600">No user account linked to this player.</p>
 
-              <div>
-                <label class="label mb-1">Search for user by email</label>
-                <input
+              <.form for={@search_form} id="user-search-form" phx-change="search_users">
+                <.input
+                  field={@search_form[:user_search]}
                   type="text"
-                  id="user-search"
-                  name="user_search"
-                  value={@user_search}
-                  phx-change="search_users"
+                  label="Search for user by email"
                   phx-debounce="300"
                   placeholder="Start typing email..."
-                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
+              </.form>
 
               <div :if={@user_results != []} class="border border-slate-300 rounded-lg divide-y">
                 <div
@@ -105,6 +101,7 @@ defmodule OPWeb.PlayerLive.Form do
      socket
      |> assign(:user_search, "")
      |> assign(:user_results, [])
+     |> assign(:search_form, to_form(%{"user_search" => ""}, as: :search))
      |> apply_action(socket.assigns.live_action, params)}
   end
 
@@ -140,9 +137,15 @@ defmodule OPWeb.PlayerLive.Form do
     save_player(socket, socket.assigns.live_action, player_params)
   end
 
-  def handle_event("search_users", %{"user_search" => query}, socket) do
+  def handle_event("search_users", %{"search" => %{"user_search" => query}}, socket) do
     results = Accounts.search_users(query)
-    {:noreply, assign(socket, user_search: query, user_results: results)}
+
+    {:noreply,
+     assign(socket,
+       user_search: query,
+       user_results: results,
+       search_form: to_form(%{"user_search" => query}, as: :search)
+     )}
   end
 
   def handle_event("link_user", %{"user-id" => user_id}, socket) do

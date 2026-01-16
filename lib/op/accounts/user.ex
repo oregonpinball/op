@@ -2,6 +2,8 @@ defmodule OP.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias OP.Players.Player
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -12,6 +14,8 @@ defmodule OP.Accounts.User do
     field :role, Ecto.Enum,
       values: [:system_admin, :td, :player],
       default: :player
+
+    has_one :player, Player
 
     timestamps(type: :utc_datetime)
   end
@@ -128,5 +132,26 @@ defmodule OP.Accounts.User do
   def valid_password?(_, _) do
     Bcrypt.no_user_verify()
     false
+  end
+
+  @doc """
+  A user changeset for changing the role.
+
+  Prevents system admins from demoting themselves.
+  """
+  def role_changeset(user, attrs, current_user_id) do
+    changeset =
+      user
+      |> cast(attrs, [:role])
+      |> validate_required([:role])
+      |> validate_inclusion(:role, [:system_admin, :td, :player])
+
+    # Prevent self-demotion for system admins
+    if user.id == current_user_id && user.role == :system_admin &&
+         get_change(changeset, :role) != :system_admin do
+      add_error(changeset, :role, "cannot demote yourself")
+    else
+      changeset
+    end
   end
 end
