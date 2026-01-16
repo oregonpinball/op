@@ -61,13 +61,14 @@ defmodule OPWeb.CoreComponents do
     # Flash uses `kind` to determine which set of flash messages
     # to pull and render.  This is also used for the `color` in a general
     # sense, wso we'll map it here
-    color = case assigns.kind do
-      :info -> "info"
-      :error -> "error"
-      _ -> assigns[:color] || "secondary"
-    end
+    color =
+      case assigns.kind do
+        :info -> "info"
+        :error -> "error"
+        _ -> assigns[:color] || "secondary"
+      end
 
-    IO.inspect {color, assigns.kind}, label: "ASD"
+    IO.inspect({color, assigns.kind}, label: "ASD")
 
     colors =
       %{
@@ -124,14 +125,17 @@ defmodule OPWeb.CoreComponents do
           <p>{msg}</p>
         </div>
         <div class="flex-1" />
-        <button type="button" class="absolute top-0 right-2 group self-start cursor-pointer" aria-label={gettext("close")}>
+        <button
+          type="button"
+          class="absolute top-0 right-2 group self-start cursor-pointer"
+          aria-label={gettext("close")}
+        >
           <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
         </button>
       </div>
     </div>
     """
   end
-
 
   @doc """
   Renders a button with navigation support.

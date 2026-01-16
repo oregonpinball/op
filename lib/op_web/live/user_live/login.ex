@@ -37,8 +37,7 @@ defmodule OPWeb.UserLive.Login do
           <div class="space-y-4 bg-white p-4 border rounded">
             <div class="border-b pb-3 mb-4">
               <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                <.icon name="hero-sparkles" class="size-5 inline-block" />
-                Simple Login
+                <.icon name="hero-sparkles" class="size-5 inline-block" /> Simple Login
               </h2>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Get a secure login link (magic link) sent to your email
@@ -69,7 +68,9 @@ defmodule OPWeb.UserLive.Login do
           <%!-- Email/Password Login Column --%>
           <div class="space-y-4 bg-gray-50 p-4">
             <div class="border-b pb-3 mb-4">
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Traditional Login</h2>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Traditional Login
+              </h2>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Sign in with your email and password
               </p>
