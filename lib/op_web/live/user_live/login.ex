@@ -7,8 +7,8 @@ defmodule OPWeb.UserLive.Login do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm space-y-4">
-        <div class="text-center">
+      <div class="container mx-auto">
+        <div class="text-center mb-8">
           <.header>
             <p>Log in</p>
             <:subtitle>
@@ -25,68 +25,87 @@ defmodule OPWeb.UserLive.Login do
           </.header>
         </div>
 
-        <div :if={local_mail_adapter?()} class="alert alert-info">
-          <.icon name="hero-information-circle" class="size-6 shrink-0" />
-          <div>
-            <p>You are running the local mail adapter.</p>
-            <p>
-              To see sent emails, visit <.link href="/dev/mailbox" class="underline">the mailbox page</.link>.
-            </p>
+        <.alert :if={local_mail_adapter?()} class="mx-auto" color="info">
+          <p>You are running the local mail adapter.</p>
+          <p>
+            To see sent emails, visit <.link href="/dev/mailbox" class="underline">the mailbox page</.link>.
+          </p>
+        </.alert>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+          <%!-- Passwordless Email Login Column --%>
+          <div class="space-y-4 bg-white p-4 border rounded">
+            <div class="border-b pb-3 mb-4">
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <.icon name="hero-sparkles" class="size-5 inline-block" /> Simple Login
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Get a secure login link (magic link) sent to your email
+              </p>
+            </div>
+            <.form
+              :let={f}
+              for={@form}
+              id="login_form_magic"
+              action={~p"/users/log-in"}
+              phx-submit="submit_magic"
+            >
+              <.input
+                readonly={!!@current_scope}
+                field={f[:email]}
+                type="email"
+                label="Email"
+                autocomplete="email"
+                required
+                phx-mounted={JS.focus()}
+              />
+              <.button class="w-full" color="primary" size="md">
+                Log in with email <span aria-hidden="true">→</span>
+              </.button>
+            </.form>
+          </div>
+
+          <%!-- Email/Password Login Column --%>
+          <div class="space-y-4 bg-gray-50 p-4">
+            <div class="border-b pb-3 mb-4">
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Traditional Login
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Sign in with your email and password
+              </p>
+            </div>
+            <.form
+              :let={f}
+              for={@form}
+              id="login_form_password"
+              action={~p"/users/log-in"}
+              phx-submit="submit_password"
+              phx-trigger-action={@trigger_submit}
+            >
+              <.input
+                readonly={!!@current_scope}
+                field={f[:email]}
+                type="email"
+                label="Email"
+                autocomplete="email"
+                required
+              />
+              <.input
+                field={@form[:password]}
+                type="password"
+                label="Password"
+                autocomplete="current-password"
+              />
+              <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+                Log in and stay logged in <span aria-hidden="true">→</span>
+              </.button>
+              <.button class="btn btn-primary btn-soft w-full mt-2">
+                Log in only this time
+              </.button>
+            </.form>
           </div>
         </div>
-
-        <.form
-          :let={f}
-          for={@form}
-          id="login_form_magic"
-          action={~p"/users/log-in"}
-          phx-submit="submit_magic"
-        >
-          <.input
-            readonly={!!@current_scope}
-            field={f[:email]}
-            type="email"
-            label="Email"
-            autocomplete="email"
-            required
-            phx-mounted={JS.focus()}
-          />
-          <.button class="btn btn-primary w-full">
-            Log in with email <span aria-hidden="true">→</span>
-          </.button>
-        </.form>
-
-        <div class="divider">or</div>
-
-        <.form
-          :let={f}
-          for={@form}
-          id="login_form_password"
-          action={~p"/users/log-in"}
-          phx-submit="submit_password"
-          phx-trigger-action={@trigger_submit}
-        >
-          <.input
-            readonly={!!@current_scope}
-            field={f[:email]}
-            type="email"
-            label="Email"
-            autocomplete="email"
-            required
-          />
-          <.input
-            field={@form[:password]}
-            type="password"
-            label="Password"
-            autocomplete="current-password"
-          />
-          <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
-            Log in and stay logged in <span aria-hidden="true">→</span>
-          </.button>
-          <.button class="btn btn-primary btn-soft w-full mt-2">
-            Log in only this time
-          </.button>
-        </.form>
       </div>
     </Layouts.app>
     """

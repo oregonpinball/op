@@ -32,9 +32,11 @@ defmodule OPWeb.UserLive.Registration do
             phx-mounted={JS.focus()}
           />
 
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
-            Create an account
-          </.button>
+          <div class="flex justify-end">
+            <.button phx-disable-with="Creating account..." color="primary">
+              Create an account
+            </.button>
+          </div>
         </.form>
       </div>
     </Layouts.app>
