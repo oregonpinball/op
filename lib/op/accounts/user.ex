@@ -17,6 +17,23 @@ defmodule OP.Accounts.User do
   end
 
   @doc """
+  A generic changeset for updating user fields.
+
+  This changeset allows updates to all non-sensitive fields. For email or
+  password updates, use the specific `email_changeset/3` or `password_changeset/3` functions.
+  """
+  def changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :role, :confirmed_at])
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> unique_constraint(:email)
+  end
+
+  @doc """
   A user changeset for registering or changing the email.
 
   It requires the email to change otherwise an error is added.

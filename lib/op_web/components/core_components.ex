@@ -40,11 +40,63 @@ defmodule OPWeb.CoreComponents do
   attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
   attr :title, :string, default: nil
   attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+  attr :hidden, :boolean, default: false, doc: "whether the flash should be hidden by default"
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
+
+  attr :color, :string,
+    default: "secondary",
+    values: ~w(primary secondary info success warning error invisible),
+    doc: "the color variant of the alert"
+
+  attr :variant, :string,
+    default: "solid",
+    values: ~w(solid),
+    doc: "the variant of the alert"
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
 
   def flash(assigns) do
+    base = "flex items-center space-x-2 max-w-xl p-2 rounded"
+
+    # Flash uses `kind` to determine which set of flash messages
+    # to pull and render.  This is also used for the `color` in a general
+    # sense, wso we'll map it here
+    color = case assigns.kind do
+      :info -> "info"
+      :error -> "error"
+      _ -> assigns[:color] || "secondary"
+    end
+
+    IO.inspect {color, assigns.kind}, label: "ASD"
+
+    colors =
+      %{
+        "primary" => %{
+          "solid" => "border bg-emerald-100 text-emerald-800 border-emerald-400"
+        },
+        "secondary" => %{
+          "solid" => "border bg-slate-100 text-slate-800 border-slate-300"
+        },
+        "info" => %{
+          "solid" => "border bg-sky-100 text-sky-800 border-sky-400"
+        },
+        "success" => %{
+          "solid" => "border bg-green-100 text-green-800 border-green-400"
+        },
+        "warning" => %{
+          "solid" => "border bg-yellow-100 text-yellow-800 border-yellow-400"
+        },
+        "error" => %{
+          "solid" => "border bg-red-100 text-red-800 border-red-400"
+        },
+        "invisible" => %{
+          "solid" => "border bg-transparent text-inherit border-transparent"
+        }
+      }
+
+    color_classes = colors |> Map.fetch!(color) |> Map.fetch!(assigns[:variant])
+    class = [base, color_classes]
+    assigns = Map.put(assigns, :class, class)
     assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
 
     ~H"""
@@ -53,11 +105,15 @@ defmodule OPWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class={[
+        @hidden && "hidden",
+        "fixed bottom-6 right-4 mr-2 max-w-xl rounded-lg p-4 transition-opacity duration-300 z-9999",
+        @class
+      ]}
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
+        "flex items-center space-x-2 max-w-sm text-wrap",
         @kind == :info && "alert-info",
         @kind == :error && "alert-error"
       ]}>
@@ -68,13 +124,14 @@ defmodule OPWeb.CoreComponents do
           <p>{msg}</p>
         </div>
         <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
+        <button type="button" class="absolute top-0 right-2 group self-start cursor-pointer" aria-label={gettext("close")}>
           <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
         </button>
       </div>
     </div>
     """
   end
+
 
   @doc """
   Renders a button with navigation support.
@@ -86,7 +143,7 @@ defmodule OPWeb.CoreComponents do
       <.button navigate={~p"/"} size="xl">Home</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
-  attr :class, :string
+  attr :class, :string, default: ""
 
   attr :color, :string,
     default: "secondary",
@@ -99,6 +156,7 @@ defmodule OPWeb.CoreComponents do
     doc: "the variant of the button"
 
   attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
+
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
@@ -186,12 +244,10 @@ defmodule OPWeb.CoreComponents do
         }
       }
 
-    assigns =
-      assign_new(assigns, :class, fn ->
-        color_classes = colors |> Map.fetch!(assigns[:color]) |> Map.fetch!(assigns[:variant])
-        size_classes = sizes |> Map.fetch!(assigns[:size]) |> Map.fetch!(assigns[:variant])
-        [base, color_classes, size_classes]
-      end)
+    color_classes = colors |> Map.fetch!(assigns[:color]) |> Map.fetch!(assigns[:variant])
+    size_classes = sizes |> Map.fetch!(assigns[:size]) |> Map.fetch!(assigns[:variant])
+    class = [assigns.class, base, color_classes, size_classes]
+    assigns = Map.put(assigns, :class, class)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
       ~H"""
@@ -206,6 +262,73 @@ defmodule OPWeb.CoreComponents do
       </button>
       """
     end
+  end
+
+  @doc """
+  Renders an alert message with an icon.
+
+  ## Examples
+
+      <.alert>Something went wrong</.alert>
+      <.alert color="success">Task completed successfully</.alert>
+      <.alert color="error">Invalid input</.alert>
+  """
+  attr :class, :string, default: ""
+
+  attr :color, :string,
+    default: "secondary",
+    values: ~w(primary secondary info success warning error invisible),
+    doc: "the color variant of the alert"
+
+  attr :variant, :string,
+    default: "solid",
+    values: ~w(solid invisible underline),
+    doc: "the variant of the alert"
+
+  attr :size, :string, default: "md", values: ~w(xs sm md lg xl)
+
+  slot :inner_block, required: true
+
+  def alert(assigns) do
+    base = "flex items-center space-x-2 max-w-xl p-2 rounded"
+
+    colors =
+      %{
+        "primary" => %{
+          "solid" => "border bg-emerald-100 text-emerald-900 border-emerald-950"
+        },
+        "secondary" => %{
+          "solid" => "border bg-slate-200 text-slate-900 border-slate-300"
+        },
+        "info" => %{
+          "solid" => "border bg-sky-100 text-sky-900 border-sky-950"
+        },
+        "success" => %{
+          "solid" => "border bg-green-100 text-green-900 border-green-800"
+        },
+        "warning" => %{
+          "solid" => "border bg-yellow-100 text-yellow-900 border-yellow-800"
+        },
+        "error" => %{
+          "solid" => "border bg-red-100 text-red-900 border-red-950"
+        },
+        "invisible" => %{
+          "solid" => "border bg-transparent text-inherit border-transparent"
+        }
+      }
+
+    color_classes = colors |> Map.fetch!(assigns[:color]) |> Map.fetch!(assigns[:variant])
+    class = [assigns.class, base, color_classes]
+    assigns = Map.put(assigns, :class, class)
+
+    ~H"""
+    <div role="alert" class={@class}>
+      <.icon name="hero-exclamation-circle" class="size-5 shrink-0" />
+      <div>
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
   end
 
   @doc """
@@ -374,14 +497,15 @@ defmodule OPWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
+            "p-2 border w-full rounded bg-white",
+            @class || "",
             @errors != [] && (@error_class || "textarea-error")
           ]}
           {@rest}
@@ -395,17 +519,18 @@ defmodule OPWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="">{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            "p-2 border w-full rounded bg-white transition-all",
+            @class || "",
+            @errors != [] && (@error_class || "bg-red-100 border-red-800")
           ]}
           {@rest}
         />
@@ -418,9 +543,9 @@ defmodule OPWeb.CoreComponents do
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+    <p class="mt-1 flex items-center space-x-1 text-sm text-red-800">
       <.icon name="hero-exclamation-circle" class="size-5" />
-      {render_slot(@inner_block)}
+      <span>{render_slot(@inner_block)}</span>
     </p>
     """
   end
