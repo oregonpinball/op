@@ -29,6 +29,18 @@ defmodule OPWeb.AdminLive.Dashboard do
           icon="hero-users"
         />
         <.admin_card
+          title="Leagues"
+          description="Manage leagues and league settings"
+          href={~p"/admin/leagues"}
+          icon="hero-star"
+        />
+        <.admin_card
+          title="Seasons"
+          description="Manage seasons and associate with leagues"
+          href={~p"/admin/seasons"}
+          icon="hero-calendar"
+        />
+        <.admin_card
           title="Users"
           description="Manage user accounts and roles"
           href={~p"/admin/users"}
