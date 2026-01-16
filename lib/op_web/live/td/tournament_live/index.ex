@@ -100,7 +100,7 @@ defmodule OPWeb.TD.TournamentLive.Index do
         >
           <div class="flex-1">
             <.link
-              navigate={~p"/admin/tournaments/#{tournament}"}
+              navigate={~p"/td/tournaments/#{tournament}"}
               class="text-lg font-semibold text-gray-900 hover:text-blue-600"
             >
               {tournament.name}
@@ -118,7 +118,7 @@ defmodule OPWeb.TD.TournamentLive.Index do
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <.link patch={~p"/admin/tournaments/#{tournament}/edit"}>
+            <.link patch={~p"/td/tournaments/#{tournament}/edit"}>
               <.button variant="invisible">Edit</.button>
             </.link>
             <.button
@@ -301,7 +301,7 @@ defmodule OPWeb.TD.TournamentLive.Index do
       |> Map.new()
       |> Map.put("page", "1")
 
-    {:noreply, push_patch(socket, to: ~p"/admin/tournaments?#{params}")}
+    {:noreply, push_patch(socket, to: ~p"/td/tournaments?#{params}")}
   end
 
   def handle_event("clear_filters", _params, socket) do
@@ -332,7 +332,7 @@ defmodule OPWeb.TD.TournamentLive.Index do
           |> filter_params_for_pagination()
           |> Map.put("page", pagination.page - 1)
 
-        push_patch(socket, to: ~p"/admin/tournaments?#{params}")
+        push_patch(socket, to: ~p"/td/tournaments?#{params}")
       else
         socket
         |> assign(:pagination, pagination)

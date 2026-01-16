@@ -124,7 +124,7 @@ defmodule OPWeb.TD.TournamentLiveTest do
     end
 
     test "updates tournament with valid data", %{conn: conn, tournament: tournament} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments/#{tournament}/edit")
 
       lv
       |> form("#tournament-form", %{
@@ -142,7 +142,7 @@ defmodule OPWeb.TD.TournamentLiveTest do
     end
 
     test "shows validation errors with invalid data", %{conn: conn, tournament: tournament} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments/#{tournament}/edit")
 
       result =
         lv
@@ -185,14 +185,14 @@ defmodule OPWeb.TD.TournamentLiveTest do
     end
 
     test "displays tournament details", %{conn: conn, tournament: tournament} do
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+      {:ok, _lv, html} = live(conn, ~p"/td/tournaments/#{tournament}")
 
       assert html =~ tournament.name
       assert html =~ "Tournament details"
     end
 
     test "navigates to edit from show page", %{conn: conn, tournament: tournament} do
-      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+      {:ok, lv, _html} = live(conn, ~p"/td/tournaments/#{tournament}")
 
       assert lv |> element("a", "Edit Tournament") |> render_click() =~
                "Edit Tournament"
@@ -202,7 +202,7 @@ defmodule OPWeb.TD.TournamentLiveTest do
       user = user_fixture()
       non_admin_conn = log_in_user(build_conn(), user)
 
-      assert {:error, redirect} = live(non_admin_conn, ~p"/admin/tournaments/#{tournament}")
+      assert {:error, redirect} = live(non_admin_conn, ~p"/td/tournaments/#{tournament}")
       assert {:redirect, %{to: path}} = redirect
       assert path == ~p"/"
     end

@@ -11,7 +11,7 @@ defmodule OPWeb.TD.TournamentLive.Show do
         {@tournament.name}
         <:subtitle>Tournament details</:subtitle>
         <:actions>
-          <.link patch={~p"/admin/tournaments/#{@tournament}/edit"}>
+          <.link patch={~p"/td/tournaments/#{@tournament}/edit"}>
             <.button variant="solid">Edit Tournament</.button>
           </.link>
           <.link navigate={~p"/td/tournaments"}>
@@ -204,7 +204,7 @@ defmodule OPWeb.TD.TournamentLive.Show do
         :if={@live_action == :edit}
         id="tournament-modal"
         show
-        on_cancel={JS.patch(~p"/admin/tournaments/#{@tournament}")}
+        on_cancel={JS.patch(~p"/td/tournaments/#{@tournament}")}
       >
         <.live_component
           module={OPWeb.TD.TournamentLive.Form}
@@ -213,7 +213,7 @@ defmodule OPWeb.TD.TournamentLive.Show do
           action={@live_action}
           tournament={@tournament}
           current_scope={@current_scope}
-          patch={~p"/admin/tournaments/#{@tournament}"}
+          patch={~p"/td/tournaments/#{@tournament}"}
         />
       </.modal>
     </Layouts.app>
