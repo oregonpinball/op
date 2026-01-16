@@ -38,7 +38,12 @@ defmodule OPWeb.AdminLive.Dashboard do
           title="Seasons"
           description="Manage seasons and associate with leagues"
           href={~p"/admin/seasons"}
-          icon="hero-calendar"
+          icon="hero-calendar" />
+        <.admin_card
+          title="Users"
+          description="Manage user accounts and roles"
+          href={~p"/admin/users"}
+          icon="hero-user-circle"
         />
       </div>
     </Layouts.app>

@@ -247,6 +247,7 @@ defmodule OP.Players do
     Player
     |> where([p], like(fragment("lower(?)", p.name), fragment("lower(?)", ^search_term)))
     |> order_by([p], asc: p.name)
+    |> preload([:user])
     |> limit(10)
     |> Repo.all()
   end

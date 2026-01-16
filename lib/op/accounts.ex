@@ -7,6 +7,7 @@ defmodule OP.Accounts do
   alias OP.Repo
 
   alias OP.Accounts.{User, UserToken, UserNotifier}
+  alias OP.Players.Player
 
   ## Database getters
 
@@ -305,6 +306,171 @@ defmodule OP.Accounts do
   end
 
   def search_users(_query), do: []
+
+  ## Admin user management
+
+  @doc """
+  Lists all users with pagination.
+
+  ## Options
+
+    * `:page` - Page number (default: 1)
+    * `:per_page` - Items per page (default: 20)
+    * `:search` - Search term to filter by email
+    * `:role` - Filter by role (:system_admin, :td, :player)
+
+  Returns a map with:
+    * `:users` - List of users
+    * `:total_count` - Total number of users
+    * `:page` - Current page
+    * `:per_page` - Items per page
+  """
+  def list_users_paginated(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 20)
+    search = Keyword.get(opts, :search)
+    role = Keyword.get(opts, :role)
+
+    query =
+      User
+      |> order_by([u], asc: u.email)
+      |> apply_user_search_filter(search)
+      |> apply_user_role_filter(role)
+
+    total_count = Repo.aggregate(query, :count, :id)
+
+    users =
+      query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> preload([:player])
+      |> Repo.all()
+
+    %{
+      users: users,
+      total_count: total_count,
+      page: page,
+      per_page: per_page
+    }
+  end
+
+  defp apply_user_search_filter(query, nil), do: query
+  defp apply_user_search_filter(query, ""), do: query
+
+  defp apply_user_search_filter(query, search) do
+    search_term = "%#{search}%"
+    where(query, [u], like(fragment("lower(?)", u.email), fragment("lower(?)", ^search_term)))
+  end
+
+  defp apply_user_role_filter(query, nil), do: query
+  defp apply_user_role_filter(query, ""), do: query
+
+  defp apply_user_role_filter(query, role) when is_binary(role) do
+    where(query, [u], u.role == ^String.to_existing_atom(role))
+  end
+
+  defp apply_user_role_filter(query, role) when is_atom(role) do
+    where(query, [u], u.role == ^role)
+  end
+
+  @doc """
+  Gets a single user with associated player if exists.
+
+  Raises `Ecto.NoResultsError` if the User does not exist.
+
+  ## Examples
+
+      iex> get_user_with_player!(123)
+      %User{}
+
+      iex> get_user_with_player!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_user_with_player!(id) do
+    User
+    |> preload([u], [:player])
+    |> Repo.get!(id)
+  end
+
+  @doc """
+  Updates the role of a user.
+
+  Prevents system admins from demoting themselves.
+
+  ## Examples
+
+      iex> update_user_role(user, %{role: :td}, current_user_id)
+      {:ok, %User{}}
+
+      iex> update_user_role(user, %{role: :invalid}, current_user_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_role(user, attrs, current_user_id) do
+    user
+    |> User.role_changeset(attrs, current_user_id)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a user and unlinks any associated player.
+
+  ## Examples
+
+      iex> delete_user(user)
+      {:ok, %User{}}
+
+      iex> delete_user(user)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_user(%User{} = user) do
+    Repo.transact(fn ->
+      # Unlink any associated player first
+      if player = get_player_for_user(user.id) do
+        player
+        |> Ecto.Changeset.change(user_id: nil)
+        |> Repo.update()
+      end
+
+      Repo.delete(user)
+    end)
+  end
+
+  @doc """
+  Returns a user changeset for tracking changes.
+
+  ## Examples
+
+      iex> change_user(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user(%User{} = user, attrs \\ %{}) do
+    user
+    |> User.role_changeset(attrs, user.id)
+  end
+
+  @doc """
+  Gets the player associated with a user.
+
+  Returns nil if no player is associated.
+
+  ## Examples
+
+      iex> get_player_for_user(user_id)
+      %Player{}
+
+      iex> get_player_for_user(user_id)
+      nil
+
+  """
+  def get_player_for_user(user_id) do
+    Player
+    |> where([p], p.user_id == ^user_id)
+    |> Repo.one()
+  end
 
   ## Token helper
 
