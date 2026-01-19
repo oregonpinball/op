@@ -2,6 +2,7 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   use OPWeb, :live_view
 
   alias OP.Tournaments
+  alias OP.Tournaments.TgpCalculator
 
   @impl true
   def render(assigns) do
@@ -198,6 +199,101 @@ defmodule OPWeb.Admin.TournamentLive.Show do
             </table>
           </div>
         </div>
+
+        <div
+          :if={@tournament.standings != [] && @tournament.meaningful_games}
+          class="bg-white rounded-lg border border-zinc-200 p-6"
+        >
+          <% standings_with_points = calculate_standings_with_points(@tournament) %>
+          <% calculated_tgp =
+            TgpCalculator.calculate_tgp(@tournament.meaningful_games || 0) %>
+          <% player_count = length(@tournament.standings) %>
+          <% first_place_value =
+            TgpCalculator.calculate_first_place_value(player_count, calculated_tgp) %>
+
+          <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <dt class="text-sm text-zinc-500">TGP</dt>
+              <dd class="text-2xl font-semibold">{format_tgp_percent(calculated_tgp)}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">First Place Value</dt>
+              <dd class="text-2xl font-semibold">{format_points(first_place_value)}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">Players</dt>
+              <dd class="text-2xl font-semibold">{player_count}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">Meaningful Games</dt>
+              <dd class="text-2xl font-semibold">{@tournament.meaningful_games}</dd>
+            </div>
+          </div>
+
+          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Point Breakdown</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-200">
+              <thead>
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Pos
+                  </th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Player
+                  </th>
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Linear
+                  </th>
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Dynamic
+                  </th>
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Total
+                  </th>
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Weight
+                  </th>
+                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Finals
+                  </th>
+                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Opted Out
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-100">
+                <tr :for={standing <- standings_with_points} class="hover:bg-zinc-50">
+                  <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
+                    {standing.position}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900">
+                    {standing.player.name}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                    {format_points(standing.calculated_points.linear_points)}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                    {format_points(standing.calculated_points.dynamic_points)}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono font-semibold">
+                    {format_points(standing.calculated_points.total_points)}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                    {format_weight_percent(standing.calculated_points.weight)}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-center">
+                    <span :if={standing.is_finals} class="text-green-600">✓</span>
+                    <span :if={!standing.is_finals} class="text-zinc-300">-</span>
+                  </td>
+                  <td class="px-3 py-2 text-sm text-center">
+                    <span :if={standing.opted_out} class="text-amber-600">✓</span>
+                    <span :if={!standing.opted_out} class="text-zinc-300">-</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <.modal
@@ -241,4 +337,25 @@ defmodule OPWeb.Admin.TournamentLive.Show do
 
     {:noreply, assign(socket, :tournament, tournament)}
   end
+
+  defp calculate_standings_with_points(tournament) do
+    player_count = length(tournament.standings)
+    meaningful_games = tournament.meaningful_games || 0
+
+    tournament.standings
+    |> Enum.sort_by(& &1.position)
+    |> Enum.map(fn standing ->
+      points = TgpCalculator.calculate_points(standing.position, player_count, meaningful_games)
+      Map.put(standing, :calculated_points, points)
+    end)
+  end
+
+  defp format_points(nil), do: "-"
+  defp format_points(value), do: :erlang.float_to_binary(value / 1, decimals: 2)
+
+  defp format_tgp_percent(nil), do: "-"
+  defp format_tgp_percent(tgp), do: "#{round(tgp * 100)}%"
+
+  defp format_weight_percent(nil), do: "-"
+  defp format_weight_percent(weight), do: "#{Float.round(weight * 100, 1)}%"
 end
