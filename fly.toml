@@ -10,16 +10,9 @@ kill_signal = 'SIGTERM'
 [build]
 
 [env]
-  DATABASE_PATH = '/mnt/name/op.db'
+  # DATABASE_URL is set via `fly secrets set DATABASE_URL=ecto://...`
   PHX_HOST = 'staging-op.fly.dev'
   PORT = '8080'
-
-[[mounts]]
-  source = 'name'
-  destination = '/mnt/name'
-  auto_extend_size_threshold = 80
-  auto_extend_size_increment = '1GB'
-  auto_extend_size_limit = '10GB'
 
 [http_service]
   internal_port = 8080

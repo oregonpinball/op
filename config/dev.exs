@@ -2,10 +2,15 @@ import Config
 
 # Configure your database
 config :op, OP.Repo,
-  database: Path.expand("../db/op_dev.db", __DIR__),
-  pool_size: 5,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "op_dev",
+  port: 5432,
+  pool_size: 10,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  socket_options: [:inet]
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
