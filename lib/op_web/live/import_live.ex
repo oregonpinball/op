@@ -98,6 +98,17 @@ defmodule OPWeb.ImportLive do
           For others, select an existing player or create a new one.
         </p>
 
+        <div class="flex justify-end mb-4">
+          <.button
+            type="button"
+            variant="invisible"
+            phx-click="create_unselected_players"
+            disabled={not has_unmatched_players?(@player_mappings)}
+          >
+            <.icon name="hero-plus-circle" class="size-5 mr-2" /> Create unselected players
+          </.button>
+        </div>
+
         <div class="border rounded-lg overflow-hidden">
           <table class="min-w-full divide-y divide-slate-200">
             <thead class="bg-slate-50">
@@ -493,6 +504,19 @@ defmodule OPWeb.ImportLive do
     {:noreply, assign(socket, player_mappings: player_mappings)}
   end
 
+  def handle_event("create_unselected_players", _params, socket) do
+    player_mappings =
+      Enum.map(socket.assigns.player_mappings, fn mapping ->
+        if mapping.match_type == :unmatched do
+          %{mapping | match_type: :create_new, local_player_id: nil, local_player: nil}
+        else
+          mapping
+        end
+      end)
+
+    {:noreply, assign(socket, player_mappings: player_mappings)}
+  end
+
   def handle_event("clear_mapping", %{"index" => index}, socket) do
     index = String.to_integer(index)
 
@@ -606,6 +630,10 @@ defmodule OPWeb.ImportLive do
 
   defp all_players_mapped?(mappings) do
     Enum.all?(mappings, fn m -> m.match_type != :unmatched end)
+  end
+
+  defp has_unmatched_players?(mappings) do
+    Enum.any?(mappings, fn m -> m.match_type == :unmatched end)
   end
 
   defp format_date(datetime_string) when is_binary(datetime_string) do
