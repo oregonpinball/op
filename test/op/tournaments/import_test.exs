@@ -3,10 +3,13 @@ defmodule OP.Tournaments.ImportTest do
 
   alias OP.Players
   alias OP.Repo
+  alias OP.Tournaments
   alias OP.Tournaments.Import
   alias OP.Tournaments.Standing
 
   import OP.AccountsFixtures
+  import OP.LeaguesFixtures
+  import OP.LocationsFixtures
   import OP.MatchplayFixtures
   import OP.PlayersFixtures
   import OP.TournamentsFixtures
@@ -320,6 +323,110 @@ defmodule OP.Tournaments.ImportTest do
       assert result.players_updated == 0
       assert result.standings_count == 0
       assert result.tournament.name == "Test Tournament"
+    end
+
+    test "applies tournament overrides for name and description", %{scope: scope} do
+      tournament_data = tournament_response(%{"tournamentId" => 77770})
+
+      overrides = %{
+        name: "Custom Tournament Name",
+        description: "Custom description"
+      }
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      assert result.tournament.name == "Custom Tournament Name"
+      assert result.tournament.description == "Custom description"
+    end
+
+    test "applies tournament overrides for location_id", %{scope: scope} do
+      location = location_fixture(%{name: "Override Location"})
+      tournament_data = tournament_response(%{"tournamentId" => 77771})
+
+      overrides = %{
+        location_id: location.id
+      }
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      assert result.tournament.location_id == location.id
+    end
+
+    test "applies tournament overrides for season_id", %{scope: scope} do
+      league = league_fixture()
+      season = season_fixture(league)
+      tournament_data = tournament_response(%{"tournamentId" => 77772})
+
+      overrides = %{
+        season_id: season.id
+      }
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      assert result.tournament.season_id == season.id
+    end
+
+    test "applies tournament overrides for start_at as string", %{scope: scope} do
+      tournament_data = tournament_response(%{"tournamentId" => 77773})
+
+      overrides = %{
+        start_at: "2025-06-15T14:30"
+      }
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      # The datetime should be parsed correctly
+      assert result.tournament.start_at == ~U[2025-06-15 14:30:00Z]
+    end
+
+    test "ignores nil and empty overrides", %{scope: scope} do
+      tournament_data =
+        tournament_response(%{
+          "tournamentId" => 77774,
+          "name" => "Original Name"
+        })
+
+      overrides = %{
+        name: nil,
+        description: "",
+        location_id: nil
+      }
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      # Should use the original name from API
+      assert result.tournament.name == "Original Name"
+    end
+
+    test "combines multiple overrides in single import", %{scope: scope} do
+      location = location_fixture(%{name: "Combined Location"})
+      league = league_fixture()
+      season = season_fixture(league)
+
+      tournament_data = tournament_response(%{"tournamentId" => 77775})
+
+      overrides = %{
+        name: "Combined Override Name",
+        description: "Combined description",
+        location_id: location.id,
+        season_id: season.id,
+        start_at: "2025-12-25T20:00"
+      }
+
+      player_mappings = [
+        player_mapping_fixture(%{match_type: :create_new})
+      ]
+
+      assert {:ok, result} =
+               Import.execute_import(scope, tournament_data, player_mappings, overrides)
+
+      tournament = Tournaments.get_tournament!(scope, result.tournament.id)
+      assert tournament.name == "Combined Override Name"
+      assert tournament.description == "Combined description"
+      assert tournament.location_id == location.id
+      assert tournament.season_id == season.id
+      assert tournament.start_at == ~U[2025-12-25 20:00:00Z]
+      assert result.players_created == 1
     end
   end
 end

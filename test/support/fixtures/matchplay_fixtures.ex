@@ -11,14 +11,20 @@ defmodule OP.MatchplayFixtures do
   """
 
   @doc """
-  Returns a sample Matchplay tournament API response with players included.
+  Returns a sample Matchplay tournament API response with players and location included.
 
   The `players` array contains the player names and IDs needed for import.
+  The `location` object contains venue information from Matchplay.
   """
   def tournament_response(attrs \\ %{}) do
-    # Extract players from attrs or use defaults
+    # Extract players and location from attrs or use defaults
     players = Map.get(attrs, "players", default_tournament_players())
-    attrs_without_players = Map.delete(attrs, "players")
+    location = Map.get(attrs, "location", default_location())
+
+    attrs_without_extracted =
+      attrs
+      |> Map.delete("players")
+      |> Map.delete("location")
 
     Map.merge(
       %{
@@ -28,9 +34,10 @@ defmodule OP.MatchplayFixtures do
         "endUtc" => "2024-03-15T22:00:00Z",
         "link" => "https://app.matchplay.events/tournaments/12345",
         "status" => "completed",
-        "players" => players
+        "players" => players,
+        "location" => location
       },
-      attrs_without_players
+      attrs_without_extracted
     )
   end
 
@@ -89,6 +96,17 @@ defmodule OP.MatchplayFixtures do
   end
 
   @doc """
+  Default location data from Matchplay API.
+  """
+  def default_location do
+    %{
+      "locationId" => 6201,
+      "name" => "Test Arcade",
+      "address" => "123 Main St, Portland, OR 97201"
+    }
+  end
+
+  @doc """
   Creates a tournament player entry.
   """
   def tournament_player(player_id, name, claimed_by \\ nil) do
@@ -119,10 +137,21 @@ defmodule OP.MatchplayFixtures do
   def preview_result_fixture(attrs \\ %{}) do
     tournament = Map.get(attrs, :tournament, tournament_response())
     player_mappings = Map.get(attrs, :player_mappings, [player_mapping_fixture()])
+    location_data = Map.get(attrs, :location_data, default_location())
+    matched_location = Map.get(attrs, :matched_location, nil)
 
     %{
       tournament: tournament,
-      player_mappings: player_mappings
+      player_mappings: player_mappings,
+      location_data: location_data,
+      matched_location: matched_location
     }
+  end
+
+  @doc """
+  Creates a location data fixture for Matchplay API response.
+  """
+  def matchplay_location_fixture(attrs \\ %{}) do
+    Map.merge(default_location(), attrs)
   end
 end

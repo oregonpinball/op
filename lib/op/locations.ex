@@ -133,4 +133,49 @@ defmodule OP.Locations do
   def change_location(%Location{} = location, attrs \\ %{}) do
     Location.changeset(location, attrs)
   end
+
+  @doc """
+  Finds a location by matching external_id or name (case-insensitive).
+  Prioritizes external_id match.
+
+  ## Examples
+
+      iex> find_location_by_match(scope, "matchplay:123", "Test Location")
+      %Location{}
+
+      iex> find_location_by_match(scope, nil, nil)
+      nil
+
+  """
+  def find_location_by_match(_scope, nil, nil), do: nil
+
+  def find_location_by_match(scope, external_id, name) do
+    # First try external_id match
+    location = if external_id, do: get_location_by_external_id(scope, external_id)
+
+    # Fall back to case-insensitive name match
+    location || find_location_by_name(scope, name)
+  end
+
+  @doc """
+  Finds a location by name (case-insensitive).
+
+  ## Examples
+
+      iex> find_location_by_name(scope, "Test Location")
+      %Location{}
+
+      iex> find_location_by_name(scope, "Unknown")
+      nil
+
+  """
+  def find_location_by_name(_scope, nil), do: nil
+  def find_location_by_name(_scope, ""), do: nil
+
+  def find_location_by_name(_scope, name) do
+    Location
+    |> where([l], fragment("lower(?)", l.name) == ^String.downcase(name))
+    |> limit(1)
+    |> Repo.one()
+  end
 end

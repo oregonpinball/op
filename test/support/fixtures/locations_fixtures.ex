@@ -29,4 +29,16 @@ defmodule OP.LocationsFixtures do
 
     location
   end
+
+  def location_with_external_id_fixture(external_id, attrs \\ %{}) do
+    scope = attrs[:scope] || Scope.for_user(nil)
+
+    {:ok, location} =
+      attrs
+      |> valid_location_attributes()
+      |> Map.put(:external_id, external_id)
+      |> then(&OP.Locations.create_location(scope, &1))
+
+    location
+  end
 end

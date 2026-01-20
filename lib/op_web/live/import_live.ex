@@ -5,10 +5,13 @@ defmodule OPWeb.ImportLive do
   The import process is split into steps:
   1. Enter Matchplay tournament ID
   2. Review and map players to existing players or create new ones
-  3. Confirm and execute import
+  3. Tournament details - edit tournament info and select location/season (required)
+  4. Execute import
   """
   use OPWeb, :live_view
 
+  alias OP.Leagues
+  alias OP.Locations
   alias OP.Players
   alias OP.Tournaments.Import
 
@@ -33,8 +36,18 @@ defmodule OPWeb.ImportLive do
                 search_results={@search_results}
                 search_index={@search_index}
               />
-            <% :confirm -> %>
-              <.confirm_step tournament={@tournament_preview} player_mappings={@player_mappings} />
+            <% :tournament_details -> %>
+              <.tournament_details_step
+                tournament={@tournament_preview}
+                player_mappings={@player_mappings}
+                tournament_form={@tournament_form}
+                location_options={@location_options}
+                league_options={@league_options}
+                season_options={@season_options}
+                selected_league_id={@selected_league_id}
+                location_data={@location_data}
+                matched_location={@matched_location}
+              />
             <% :importing -> %>
               <.importing_step />
             <% :success -> %>
@@ -299,64 +312,142 @@ defmodule OPWeb.ImportLive do
     """
   end
 
-  defp confirm_step(assigns) do
+  defp tournament_details_step(assigns) do
     ~H"""
     <div class="space-y-6">
-      <div class="bg-slate-50 rounded-lg p-4">
-        <h3 class="font-semibold text-lg">{@tournament["name"]}</h3>
-        <p class="text-sm text-slate-600">
-          <%= if @tournament["startUtc"] do %>
-            {format_date(@tournament["startUtc"])}
-          <% end %>
-        </p>
-        <%= if @tournament["link"] do %>
-          <a
-            href={@tournament["link"]}
-            target="_blank"
-            class="text-sm text-blue-600 hover:underline"
-          >
-            View on Matchplay <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
-          </a>
-        <% end %>
-      </div>
+      <.form
+        for={@tournament_form}
+        id="tournament-details-form"
+        phx-change="validate_tournament"
+        phx-submit="execute_import"
+      >
+        <div class="space-y-6">
+          <!-- Tournament Info Section -->
+          <div class="bg-slate-50 rounded-lg p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold text-lg">Tournament Details</h3>
+              <%= if @tournament["link"] do %>
+                <a
+                  href={@tournament["link"]}
+                  target="_blank"
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  View on Matchplay <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
+                </a>
+              <% end %>
+            </div>
 
-      <div>
-        <h4 class="font-medium mb-4">Import Summary</h4>
+            <.input field={@tournament_form[:name]} type="text" label="Tournament Name" required />
+            <.input field={@tournament_form[:description]} type="textarea" label="Description" />
+            <.input
+              field={@tournament_form[:start_at]}
+              type="datetime-local"
+              label="Start Date"
+              required
+            />
+          </div>
 
-        <dl class="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt class="text-slate-500">Total Players</dt>
-            <dd class="font-medium">{length(@player_mappings)}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">New Players to Create</dt>
-            <dd class="font-medium">
-              {Enum.count(@player_mappings, &(&1.match_type == :create_new))}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Auto-matched</dt>
-            <dd class="font-medium">
-              {Enum.count(@player_mappings, &(&1.match_type == :auto))}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">Manually Mapped</dt>
-            <dd class="font-medium">
-              {Enum.count(@player_mappings, &(&1.match_type in [:suggested, :manual]))}
-            </dd>
-          </div>
-        </dl>
-      </div>
+          <!-- Location Section (Required) -->
+          <div class="bg-slate-50 rounded-lg p-4 space-y-4">
+            <h3 class="font-semibold text-lg">Location</h3>
 
-      <div class="flex gap-4">
-        <.button type="button" variant="invisible" phx-click="back_to_match">
-          <.icon name="hero-arrow-left" class="size-5 mr-2" /> Back
-        </.button>
-        <.button type="button" variant="solid" phx-click="execute_import">
-          <.icon name="hero-arrow-down-tray" class="size-5 mr-2" /> Import Tournament
-        </.button>
-      </div>
+            <%= if @location_data do %>
+              <div class="text-sm text-slate-600 bg-white rounded p-3 border">
+                <p class="font-medium">Matchplay venue:</p>
+                <p>{@location_data["name"]}</p>
+                <%= if @location_data["address"] do %>
+                  <p class="text-slate-500">{@location_data["address"]}</p>
+                <% end %>
+                <%= if @matched_location do %>
+                  <p class="mt-2 text-green-600">
+                    <.icon name="hero-check-circle" class="size-4 inline" />
+                    Auto-matched to local location
+                  </p>
+                <% end %>
+              </div>
+            <% end %>
+
+            <.input
+              field={@tournament_form[:location_id]}
+              type="select"
+              label="Location"
+              options={@location_options}
+              prompt="-- Select a location --"
+              required
+            />
+            <p class="text-sm text-slate-500">
+              If your location isn't listed, create it first in the admin area.
+            </p>
+          </div>
+
+          <!-- League/Season Section -->
+          <div class="bg-slate-50 rounded-lg p-4 space-y-4">
+            <h3 class="font-semibold text-lg">League & Season</h3>
+
+            <.input
+              field={@tournament_form[:league_id]}
+              type="select"
+              label="League"
+              options={@league_options}
+              prompt="-- Select a league --"
+            />
+
+            <.input
+              field={@tournament_form[:season_id]}
+              type="select"
+              label="Season"
+              options={@season_options}
+              prompt={if @selected_league_id, do: "-- Select a season --", else: "-- Select a league first --"}
+              required
+              disabled={is_nil(@selected_league_id)}
+            />
+          </div>
+
+          <!-- Import Summary -->
+          <div class="bg-slate-50 rounded-lg p-4">
+            <h4 class="font-medium mb-4">Import Summary</h4>
+
+            <dl class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <dt class="text-slate-500">Total Players</dt>
+                <dd class="font-medium">{length(@player_mappings)}</dd>
+              </div>
+              <div>
+                <dt class="text-slate-500">New Players to Create</dt>
+                <dd class="font-medium">
+                  {Enum.count(@player_mappings, &(&1.match_type == :create_new))}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-slate-500">Auto-matched</dt>
+                <dd class="font-medium">
+                  {Enum.count(@player_mappings, &(&1.match_type == :auto))}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-slate-500">Manually Mapped</dt>
+                <dd class="font-medium">
+                  {Enum.count(@player_mappings, &(&1.match_type in [:suggested, :manual]))}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-4">
+            <.button type="button" variant="invisible" phx-click="back_to_match">
+              <.icon name="hero-arrow-left" class="size-5 mr-2" /> Back
+            </.button>
+            <.button
+              type="submit"
+              variant="solid"
+              disabled={not tournament_form_valid?(@tournament_form)}
+            >
+              <.icon name="hero-arrow-down-tray" class="size-5 mr-2" /> Import Tournament
+            </.button>
+          </div>
+        </div>
+      </.form>
     </div>
     """
   end
@@ -529,20 +620,83 @@ defmodule OPWeb.ImportLive do
   end
 
   def handle_event("continue_to_confirm", _params, socket) do
-    {:noreply, assign(socket, step: :confirm)}
+    scope = socket.assigns.current_scope
+    tournament = socket.assigns.tournament_preview
+    matched_location = socket.assigns.matched_location
+
+    # Load location and league options
+    location_options =
+      Locations.list_locations(scope)
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.sort_by(&elem(&1, 0))
+
+    league_options =
+      Leagues.list_leagues(scope)
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.sort_by(&elem(&1, 0))
+
+    # Build initial form values from Matchplay data
+    initial_values = %{
+      "name" => tournament["name"] || "",
+      "description" => tournament["description"] || "",
+      "start_at" => format_datetime_local(tournament["startUtc"]),
+      "location_id" => if(matched_location, do: to_string(matched_location.id), else: ""),
+      "league_id" => "",
+      "season_id" => ""
+    }
+
+    {:noreply,
+     socket
+     |> assign(:step, :tournament_details)
+     |> assign(:tournament_form, to_form(initial_values))
+     |> assign(:location_options, location_options)
+     |> assign(:league_options, league_options)
+     |> assign(:season_options, [])
+     |> assign(:selected_league_id, nil)}
   end
 
-  def handle_event("execute_import", _params, socket) do
+  def handle_event("validate_tournament", %{"name" => _} = params, socket) do
+    scope = socket.assigns.current_scope
+
+    # Check if league changed and update seasons
+    league_id = params["league_id"]
+    current_league_id = socket.assigns.selected_league_id
+
+    {season_options, selected_league_id} =
+      if league_id != "" and league_id != current_league_id do
+        league_id_int = String.to_integer(league_id)
+        seasons = Leagues.list_seasons_by_league(scope, league_id_int)
+        options = Enum.map(seasons, &{&1.name, &1.id})
+        {options, league_id}
+      else
+        if league_id == "" do
+          {[], nil}
+        else
+          {socket.assigns.season_options, current_league_id}
+        end
+      end
+
+    {:noreply,
+     socket
+     |> assign(:tournament_form, to_form(params))
+     |> assign(:season_options, season_options)
+     |> assign(:selected_league_id, selected_league_id)}
+  end
+
+  def handle_event("execute_import", params, socket) do
     # Extract assigns before start_async to avoid copying entire socket
     current_scope = socket.assigns.current_scope
     tournament_preview = socket.assigns.tournament_preview
     player_mappings = socket.assigns.player_mappings
 
+    # Build tournament overrides from form params
+    tournament_overrides = build_tournament_overrides(params)
+
     socket =
       socket
       |> assign(:step, :importing)
       |> start_async(:execute_import, fn ->
-        Import.execute_import(current_scope, tournament_preview, player_mappings)
+        Import.execute_import(current_scope, tournament_preview, player_mappings, tournament_overrides)
       end)
 
     {:noreply, socket}
@@ -561,7 +715,9 @@ defmodule OPWeb.ImportLive do
      |> assign(:loading, false)
      |> assign(:step, :match_players)
      |> assign(:tournament_preview, result.tournament)
-     |> assign(:player_mappings, result.player_mappings)}
+     |> assign(:player_mappings, result.player_mappings)
+     |> assign(:location_data, result.location_data)
+     |> assign(:matched_location, result.matched_location)}
   end
 
   def handle_async(:fetch_preview, {:ok, {:error, error}}, socket) do
@@ -616,6 +772,14 @@ defmodule OPWeb.ImportLive do
     |> assign(:search_index, nil)
     |> assign(:import_result, nil)
     |> assign(:error, nil)
+    # Tournament details form assigns
+    |> assign(:tournament_form, nil)
+    |> assign(:location_data, nil)
+    |> assign(:matched_location, nil)
+    |> assign(:location_options, [])
+    |> assign(:league_options, [])
+    |> assign(:season_options, [])
+    |> assign(:selected_league_id, nil)
   end
 
   defp extract_tournament_id(input) do
@@ -666,4 +830,43 @@ defmodule OPWeb.ImportLive do
 
   defp format_error(error) when is_binary(error), do: error
   defp format_error(error), do: inspect(error)
+
+  defp format_datetime_local(nil), do: ""
+
+  defp format_datetime_local(datetime_string) when is_binary(datetime_string) do
+    case DateTime.from_iso8601(datetime_string) do
+      {:ok, datetime, _} ->
+        # Format as datetime-local input value: YYYY-MM-DDTHH:MM
+        Calendar.strftime(datetime, "%Y-%m-%dT%H:%M")
+
+      _ ->
+        ""
+    end
+  end
+
+  defp tournament_form_valid?(form) do
+    params = form.params
+
+    name = params["name"] || ""
+    start_at = params["start_at"] || ""
+    location_id = params["location_id"] || ""
+    season_id = params["season_id"] || ""
+
+    name != "" and start_at != "" and location_id != "" and season_id != ""
+  end
+
+  defp build_tournament_overrides(params) do
+    %{
+      name: params["name"],
+      description: params["description"],
+      start_at: params["start_at"],
+      location_id: parse_id(params["location_id"]),
+      season_id: parse_id(params["season_id"])
+    }
+  end
+
+  defp parse_id(""), do: nil
+  defp parse_id(nil), do: nil
+  defp parse_id(id) when is_binary(id), do: String.to_integer(id)
+  defp parse_id(id) when is_integer(id), do: id
 end
