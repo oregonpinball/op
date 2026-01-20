@@ -19,9 +19,8 @@ defmodule OP.Tournaments.Tournament do
     # HTML-formatted column to integrate with TipTap
     field :description, :string
 
-    # Start and estimated end of the tournament
+    # Start of the tournament
     field :start_at, :utc_datetime
-    field :end_at, :utc_datetime
 
     field :tgp_config, :map
 
@@ -73,7 +72,6 @@ defmodule OP.Tournaments.Tournament do
       :name,
       :description,
       :start_at,
-      :end_at,
       :tgp_config,
       :event_booster,
       :qualifying_format,

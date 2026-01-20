@@ -246,8 +246,7 @@ defmodule OP.Tournaments.Import do
       external_id: external_id,
       external_url: tournament_data["link"],
       name: tournament_data["name"],
-      start_at: parse_datetime(tournament_data["startUtc"]),
-      end_at: parse_datetime(tournament_data["endUtc"])
+      start_at: parse_datetime(tournament_data["startUtc"])
     }
 
     case existing do

@@ -49,12 +49,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                   {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
                 </dd>
               </div>
-              <div :if={@tournament.end_at}>
-                <dt class="text-sm text-zinc-500">End Date</dt>
-                <dd class="text-zinc-900">
-                  {Calendar.strftime(@tournament.end_at, "%B %d, %Y at %I:%M %p")}
-                </dd>
-              </div>
             </dl>
           </div>
 
