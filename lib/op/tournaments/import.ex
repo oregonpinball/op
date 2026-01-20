@@ -130,6 +130,13 @@ defmodule OP.Tournaments.Import do
       # Create or update tournament with overrides
       tournament = upsert_tournament(scope, external_id, tournament_data, existing_tournament, tournament_overrides)
 
+      # Update location external_id if not already set
+      maybe_update_location_external_id(
+        scope,
+        tournament_overrides[:location_id],
+        tournament_data["location"]
+      )
+
       # Delete existing standings if re-importing
       if not is_new do
         Tournaments.delete_standings_by_tournament_id(scope, tournament.id)
@@ -302,6 +309,24 @@ defmodule OP.Tournaments.Import do
     name = location_data["name"]
 
     Locations.find_location_by_match(nil, external_id, name)
+  end
+
+  defp maybe_update_location_external_id(_scope, nil, _location_data), do: :ok
+  defp maybe_update_location_external_id(_scope, _location_id, nil), do: :ok
+
+  defp maybe_update_location_external_id(scope, location_id, location_data) do
+    matchplay_location_id = location_data["locationId"]
+
+    if matchplay_location_id do
+      location = Locations.get_location!(scope, location_id)
+
+      if is_nil(location.external_id) or location.external_id == "" do
+        external_id = "matchplay:#{matchplay_location_id}"
+        {:ok, _} = Locations.update_location(scope, location, %{external_id: external_id})
+      end
+    end
+
+    :ok
   end
 
   defp parse_datetime(nil), do: nil

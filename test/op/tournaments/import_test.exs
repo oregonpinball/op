@@ -428,5 +428,72 @@ defmodule OP.Tournaments.ImportTest do
       assert tournament.start_at == ~U[2025-12-25 20:00:00Z]
       assert result.players_created == 1
     end
+
+    test "sets location external_id when not already set", %{scope: scope} do
+      location = location_fixture(%{name: "Test Location", external_id: nil})
+
+      tournament_data =
+        tournament_response(%{
+          "tournamentId" => 88880,
+          "location" => %{"locationId" => 12345, "name" => "Matchplay Location"}
+        })
+
+      overrides = %{location_id: location.id}
+
+      assert {:ok, _result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      # Location should now have external_id set
+      updated_location = OP.Locations.get_location!(scope, location.id)
+      assert updated_location.external_id == "matchplay:12345"
+    end
+
+    test "does not modify location external_id when already set", %{scope: scope} do
+      location = location_fixture(%{name: "Test Location", external_id: "existing:999"})
+
+      tournament_data =
+        tournament_response(%{
+          "tournamentId" => 88881,
+          "location" => %{"locationId" => 12345, "name" => "Matchplay Location"}
+        })
+
+      overrides = %{location_id: location.id}
+
+      assert {:ok, _result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      # Location external_id should remain unchanged
+      updated_location = OP.Locations.get_location!(scope, location.id)
+      assert updated_location.external_id == "existing:999"
+    end
+
+    test "handles import without location selected", %{scope: scope} do
+      tournament_data =
+        tournament_response(%{
+          "tournamentId" => 88882,
+          "location" => %{"locationId" => 12345, "name" => "Matchplay Location"}
+        })
+
+      # No location_id in overrides
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, [])
+
+      assert result.tournament.name == "Test Tournament"
+    end
+
+    test "handles import without location data from API", %{scope: scope} do
+      location = location_fixture(%{name: "Test Location", external_id: nil})
+
+      tournament_data =
+        tournament_response(%{
+          "tournamentId" => 88883,
+          "location" => nil
+        })
+
+      overrides = %{location_id: location.id}
+
+      assert {:ok, _result} = Import.execute_import(scope, tournament_data, [], overrides)
+
+      # Location external_id should remain nil
+      updated_location = OP.Locations.get_location!(scope, location.id)
+      assert is_nil(updated_location.external_id)
+    end
   end
 end
