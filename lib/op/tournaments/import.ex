@@ -4,11 +4,12 @@ defmodule OP.Tournaments.Import do
 
   The import process is split into two steps:
   1. `fetch_tournament_preview/2` - Fetches tournament data and analyzes player mappings
-  2. `execute_import/4` - Executes the import with confirmed player mappings
+  2. `execute_import/5` - Executes the import with confirmed player mappings and overrides
   """
 
   import Ecto.Query, warn: false
 
+  alias OP.Locations
   alias OP.Matchplay.Client
   alias OP.Players
   alias OP.Players.Player
@@ -29,7 +30,9 @@ defmodule OP.Tournaments.Import do
 
   @type preview_result :: %{
           tournament: map(),
-          player_mappings: [player_mapping()]
+          player_mappings: [player_mapping()],
+          location_data: map() | nil,
+          matched_location: Locations.Location.t() | nil
         }
 
   @type import_result :: %{
@@ -71,31 +74,53 @@ defmodule OP.Tournaments.Import do
 
         player_mappings = analyze_player_mappings(standings, players_map)
 
+        # Extract location info from API response and try to match
+        location_data = tournament["location"]
+        matched_location = match_location_from_api(location_data)
+
         {:ok,
          %{
            tournament: tournament,
-           player_mappings: player_mappings
+           player_mappings: player_mappings,
+           location_data: location_data,
+           matched_location: matched_location
          }}
       end
     end
   end
 
+  @type tournament_overrides :: %{
+          optional(:name) => String.t(),
+          optional(:description) => String.t(),
+          optional(:start_at) => DateTime.t() | String.t(),
+          optional(:location_id) => integer(),
+          optional(:season_id) => integer(),
+          optional(:meaningful_games) => float() | nil
+        }
+
   @doc """
-  Executes the import with confirmed player mappings.
+  Executes the import with confirmed player mappings and tournament overrides.
 
   ## Arguments
     * `scope` - The current user scope
     * `tournament_data` - The tournament data from Matchplay
     * `player_mappings` - The confirmed player mappings with resolved `local_player_id` or `match_type: :create_new`
+    * `tournament_overrides` - User-provided overrides for tournament fields (name, description, start_at, location_id, season_id)
     * `opts` - Additional options
 
   ## Returns
     * `{:ok, import_result()}` on success
     * `{:error, reason}` on failure
   """
-  @spec execute_import(term(), map(), [player_mapping()], keyword()) ::
+  @spec execute_import(term(), map(), [player_mapping()], tournament_overrides(), keyword()) ::
           {:ok, import_result()} | {:error, term()}
-  def execute_import(scope, tournament_data, player_mappings, opts \\ []) do
+  def execute_import(
+        scope,
+        tournament_data,
+        player_mappings,
+        tournament_overrides \\ %{},
+        opts \\ []
+      ) do
     matchplay_id = tournament_data["tournamentId"]
     external_id = "matchplay:#{matchplay_id}"
 
@@ -108,8 +133,22 @@ defmodule OP.Tournaments.Import do
       {players_created, players_updated, player_id_map} =
         process_players(scope, player_mappings, opts)
 
-      # Create or update tournament
-      tournament = upsert_tournament(scope, external_id, tournament_data, existing_tournament)
+      # Create or update tournament with overrides
+      tournament =
+        upsert_tournament(
+          scope,
+          external_id,
+          tournament_data,
+          existing_tournament,
+          tournament_overrides
+        )
+
+      # Update location external_id if not already set
+      maybe_update_location_external_id(
+        scope,
+        tournament_overrides[:location_id],
+        tournament_data["location"]
+      )
 
       # Delete existing standings if re-importing
       if not is_new do
@@ -242,13 +281,18 @@ defmodule OP.Tournaments.Import do
     end)
   end
 
-  defp upsert_tournament(scope, external_id, tournament_data, existing) do
-    attrs = %{
+  defp upsert_tournament(scope, external_id, tournament_data, existing, overrides) do
+    # Build base attrs from API data
+    base_attrs = %{
       external_id: external_id,
       external_url: tournament_data["link"],
       name: tournament_data["name"],
       start_at: parse_datetime(tournament_data["startUtc"])
     }
+
+    # Merge user overrides, handling start_at specially if it's a string
+    overrides = normalize_overrides(overrides)
+    attrs = Map.merge(base_attrs, overrides)
 
     case existing do
       nil ->
@@ -261,12 +305,74 @@ defmodule OP.Tournaments.Import do
     end
   end
 
+  defp normalize_overrides(overrides) when is_map(overrides) do
+    overrides
+    |> Enum.reject(fn {_k, v} -> is_nil(v) or v == "" end)
+    |> Enum.map(fn
+      {:start_at, value} when is_binary(value) -> {:start_at, parse_datetime(value)}
+      {key, value} -> {key, value}
+    end)
+    |> Map.new()
+  end
+
+  defp match_location_from_api(nil), do: nil
+
+  defp match_location_from_api(location_data) do
+    external_id = if id = location_data["locationId"], do: "matchplay:#{id}"
+    name = location_data["name"]
+
+    Locations.find_location_by_match(nil, external_id, name)
+  end
+
+  defp maybe_update_location_external_id(_scope, nil, _location_data), do: :ok
+  defp maybe_update_location_external_id(_scope, _location_id, nil), do: :ok
+
+  defp maybe_update_location_external_id(scope, location_id, location_data) do
+    matchplay_location_id = location_data["locationId"]
+
+    if matchplay_location_id do
+      location = Locations.get_location!(scope, location_id)
+
+      if is_nil(location.external_id) or location.external_id == "" do
+        external_id = "matchplay:#{matchplay_location_id}"
+        {:ok, _} = Locations.update_location(scope, location, %{external_id: external_id})
+      end
+    end
+
+    :ok
+  end
+
   defp parse_datetime(nil), do: nil
 
   defp parse_datetime(datetime_string) when is_binary(datetime_string) do
+    # Try ISO8601 format first (e.g., "2024-03-15T18:00:00Z")
     case DateTime.from_iso8601(datetime_string) do
-      {:ok, datetime, _offset} -> DateTime.truncate(datetime, :second)
-      {:error, _} -> nil
+      {:ok, datetime, _offset} ->
+        DateTime.truncate(datetime, :second)
+
+      {:error, _} ->
+        # Try datetime-local format (e.g., "2024-03-15T18:00")
+        parse_datetime_local(datetime_string)
+    end
+  end
+
+  defp parse_datetime_local(datetime_string) do
+    # Parse datetime-local format: YYYY-MM-DDTHH:MM (no seconds)
+    # Append :00 for seconds if needed
+    datetime_with_seconds =
+      if String.match?(datetime_string, ~r/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/) do
+        datetime_string <> ":00"
+      else
+        datetime_string
+      end
+
+    case NaiveDateTime.from_iso8601(datetime_with_seconds) do
+      {:ok, naive} ->
+        DateTime.from_naive!(naive, "Etc/UTC")
+        |> DateTime.truncate(:second)
+
+      {:error, _} ->
+        nil
     end
   end
 

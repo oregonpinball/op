@@ -3,6 +3,8 @@ defmodule OPWeb.ImportLiveTest do
 
   import Phoenix.LiveViewTest
   import OP.AccountsFixtures
+  import OP.LeaguesFixtures
+  import OP.LocationsFixtures
   import OP.MatchplayFixtures
   import OP.PlayersFixtures
 
@@ -316,7 +318,7 @@ defmodule OPWeb.ImportLiveTest do
     end
   end
 
-  describe "confirm step" do
+  describe "tournament_details step" do
     setup %{conn: conn} do
       user = user_fixture()
       scope = OP.Accounts.Scope.for_user(user)
@@ -324,10 +326,17 @@ defmodule OPWeb.ImportLiveTest do
       auto_player =
         player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Auto Player"})
 
+      location = location_fixture(%{name: "Test Location"})
+      league = league_fixture()
+      season = season_fixture(league)
+
       %{
         conn: log_in_user(conn, user),
         scope: scope,
-        auto_player: auto_player
+        auto_player: auto_player,
+        location: location,
+        league: league,
+        season: season
       }
     end
 
@@ -356,6 +365,216 @@ defmodule OPWeb.ImportLiveTest do
       assert html =~ "Import Summary"
       assert html =~ "Total Players"
       assert html =~ "Auto-matched"
+    end
+
+    test "displays tournament details form", %{conn: conn} do
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Tournament Details"
+      assert html =~ "Tournament Name"
+      assert html =~ "Description"
+      assert html =~ "Start Date"
+      assert html =~ "Location"
+      assert html =~ "League"
+      assert html =~ "Season"
+    end
+
+    test "displays location dropdown with options", %{conn: conn, location: location} do
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ location.name
+    end
+
+    test "displays Matchplay venue info when available", %{conn: conn} do
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 9999,
+            "name" => "Matchplay Venue",
+            "address" => "456 Arcade St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Matchplay venue"
+      assert html =~ "Matchplay Venue"
+      assert html =~ "456 Arcade St"
+    end
+
+    test "auto-matches location by external_id", %{conn: conn, scope: scope} do
+      # Create location with matchplay external_id
+      matched_location =
+        location_with_external_id_fixture("matchplay:6201", %{
+          scope: scope,
+          name: "Auto-matched Location"
+        })
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 6201,
+            "name" => "Different Name",
+            "address" => "123 Test St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Auto-matched to local location"
+      # The dropdown should have the matched location selected
+      assert html =~ matched_location.name
+    end
+
+    test "auto-matches location by name when external_id doesn't match", %{conn: conn} do
+      # Create location WITHOUT external_id, matching only by name
+      _matched_location = location_fixture(%{name: "Test Arcade"})
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 9999,
+            "name" => "Test Arcade",
+            "address" => "123 Test St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Auto-matched to local location"
+      assert html =~ "Test Arcade"
+    end
+
+    test "filters seasons when league is selected", %{conn: conn, league: league, season: season} do
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      # Select the league
+      view
+      |> form("#tournament-details-form", %{league_id: to_string(league.id)})
+      |> render_change()
+
+      html = render(view)
+      # Season dropdown should now show the season
+      assert html =~ season.name
+    end
+
+    test "import button disabled until required fields selected", %{conn: conn} do
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)]
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      # Import button should be disabled (no location or season selected)
+      assert has_element?(view, "button[disabled]", "Import Tournament")
     end
 
     test "back_to_match returns to match_players step", %{conn: conn} do
@@ -396,14 +615,26 @@ defmodule OPWeb.ImportLiveTest do
       auto_player =
         player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Auto Player"})
 
+      location = location_fixture(%{name: "Import Test Location"})
+      league = league_fixture()
+      season = season_fixture(league)
+
       %{
         conn: log_in_user(conn, user),
         scope: scope,
-        auto_player: auto_player
+        auto_player: auto_player,
+        location: location,
+        league: league,
+        season: season
       }
     end
 
-    test "shows success step on successful import", %{conn: conn} do
+    test "shows success step on successful import", %{
+      conn: conn,
+      location: location,
+      league: league,
+      season: season
+    } do
       stub_matchplay_api(
         tournament_response(%{
           "tournamentId" => 12345,
@@ -424,9 +655,22 @@ defmodule OPWeb.ImportLiveTest do
       |> element("button", "Continue")
       |> render_click()
 
+      # Fill in required fields
       view
-      |> element("button", "Import Tournament")
-      |> render_click()
+      |> form("#tournament-details-form", %{
+        location_id: to_string(location.id),
+        league_id: to_string(league.id)
+      })
+      |> render_change()
+
+      view
+      |> form("#tournament-details-form", %{season_id: to_string(season.id)})
+      |> render_change()
+
+      # Submit the form
+      view
+      |> form("#tournament-details-form")
+      |> render_submit()
 
       :timer.sleep(100)
       html = render(view)
@@ -434,7 +678,12 @@ defmodule OPWeb.ImportLiveTest do
       assert html =~ "Test Tournament"
     end
 
-    test "displays import results", %{conn: conn} do
+    test "displays import results", %{
+      conn: conn,
+      location: location,
+      league: league,
+      season: season
+    } do
       stub_matchplay_api(
         tournament_response(%{
           "tournamentId" => 55555,
@@ -455,9 +704,22 @@ defmodule OPWeb.ImportLiveTest do
       |> element("button", "Continue")
       |> render_click()
 
+      # Fill in required fields
       view
-      |> element("button", "Import Tournament")
-      |> render_click()
+      |> form("#tournament-details-form", %{
+        location_id: to_string(location.id),
+        league_id: to_string(league.id)
+      })
+      |> render_change()
+
+      view
+      |> form("#tournament-details-form", %{season_id: to_string(season.id)})
+      |> render_change()
+
+      # Submit the form
+      view
+      |> form("#tournament-details-form")
+      |> render_submit()
 
       :timer.sleep(100)
       html = render(view)

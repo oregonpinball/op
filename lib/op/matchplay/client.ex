@@ -50,7 +50,7 @@ defmodule OP.Matchplay.Client do
   """
   @spec get_tournament(t(), integer() | String.t()) :: {:ok, map()} | {:error, Exception.t()}
   def get_tournament(%__MODULE__{} = client, id) do
-    case request(client, "/tournaments/#{id}?includePlayers=true") do
+    case request(client, "/tournaments/#{id}?includePlayers=true&includeLocation=true") do
       {:ok, %{"data" => data}} -> {:ok, data}
       {:ok, body} -> {:ok, body}
       {:error, _} = error -> error
