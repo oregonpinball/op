@@ -490,6 +490,39 @@ defmodule OPWeb.ImportLiveTest do
       assert html =~ matched_location.name
     end
 
+    test "auto-matches location by name when external_id doesn't match", %{conn: conn} do
+      # Create location WITHOUT external_id, matching only by name
+      _matched_location = location_fixture(%{name: "Test Arcade"})
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 9999,
+            "name" => "Test Arcade",
+            "address" => "123 Test St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Auto-matched to local location"
+      assert html =~ "Test Arcade"
+    end
+
     test "filters seasons when league is selected", %{conn: conn, league: league, season: season} do
       stub_matchplay_api(
         tournament_response(%{
