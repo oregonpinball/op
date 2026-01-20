@@ -4,6 +4,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
   import Phoenix.LiveViewTest
   import OP.AccountsFixtures
   import OP.TournamentsFixtures
+  import OP.PlayersFixtures
 
   describe "Index - Authorization" do
     test "redirects non-authenticated users to login", %{conn: conn} do
@@ -205,6 +206,32 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert {:error, redirect} = live(non_admin_conn, ~p"/admin/tournaments/#{tournament}")
       assert {:redirect, %{to: path}} = redirect
       assert path == ~p"/"
+    end
+
+    test "displays point breakdown with standings", %{conn: conn} do
+      player = player_fixture()
+      tournament = tournament_fixture(nil, %{meaningful_games: 13.5})
+      standing_fixture(tournament, player, %{position: 1})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+
+      assert html =~ "Point Breakdown"
+      assert html =~ "Linear"
+      assert html =~ "Dynamic"
+      assert html =~ "Weight"
+      assert html =~ "54%"
+    end
+
+    test "does not display point breakdown without meaningful_games", %{
+      conn: conn,
+      tournament: tournament
+    } do
+      player = player_fixture()
+      standing_fixture(tournament, player, %{position: 1})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+
+      refute html =~ "Point Breakdown"
     end
   end
 end

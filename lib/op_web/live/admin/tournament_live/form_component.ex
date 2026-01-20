@@ -67,6 +67,15 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
 
         <.input field={@form[:allows_opt_out]} type="checkbox" label="Allows Opt-Out" />
 
+        <.input
+          field={@form[:meaningful_games]}
+          type="number"
+          label="Meaningful Games"
+          min="0"
+          step="0.01"
+          phx-debounce="blur"
+        />
+
         <div class="border-t border-zinc-200 pt-6 mt-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-zinc-900">Standings</h3>
@@ -419,12 +428,30 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
   end
 
   defp save_tournament(socket, :edit, tournament_params) do
+    old_standings_count = length(socket.assigns.tournament.standings || [])
+
     case Tournaments.update_tournament(
            socket.assigns.current_scope,
            socket.assigns.tournament,
            tournament_params
          ) do
       {:ok, tournament} ->
+        # Recalculate points if standings count changed (added/removed)
+        new_standings_count = length(tournament.standings || [])
+
+        tournament =
+          if new_standings_count != old_standings_count do
+            case Tournaments.recalculate_standings_points(
+                   socket.assigns.current_scope,
+                   tournament
+                 ) do
+              {:ok, updated} -> updated
+              _ -> tournament
+            end
+          else
+            tournament
+          end
+
         notify_parent({:saved, tournament})
 
         {:noreply,

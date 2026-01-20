@@ -300,6 +300,8 @@ defmodule OP.Tournaments do
   @doc """
   Updates a tournament.
 
+  When meaningful_games changes, automatically recalculates TGP points for all standings.
+
   ## Examples
 
       iex> update_tournament(current_scope, tournament, %{field: new_value})
@@ -310,9 +312,25 @@ defmodule OP.Tournaments do
 
   """
   def update_tournament(_scope, %Tournament{} = tournament, attrs) do
-    tournament
-    |> Tournament.changeset(attrs)
-    |> Repo.update()
+    old_meaningful_games = tournament.meaningful_games
+
+    result =
+      tournament
+      |> Tournament.changeset(attrs)
+      |> Repo.update()
+
+    case result do
+      {:ok, updated} ->
+        # Recalculate if meaningful_games changed
+        if updated.meaningful_games != old_meaningful_games do
+          recalculate_standings_points(nil, updated)
+        else
+          {:ok, Repo.preload(updated, [standings: :player], force: true)}
+        end
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -345,6 +363,54 @@ defmodule OP.Tournaments do
   end
 
   alias OP.Tournaments.Standing
+  alias OP.Tournaments.TgpCalculator
+
+  @doc """
+  Recalculates and persists TGP points for all standings in a tournament.
+
+  This function should be called when:
+  - A tournament is imported
+  - The meaningful_games value changes
+  - Standings are added or removed
+
+  ## Examples
+
+      iex> recalculate_standings_points(scope, tournament)
+      {:ok, %Tournament{}}
+
+  """
+  def recalculate_standings_points(_scope, %Tournament{} = tournament) do
+    # Load standings if not preloaded
+    tournament = Repo.preload(tournament, [standings: :player], force: true)
+    standings = tournament.standings || []
+    player_count = length(standings)
+    meaningful_games = tournament.meaningful_games || 0
+
+    if player_count == 0 or meaningful_games == 0 do
+      {:ok, tournament}
+    else
+      # Calculate points for all positions
+      points_by_position =
+        TgpCalculator.calculate_all_points(player_count, meaningful_games)
+        |> Map.new(&{&1.position, &1})
+
+      # Batch update all standings
+      Enum.each(standings, fn standing ->
+        points = Map.get(points_by_position, standing.position, %{})
+
+        standing
+        |> Ecto.Changeset.change(%{
+          linear_points: points[:linear_points] || 0.0,
+          dynamic_points: points[:dynamic_points] || 0.0,
+          total_points: points[:total_points] || 0.0
+        })
+        |> Repo.update!()
+      end)
+
+      # Reload tournament with updated standings
+      {:ok, Repo.preload(tournament, [standings: :player], force: true)}
+    end
+  end
 
   @doc """
   Deletes all standings for a given tournament.

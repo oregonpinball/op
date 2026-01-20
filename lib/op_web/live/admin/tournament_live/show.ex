@@ -132,17 +132,37 @@ defmodule OPWeb.Admin.TournamentLive.Show do
           </dl>
         </div>
 
-        <div class="bg-white rounded-lg border border-zinc-200 p-6">
-          <h3 class="text-lg font-semibold text-zinc-900 mb-4">
-            Standings
-            <span class="text-sm font-normal text-zinc-500">
-              ({length(@tournament.standings)} players)
-            </span>
-          </h3>
-          <div :if={@tournament.standings == []} class="text-zinc-500 text-sm">
-            No standings recorded for this tournament.
+        <div
+          :if={@tournament.standings != [] && @tournament.meaningful_games}
+          class="bg-white rounded-lg border border-zinc-200 p-6"
+        >
+          <% standings_with_weight = standings_with_weight(@tournament) %>
+          <% first_place = Enum.find(@tournament.standings, &(&1.position == 1)) %>
+          <% first_place_value = if first_place, do: first_place.total_points || 0.0, else: 0.0 %>
+          <% player_count = length(@tournament.standings) %>
+          <% tgp = ((@tournament.meaningful_games || 0) * 0.04) |> min(2.0) %>
+
+          <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <dt class="text-sm text-zinc-500">TGP</dt>
+              <dd class="text-2xl font-semibold">{format_tgp_percent(tgp)}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">First Place Value</dt>
+              <dd class="text-2xl font-semibold">{format_points(first_place_value)}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">Players</dt>
+              <dd class="text-2xl font-semibold">{player_count}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-zinc-500">Meaningful Games</dt>
+              <dd class="text-2xl font-semibold">{@tournament.meaningful_games}</dd>
+            </div>
           </div>
-          <div :if={@tournament.standings != []} class="overflow-x-auto">
+
+          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Point Breakdown</h3>
+          <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-zinc-200">
               <thead>
                 <tr>
@@ -153,39 +173,43 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                     Player
                   </th>
                   <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Points
+                    Linear
                   </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Finals
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Dynamic
                   </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Opted Out
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Total
+                  </th>
+                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    Weight
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100">
-                <tr
-                  :for={standing <- Enum.sort_by(@tournament.standings, & &1.position)}
-                  class="hover:bg-zinc-50"
-                >
+                <tr :for={standing <- standings_with_weight} class="hover:bg-zinc-50">
                   <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
                     {standing.position}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900">
-                    {standing.player.name}
+                    <.link
+                      navigate={~p"/admin/players/#{standing.player.slug}/edit"}
+                      class="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {standing.player.name}
+                    </.link>
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {if standing.total_points,
-                      do: :erlang.float_to_binary(standing.total_points, decimals: 2),
-                      else: "-"}
+                    {format_points(standing.linear_points)}
                   </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.is_finals} class="text-green-600">✓</span>
-                    <span :if={!standing.is_finals} class="text-zinc-300">-</span>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                    {format_points(standing.dynamic_points)}
                   </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.opted_out} class="text-amber-600">✓</span>
-                    <span :if={!standing.opted_out} class="text-zinc-300">-</span>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono font-semibold">
+                    {format_points(standing.total_points)}
+                  </td>
+                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                    {format_weight_percent(standing.weight)}
                   </td>
                 </tr>
               </tbody>
@@ -235,4 +259,34 @@ defmodule OPWeb.Admin.TournamentLive.Show do
 
     {:noreply, assign(socket, :tournament, tournament)}
   end
+
+  defp standings_with_weight(tournament) do
+    first_place_total =
+      tournament.standings
+      |> Enum.find(&(&1.position == 1))
+      |> then(fn
+        nil -> 0.0
+        standing -> standing.total_points || 0.0
+      end)
+
+    tournament.standings
+    |> Enum.sort_by(& &1.position)
+    |> Enum.map(fn standing ->
+      weight =
+        if first_place_total > 0,
+          do: (standing.total_points || 0.0) / first_place_total,
+          else: 0.0
+
+      Map.put(standing, :weight, weight)
+    end)
+  end
+
+  defp format_points(nil), do: "-"
+  defp format_points(value), do: :erlang.float_to_binary(value / 1, decimals: 2)
+
+  defp format_tgp_percent(nil), do: "-"
+  defp format_tgp_percent(tgp), do: "#{round(tgp * 100)}%"
+
+  defp format_weight_percent(nil), do: "-"
+  defp format_weight_percent(weight), do: "#{Float.round(weight * 100, 1)}%"
 end

@@ -53,6 +53,7 @@ defmodule OP.Tournaments.Tournament do
     field :tgp, :float
     field :event_booster_multiplier, :float
     field :first_place_value, :float
+    field :meaningful_games, :float
 
     belongs_to :organizer, User
     belongs_to :season, Season
@@ -83,6 +84,7 @@ defmodule OP.Tournaments.Tournament do
       :tgp,
       :event_booster_multiplier,
       :first_place_value,
+      :meaningful_games,
       :organizer_id,
       :season_id,
       :location_id,
@@ -101,5 +103,6 @@ defmodule OP.Tournaments.Tournament do
     |> validate_number(:total_tva, greater_than_or_equal_to: 0.0)
     |> validate_number(:tgp, greater_than_or_equal_to: 0.0)
     |> validate_number(:first_place_value, greater_than_or_equal_to: 0.0)
+    |> validate_number(:meaningful_games, greater_than_or_equal_to: 0.0)
   end
 end
