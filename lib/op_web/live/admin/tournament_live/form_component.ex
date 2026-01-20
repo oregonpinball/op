@@ -26,19 +26,12 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
         <.input field={@form[:name]} type="text" label="Name" required />
         <.input field={@form[:description]} type="textarea" label="Description" />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <.input
-            field={@form[:start_at]}
-            type="datetime-local"
-            label="Start Date"
-            required
-          />
-          <.input
-            field={@form[:end_at]}
-            type="datetime-local"
-            label="End Date"
-          />
-        </div>
+        <.input
+          field={@form[:start_at]}
+          type="datetime-local"
+          label="Start Date"
+          required
+        />
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <.input

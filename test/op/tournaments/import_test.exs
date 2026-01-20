@@ -198,8 +198,7 @@ defmodule OP.Tournaments.ImportTest do
       tournament_data =
         tournament_response(%{
           "tournamentId" => 22222,
-          "startUtc" => "2024-06-15T14:30:00Z",
-          "endUtc" => "2024-06-15T20:00:00Z"
+          "startUtc" => "2024-06-15T14:30:00Z"
         })
 
       player_mappings = [
@@ -209,23 +208,6 @@ defmodule OP.Tournaments.ImportTest do
       assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
 
       assert result.tournament.start_at == ~U[2024-06-15 14:30:00Z]
-      assert result.tournament.end_at == ~U[2024-06-15 20:00:00Z]
-    end
-
-    test "handles nil datetime values", %{scope: scope} do
-      tournament_data =
-        tournament_response(%{
-          "tournamentId" => 33333,
-          "startUtc" => "2024-01-01T00:00:00Z",
-          "endUtc" => nil
-        })
-
-      player_mappings = [
-        player_mapping_fixture(%{match_type: :create_new})
-      ]
-
-      assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
-      assert result.tournament.end_at == nil
     end
 
     test "sets correct standing positions", %{scope: scope} do
