@@ -15,6 +15,7 @@ defmodule OP.Tournaments.Import do
   alias OP.Repo
   alias OP.Tournaments
   alias OP.Tournaments.Standing
+  alias OP.Tournaments.TgpCalculator
 
   @type player_mapping :: %{
           matchplay_player_id: integer() | String.t(),
@@ -272,10 +273,22 @@ defmodule OP.Tournaments.Import do
 
   defp create_standings(tournament, player_mappings, player_id_map) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
+    player_count = length(player_mappings)
+    meaningful_games = tournament.meaningful_games || 0
+
+    # Pre-calculate all points
+    points_by_position =
+      if meaningful_games > 0 and player_count > 0 do
+        TgpCalculator.calculate_all_points(player_count, meaningful_games)
+        |> Map.new(&{&1.position, &1})
+      else
+        %{}
+      end
 
     standings_attrs =
       Enum.map(player_mappings, fn mapping ->
         player_id = Map.fetch!(player_id_map, mapping.matchplay_player_id)
+        points = Map.get(points_by_position, mapping.position, %{})
 
         %{
           tournament_id: tournament.id,
@@ -283,6 +296,9 @@ defmodule OP.Tournaments.Import do
           position: mapping.position,
           is_finals: false,
           opted_out: false,
+          linear_points: points[:linear_points] || 0.0,
+          dynamic_points: points[:dynamic_points] || 0.0,
+          total_points: points[:total_points] || 0.0,
           inserted_at: now,
           updated_at: now
         }

@@ -2,7 +2,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   use OPWeb, :live_view
 
   alias OP.Tournaments
-  alias OP.Tournaments.TgpCalculator
 
   @impl true
   def render(assigns) do
@@ -143,17 +142,16 @@ defmodule OPWeb.Admin.TournamentLive.Show do
           :if={@tournament.standings != [] && @tournament.meaningful_games}
           class="bg-white rounded-lg border border-zinc-200 p-6"
         >
-          <% standings_with_points = calculate_standings_with_points(@tournament) %>
-          <% calculated_tgp =
-            TgpCalculator.calculate_tgp(@tournament.meaningful_games || 0) %>
+          <% standings_with_weight = standings_with_weight(@tournament) %>
+          <% first_place = Enum.find(@tournament.standings, &(&1.position == 1)) %>
+          <% first_place_value = if first_place, do: first_place.total_points || 0.0, else: 0.0 %>
           <% player_count = length(@tournament.standings) %>
-          <% first_place_value =
-            TgpCalculator.calculate_first_place_value(player_count, calculated_tgp) %>
+          <% tgp = ((@tournament.meaningful_games || 0) * 0.04) |> min(2.0) %>
 
           <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <dt class="text-sm text-zinc-500">TGP</dt>
-              <dd class="text-2xl font-semibold">{format_tgp_percent(calculated_tgp)}</dd>
+              <dd class="text-2xl font-semibold">{format_tgp_percent(tgp)}</dd>
             </div>
             <div>
               <dt class="text-sm text-zinc-500">First Place Value</dt>
@@ -195,7 +193,7 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100">
-                <tr :for={standing <- standings_with_points} class="hover:bg-zinc-50">
+                <tr :for={standing <- standings_with_weight} class="hover:bg-zinc-50">
                   <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
                     {standing.position}
                   </td>
@@ -208,16 +206,16 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                     </.link>
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_points(standing.calculated_points.linear_points)}
+                    {format_points(standing.linear_points)}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_points(standing.calculated_points.dynamic_points)}
+                    {format_points(standing.dynamic_points)}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono font-semibold">
-                    {format_points(standing.calculated_points.total_points)}
+                    {format_points(standing.total_points)}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_weight_percent(standing.calculated_points.weight)}
+                    {format_weight_percent(standing.weight)}
                   </td>
                 </tr>
               </tbody>
@@ -268,15 +266,24 @@ defmodule OPWeb.Admin.TournamentLive.Show do
     {:noreply, assign(socket, :tournament, tournament)}
   end
 
-  defp calculate_standings_with_points(tournament) do
-    player_count = length(tournament.standings)
-    meaningful_games = tournament.meaningful_games || 0
+  defp standings_with_weight(tournament) do
+    first_place_total =
+      tournament.standings
+      |> Enum.find(&(&1.position == 1))
+      |> then(fn
+        nil -> 0.0
+        standing -> standing.total_points || 0.0
+      end)
 
     tournament.standings
     |> Enum.sort_by(& &1.position)
     |> Enum.map(fn standing ->
-      points = TgpCalculator.calculate_points(standing.position, player_count, meaningful_games)
-      Map.put(standing, :calculated_points, points)
+      weight =
+        if first_place_total > 0,
+          do: (standing.total_points || 0.0) / first_place_total,
+          else: 0.0
+
+      Map.put(standing, :weight, weight)
     end)
   end
 

@@ -435,12 +435,30 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
   end
 
   defp save_tournament(socket, :edit, tournament_params) do
+    old_standings_count = length(socket.assigns.tournament.standings || [])
+
     case Tournaments.update_tournament(
            socket.assigns.current_scope,
            socket.assigns.tournament,
            tournament_params
          ) do
       {:ok, tournament} ->
+        # Recalculate points if standings count changed (added/removed)
+        new_standings_count = length(tournament.standings || [])
+
+        tournament =
+          if new_standings_count != old_standings_count do
+            case Tournaments.recalculate_standings_points(
+                   socket.assigns.current_scope,
+                   tournament
+                 ) do
+              {:ok, updated} -> updated
+              _ -> tournament
+            end
+          else
+            tournament
+          end
+
         notify_parent({:saved, tournament})
 
         {:noreply,
