@@ -94,7 +94,8 @@ defmodule OP.Tournaments.Import do
           optional(:description) => String.t(),
           optional(:start_at) => DateTime.t() | String.t(),
           optional(:location_id) => integer(),
-          optional(:season_id) => integer()
+          optional(:season_id) => integer(),
+          optional(:meaningful_games) => float() | nil
         }
 
   @doc """

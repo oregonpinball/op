@@ -345,6 +345,16 @@ defmodule OPWeb.ImportLive do
               label="Start Date"
               required
             />
+            <.input
+              field={@tournament_form[:meaningful_games]}
+              type="number"
+              label="Meaningful Games"
+              step="0.5"
+              min="0"
+            />
+            <p class="text-sm text-slate-500">
+              Number of meaningful games for TGP calculation. Leave blank to set later.
+            </p>
           </div>
 
           <!-- Location Section (Required) -->
@@ -642,7 +652,8 @@ defmodule OPWeb.ImportLive do
       "start_at" => format_datetime_local(tournament["startUtc"]),
       "location_id" => if(matched_location, do: to_string(matched_location.id), else: ""),
       "league_id" => "",
-      "season_id" => ""
+      "season_id" => "",
+      "meaningful_games" => ""
     }
 
     {:noreply,
@@ -861,9 +872,16 @@ defmodule OPWeb.ImportLive do
       description: params["description"],
       start_at: params["start_at"],
       location_id: parse_id(params["location_id"]),
-      season_id: parse_id(params["season_id"])
+      season_id: parse_id(params["season_id"]),
+      meaningful_games: parse_float(params["meaningful_games"])
     }
   end
+
+  defp parse_float(""), do: nil
+  defp parse_float(nil), do: nil
+  defp parse_float(val) when is_binary(val), do: String.to_float(val)
+  defp parse_float(val) when is_float(val), do: val
+  defp parse_float(val) when is_integer(val), do: val / 1
 
   defp parse_id(""), do: nil
   defp parse_id(nil), do: nil
