@@ -114,7 +114,13 @@ defmodule OP.Tournaments.Import do
   """
   @spec execute_import(term(), map(), [player_mapping()], tournament_overrides(), keyword()) ::
           {:ok, import_result()} | {:error, term()}
-  def execute_import(scope, tournament_data, player_mappings, tournament_overrides \\ %{}, opts \\ []) do
+  def execute_import(
+        scope,
+        tournament_data,
+        player_mappings,
+        tournament_overrides \\ %{},
+        opts \\ []
+      ) do
     matchplay_id = tournament_data["tournamentId"]
     external_id = "matchplay:#{matchplay_id}"
 
@@ -128,7 +134,14 @@ defmodule OP.Tournaments.Import do
         process_players(scope, player_mappings, opts)
 
       # Create or update tournament with overrides
-      tournament = upsert_tournament(scope, external_id, tournament_data, existing_tournament, tournament_overrides)
+      tournament =
+        upsert_tournament(
+          scope,
+          external_id,
+          tournament_data,
+          existing_tournament,
+          tournament_overrides
+        )
 
       # Update location external_id if not already set
       maybe_update_location_external_id(

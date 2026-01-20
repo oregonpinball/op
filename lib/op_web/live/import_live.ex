@@ -332,7 +332,8 @@ defmodule OPWeb.ImportLive do
                   target="_blank"
                   class="text-sm text-blue-600 hover:underline"
                 >
-                  View on Matchplay <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
+                  View on Matchplay
+                  <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
                 </a>
               <% end %>
             </div>
@@ -356,8 +357,8 @@ defmodule OPWeb.ImportLive do
               Number of meaningful games for TGP calculation. Leave blank to set later.
             </p>
           </div>
-
-          <!-- Location Section (Required) -->
+          
+    <!-- Location Section (Required) -->
           <div class="bg-slate-50 rounded-lg p-4 space-y-4">
             <h3 class="font-semibold text-lg">Location</h3>
 
@@ -389,8 +390,8 @@ defmodule OPWeb.ImportLive do
               If your location isn't listed, create it first in the admin area.
             </p>
           </div>
-
-          <!-- League/Season Section -->
+          
+    <!-- League/Season Section -->
           <div class="bg-slate-50 rounded-lg p-4 space-y-4">
             <h3 class="font-semibold text-lg">League & Season</h3>
 
@@ -407,13 +408,17 @@ defmodule OPWeb.ImportLive do
               type="select"
               label="Season"
               options={@season_options}
-              prompt={if @selected_league_id, do: "-- Select a season --", else: "-- Select a league first --"}
+              prompt={
+                if @selected_league_id,
+                  do: "-- Select a season --",
+                  else: "-- Select a league first --"
+              }
               required
               disabled={is_nil(@selected_league_id)}
             />
           </div>
-
-          <!-- Import Summary -->
+          
+    <!-- Import Summary -->
           <div class="bg-slate-50 rounded-lg p-4">
             <h4 class="font-medium mb-4">Import Summary</h4>
 
@@ -442,8 +447,8 @@ defmodule OPWeb.ImportLive do
               </div>
             </dl>
           </div>
-
-          <!-- Actions -->
+          
+    <!-- Actions -->
           <div class="flex gap-4">
             <.button type="button" variant="invisible" phx-click="back_to_match">
               <.icon name="hero-arrow-left" class="size-5 mr-2" /> Back
@@ -707,7 +712,12 @@ defmodule OPWeb.ImportLive do
       socket
       |> assign(:step, :importing)
       |> start_async(:execute_import, fn ->
-        Import.execute_import(current_scope, tournament_preview, player_mappings, tournament_overrides)
+        Import.execute_import(
+          current_scope,
+          tournament_preview,
+          player_mappings,
+          tournament_overrides
+        )
       end)
 
     {:noreply, socket}
