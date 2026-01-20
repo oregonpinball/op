@@ -74,6 +74,15 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
 
         <.input field={@form[:allows_opt_out]} type="checkbox" label="Allows Opt-Out" />
 
+        <.input
+          field={@form[:meaningful_games]}
+          type="number"
+          label="Meaningful Games"
+          min="0"
+          step="0.01"
+          phx-debounce="blur"
+        />
+
         <div class="border-t border-zinc-200 pt-6 mt-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-zinc-900">Standings</h3>

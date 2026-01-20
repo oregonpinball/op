@@ -139,67 +139,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
           </dl>
         </div>
 
-        <div class="bg-white rounded-lg border border-zinc-200 p-6">
-          <h3 class="text-lg font-semibold text-zinc-900 mb-4">
-            Standings
-            <span class="text-sm font-normal text-zinc-500">
-              ({length(@tournament.standings)} players)
-            </span>
-          </h3>
-          <div :if={@tournament.standings == []} class="text-zinc-500 text-sm">
-            No standings recorded for this tournament.
-          </div>
-          <div :if={@tournament.standings != []} class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200">
-              <thead>
-                <tr>
-                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Pos
-                  </th>
-                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Player
-                  </th>
-                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Points
-                  </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Finals
-                  </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Opted Out
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-zinc-100">
-                <tr
-                  :for={standing <- Enum.sort_by(@tournament.standings, & &1.position)}
-                  class="hover:bg-zinc-50"
-                >
-                  <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
-                    {standing.position}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900">
-                    {standing.player.name}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {if standing.total_points,
-                      do: :erlang.float_to_binary(standing.total_points, decimals: 2),
-                      else: "-"}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.is_finals} class="text-green-600">✓</span>
-                    <span :if={!standing.is_finals} class="text-zinc-300">-</span>
-                  </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.opted_out} class="text-amber-600">✓</span>
-                    <span :if={!standing.opted_out} class="text-zinc-300">-</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div
           :if={@tournament.standings != [] && @tournament.meaningful_games}
           class="bg-white rounded-lg border border-zinc-200 p-6"
@@ -253,12 +192,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                   <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
                     Weight
                   </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Finals
-                  </th>
-                  <th class="px-3 py-2 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Opted Out
-                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100">
@@ -267,7 +200,12 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                     {standing.position}
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900">
-                    {standing.player.name}
+                    <.link
+                      navigate={~p"/admin/players/#{standing.player.slug}/edit"}
+                      class="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {standing.player.name}
+                    </.link>
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
                     {format_points(standing.calculated_points.linear_points)}
@@ -280,14 +218,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                   </td>
                   <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
                     {format_weight_percent(standing.calculated_points.weight)}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.is_finals} class="text-green-600">✓</span>
-                    <span :if={!standing.is_finals} class="text-zinc-300">-</span>
-                  </td>
-                  <td class="px-3 py-2 text-sm text-center">
-                    <span :if={standing.opted_out} class="text-amber-600">✓</span>
-                    <span :if={!standing.opted_out} class="text-zinc-300">-</span>
                   </td>
                 </tr>
               </tbody>
