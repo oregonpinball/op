@@ -128,7 +128,10 @@ defmodule OPWeb.Admin.SeasonLive.Show do
 
   @impl true
   def handle_event("recalculate_rankings", _params, socket) do
-    case Leagues.recalculate_season_rankings(socket.assigns.current_scope, socket.assigns.season.id) do
+    case Leagues.recalculate_season_rankings(
+           socket.assigns.current_scope,
+           socket.assigns.season.id
+         ) do
       {:ok, count} ->
         {:noreply,
          socket
