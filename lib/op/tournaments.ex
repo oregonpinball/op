@@ -4,6 +4,7 @@ defmodule OP.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  alias OP.Leagues
   alias OP.Repo
 
   alias OP.Tournaments.Tournament
@@ -301,6 +302,7 @@ defmodule OP.Tournaments do
   Updates a tournament.
 
   When meaningful_games changes, automatically recalculates TGP points for all standings.
+  When season_id changes, recalculates rankings for both the old and new seasons.
 
   ## Examples
 
@@ -311,8 +313,9 @@ defmodule OP.Tournaments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_tournament(_scope, %Tournament{} = tournament, attrs) do
+  def update_tournament(scope, %Tournament{} = tournament, attrs) do
     old_meaningful_games = tournament.meaningful_games
+    old_season_id = tournament.season_id
 
     result =
       tournament
@@ -321,12 +324,18 @@ defmodule OP.Tournaments do
 
     case result do
       {:ok, updated} ->
-        # Recalculate if meaningful_games changed
-        if updated.meaningful_games != old_meaningful_games do
-          recalculate_standings_points(nil, updated)
-        else
-          {:ok, Repo.preload(updated, [standings: :player], force: true)}
-        end
+        # Recalculate standings if meaningful_games changed
+        result =
+          if updated.meaningful_games != old_meaningful_games do
+            recalculate_standings_points(scope, updated)
+          else
+            {:ok, Repo.preload(updated, [standings: :player], force: true)}
+          end
+
+        # Recalculate rankings if season changed
+        maybe_recalculate_season_rankings(scope, old_season_id, updated.season_id)
+
+        result
 
       error ->
         error
@@ -335,6 +344,8 @@ defmodule OP.Tournaments do
 
   @doc """
   Deletes a tournament.
+
+  Recalculates season rankings after deletion if the tournament was assigned to a season.
 
   ## Examples
 
@@ -345,8 +356,23 @@ defmodule OP.Tournaments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_tournament(_scope, %Tournament{} = tournament) do
-    Repo.delete(tournament)
+  def delete_tournament(scope, %Tournament{} = tournament) do
+    season_id = tournament.season_id
+
+    result = Repo.delete(tournament)
+
+    case result do
+      {:ok, deleted} ->
+        # Recalculate rankings for the season the tournament was in
+        if season_id do
+          Leagues.recalculate_season_rankings(scope, season_id)
+        end
+
+        {:ok, deleted}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -427,5 +453,17 @@ defmodule OP.Tournaments do
     Standing
     |> where([s], s.tournament_id == ^tournament_id)
     |> Repo.delete_all()
+  end
+
+  defp maybe_recalculate_season_rankings(scope, old_season_id, new_season_id) do
+    # Recalculate old season if it had a season
+    if old_season_id && old_season_id != new_season_id do
+      Leagues.recalculate_season_rankings(scope, old_season_id)
+    end
+
+    # Recalculate new season if it has a season
+    if new_season_id do
+      Leagues.recalculate_season_rankings(scope, new_season_id)
+    end
   end
 end

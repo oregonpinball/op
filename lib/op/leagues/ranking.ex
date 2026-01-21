@@ -15,6 +15,10 @@ defmodule OP.Leagues.Ranking do
     # Overall leaderboard data, e.g. position #1 - #100
     field :ranking, :integer
 
+    # Aggregated season totals
+    field :total_points, :float, default: 0.0
+    field :event_count, :integer, default: 0
+
     belongs_to :player, Player
     belongs_to :season, Season
 
@@ -24,7 +28,16 @@ defmodule OP.Leagues.Ranking do
   @doc false
   def changeset(ranking, attrs) do
     ranking
-    |> cast(attrs, [:is_rated, :rating, :rating_deviation, :ranking, :player_id, :season_id])
+    |> cast(attrs, [
+      :is_rated,
+      :rating,
+      :rating_deviation,
+      :ranking,
+      :total_points,
+      :event_count,
+      :player_id,
+      :season_id
+    ])
     |> validate_required([:player_id, :season_id])
     |> validate_number(:rating, greater_than_or_equal_to: 0)
     |> validate_number(:ranking, greater_than: 0)

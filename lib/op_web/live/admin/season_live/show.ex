@@ -11,6 +11,9 @@ defmodule OPWeb.Admin.SeasonLive.Show do
         {@season.name}
         <:subtitle>Season details</:subtitle>
         <:actions>
+          <.button variant="solid" phx-click="recalculate_rankings">
+            Recalculate Rankings
+          </.button>
           <.link navigate={~p"/admin/seasons/#{@season}/edit"}>
             <.button variant="solid">Edit Season</.button>
           </.link>
@@ -121,6 +124,24 @@ defmodule OPWeb.Admin.SeasonLive.Show do
   @impl true
   def handle_params(_params, _url, socket) do
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("recalculate_rankings", _params, socket) do
+    case Leagues.recalculate_season_rankings(
+           socket.assigns.current_scope,
+           socket.assigns.season.id
+         ) do
+      {:ok, count} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Rankings recalculated. #{count} player(s) ranked.")}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to recalculate rankings.")}
+    end
   end
 
   defp get_season_status(season) do
