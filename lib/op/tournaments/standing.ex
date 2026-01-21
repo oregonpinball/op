@@ -9,7 +9,6 @@ defmodule OP.Tournaments.Standing do
     field :position, :integer
 
     field :is_finals, :boolean, default: false
-    field :opted_out, :boolean, default: false
 
     field :linear_points, :float, default: 0.0
     field :dynamic_points, :float, default: 0.0
@@ -31,7 +30,6 @@ defmodule OP.Tournaments.Standing do
     |> cast(attrs, [
       :position,
       :is_finals,
-      :opted_out,
       :linear_points,
       :dynamic_points,
       :age_in_days,
@@ -58,7 +56,6 @@ defmodule OP.Tournaments.Standing do
     |> cast(attrs, [
       :position,
       :is_finals,
-      :opted_out,
       :player_id
     ])
     |> validate_required([:position, :player_id])

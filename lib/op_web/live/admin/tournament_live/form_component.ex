@@ -109,15 +109,6 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
                     class="rounded border-zinc-300"
                   /> Finals
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name={standing_form[:opted_out].name}
-                    value="true"
-                    checked={standing_form[:opted_out].value == true}
-                    class="rounded border-zinc-300"
-                  /> Opted Out
-                </label>
               </div>
               <button
                 type="button"
@@ -315,8 +306,7 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
     new_standing = %OP.Tournaments.Standing{
       position: next_position,
       player_id: nil,
-      is_finals: false,
-      opted_out: false
+      is_finals: false
     }
 
     updated_standings = existing_standings ++ [new_standing]
