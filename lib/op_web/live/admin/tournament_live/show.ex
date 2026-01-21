@@ -21,113 +21,45 @@ defmodule OPWeb.Admin.TournamentLive.Show do
       </.header>
 
       <div class="mt-8 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-white rounded-lg border border-zinc-200 p-6">
-            <h3 class="text-lg font-semibold text-zinc-900 mb-4">Basic Information</h3>
-            <dl class="space-y-3">
-              <div>
-                <dt class="text-sm text-zinc-500">Name</dt>
-                <dd class="text-zinc-900">{@tournament.name}</dd>
-              </div>
-              <div :if={@tournament.description}>
-                <dt class="text-sm text-zinc-500">Description</dt>
-                <dd class="text-zinc-900">{@tournament.description}</dd>
-              </div>
-              <div :if={@tournament.slug}>
-                <dt class="text-sm text-zinc-500">Slug</dt>
-                <dd class="text-zinc-900 font-mono text-sm">{@tournament.slug}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <div class="bg-white rounded-lg border border-zinc-200 p-6">
-            <h3 class="text-lg font-semibold text-zinc-900 mb-4">Schedule</h3>
-            <dl class="space-y-3">
-              <div :if={@tournament.start_at}>
-                <dt class="text-sm text-zinc-500">Start Date</dt>
-                <dd class="text-zinc-900">
-                  {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div class="bg-white rounded-lg border border-zinc-200 p-6">
-            <h3 class="text-lg font-semibold text-zinc-900 mb-4">Associations</h3>
-            <dl class="space-y-3">
-              <div>
-                <dt class="text-sm text-zinc-500">Season</dt>
-                <dd class="text-zinc-900">
-                  {if @tournament.season, do: @tournament.season.name, else: "None"}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-sm text-zinc-500">Location</dt>
-                <dd class="text-zinc-900">
-                  {if @tournament.location, do: @tournament.location.name, else: "None"}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-sm text-zinc-500">Organizer</dt>
-                <dd class="text-zinc-900">
-                  {if @tournament.organizer, do: @tournament.organizer.email, else: "None"}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div class="bg-white rounded-lg border border-zinc-200 p-6">
-            <h3 class="text-lg font-semibold text-zinc-900 mb-4">Configuration</h3>
-            <dl class="space-y-3">
-              <div>
-                <dt class="text-sm text-zinc-500">Event Booster</dt>
-                <dd class="text-zinc-900 capitalize">
-                  {Phoenix.Naming.humanize(@tournament.event_booster)}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-sm text-zinc-500">Qualifying Format</dt>
-                <dd class="text-zinc-900 capitalize">
-                  {Phoenix.Naming.humanize(@tournament.qualifying_format)}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-sm text-zinc-500">Allows Opt-Out</dt>
-                <dd class="text-zinc-900">{if @tournament.allows_opt_out, do: "Yes", else: "No"}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div
-          :if={@tournament.base_value || @tournament.tgp}
-          class="bg-white rounded-lg border border-zinc-200 p-6"
-        >
-          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Ratings & Values</h3>
-          <dl class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div :if={@tournament.base_value}>
-              <dt class="text-sm text-zinc-500">Base Value</dt>
-              <dd class="text-zinc-900">{@tournament.base_value}</dd>
+        <div class="bg-white rounded-lg border border-zinc-200 p-6">
+          <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+            <div :if={@tournament.start_at}>
+              <dt class="text-sm text-zinc-500">Start Date</dt>
+              <dd class="text-zinc-900">
+                {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
+              </dd>
             </div>
-            <div :if={@tournament.tgp}>
-              <dt class="text-sm text-zinc-500">TGP</dt>
-              <dd class="text-zinc-900">{@tournament.tgp}</dd>
+            <div>
+              <dt class="text-sm text-zinc-500">Season</dt>
+              <dd class="text-zinc-900">
+                {if @tournament.season, do: @tournament.season.name, else: "None"}
+              </dd>
             </div>
-            <div :if={@tournament.tva_rating}>
-              <dt class="text-sm text-zinc-500">TVA Rating</dt>
-              <dd class="text-zinc-900">{@tournament.tva_rating}</dd>
+            <div>
+              <dt class="text-sm text-zinc-500">Location</dt>
+              <dd class="text-zinc-900">
+                {if @tournament.location, do: @tournament.location.name, else: "None"}
+              </dd>
             </div>
-            <div :if={@tournament.tva_ranking}>
-              <dt class="text-sm text-zinc-500">TVA Ranking</dt>
-              <dd class="text-zinc-900">{@tournament.tva_ranking}</dd>
+            <div>
+              <dt class="text-sm text-zinc-500">Organizer</dt>
+              <dd class="text-zinc-900">
+                {if @tournament.organizer, do: @tournament.organizer.email, else: "None"}
+              </dd>
             </div>
-            <div :if={@tournament.total_tva}>
-              <dt class="text-sm text-zinc-500">Total TVA</dt>
-              <dd class="text-zinc-900">{@tournament.total_tva}</dd>
+            <div>
+              <dt class="text-sm text-zinc-500">Qualifying Format</dt>
+              <dd class="text-zinc-900 capitalize">
+                {Phoenix.Naming.humanize(@tournament.qualifying_format)}
+              </dd>
             </div>
-            <div :if={@tournament.first_place_value}>
-              <dt class="text-sm text-zinc-500">First Place Value</dt>
-              <dd class="text-zinc-900">{@tournament.first_place_value}</dd>
+            <div :if={@tournament.slug}>
+              <dt class="text-sm text-zinc-500">Slug</dt>
+              <dd class="text-zinc-900 font-mono text-sm">{@tournament.slug}</dd>
+            </div>
+            <div :if={@tournament.description} class="md:col-span-2 lg:col-span-3">
+              <dt class="text-sm text-zinc-500">Description</dt>
+              <dd class="text-zinc-900">{@tournament.description}</dd>
             </div>
           </dl>
         </div>
@@ -284,7 +216,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   defp format_points(nil), do: "-"
   defp format_points(value), do: :erlang.float_to_binary(value / 1, decimals: 2)
 
-  defp format_tgp_percent(nil), do: "-"
   defp format_tgp_percent(tgp), do: "#{round(tgp * 100)}%"
 
   defp format_weight_percent(nil), do: "-"

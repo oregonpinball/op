@@ -50,22 +50,12 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
           />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <.input
-            field={@form[:event_booster]}
-            type="select"
-            label="Event Booster"
-            options={@event_booster_options}
-          />
-          <.input
-            field={@form[:qualifying_format]}
-            type="select"
-            label="Qualifying Format"
-            options={@qualifying_format_options}
-          />
-        </div>
-
-        <.input field={@form[:allows_opt_out]} type="checkbox" label="Allows Opt-Out" />
+        <.input
+          field={@form[:qualifying_format]}
+          type="select"
+          label="Qualifying Format"
+          options={@qualifying_format_options}
+        />
 
         <.input
           field={@form[:meaningful_games]}
@@ -280,14 +270,6 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
     season_options = Enum.map(seasons, &{&1.name, &1.id})
     location_options = Enum.map(locations, &{&1.name, &1.id})
 
-    event_booster_options = [
-      {"None", :none},
-      {"Certified", :certified},
-      {"Certified Plus", :certified_plus},
-      {"Championship Series", :championship_series},
-      {"Major", :major}
-    ]
-
     qualifying_format_options = [
       {"None", :none},
       {"Single Elimination", :single_elimination},
@@ -305,7 +287,6 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
     socket
     |> assign(:season_options, season_options)
     |> assign(:location_options, location_options)
-    |> assign(:event_booster_options, event_booster_options)
     |> assign(:qualifying_format_options, qualifying_format_options)
   end
 

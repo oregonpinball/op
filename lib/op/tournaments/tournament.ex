@@ -22,12 +22,6 @@ defmodule OP.Tournaments.Tournament do
     # Start of the tournament
     field :start_at, :utc_datetime
 
-    field :tgp_config, :map
-
-    field :event_booster, Ecto.Enum,
-      values: [:none, :certified, :certified_plus, :championship_series, :major],
-      default: :none
-
     field :qualifying_format, Ecto.Enum,
       values: [
         :single_elimination,
@@ -44,15 +38,6 @@ defmodule OP.Tournaments.Tournament do
       ],
       default: :none
 
-    field :allows_opt_out, :boolean, default: false
-
-    field :base_value, :float
-    field :tva_rating, :float
-    field :tva_ranking, :float
-    field :total_tva, :float
-    field :tgp, :float
-    field :event_booster_multiplier, :float
-    field :first_place_value, :float
     field :meaningful_games, :float
 
     belongs_to :organizer, User
@@ -73,17 +58,7 @@ defmodule OP.Tournaments.Tournament do
       :name,
       :description,
       :start_at,
-      :tgp_config,
-      :event_booster,
       :qualifying_format,
-      :allows_opt_out,
-      :base_value,
-      :tva_rating,
-      :tva_ranking,
-      :total_tva,
-      :tgp,
-      :event_booster_multiplier,
-      :first_place_value,
       :meaningful_games,
       :organizer_id,
       :season_id,
@@ -97,12 +72,6 @@ defmodule OP.Tournaments.Tournament do
       drop_param: :standings_drop
     )
     |> validate_required([:name, :start_at])
-    |> validate_number(:base_value, greater_than_or_equal_to: 0.0)
-    |> validate_number(:tva_rating, greater_than_or_equal_to: 0.0)
-    |> validate_number(:tva_ranking, greater_than_or_equal_to: 0.0)
-    |> validate_number(:total_tva, greater_than_or_equal_to: 0.0)
-    |> validate_number(:tgp, greater_than_or_equal_to: 0.0)
-    |> validate_number(:first_place_value, greater_than_or_equal_to: 0.0)
     |> validate_number(:meaningful_games, greater_than_or_equal_to: 0.0)
   end
 end
