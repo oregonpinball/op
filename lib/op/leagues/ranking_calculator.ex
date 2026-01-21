@@ -34,7 +34,9 @@ defmodule OP.Leagues.RankingCalculator do
 
   Results are ordered by total_points descending.
   """
-  @spec aggregate_season_standings(integer()) :: [%{player_id: integer(), total_points: float(), event_count: integer()}]
+  @spec aggregate_season_standings(integer()) :: [
+          %{player_id: integer(), total_points: float(), event_count: integer()}
+        ]
   def aggregate_season_standings(season_id) do
     from(s in Standing,
       join: t in Tournament,
