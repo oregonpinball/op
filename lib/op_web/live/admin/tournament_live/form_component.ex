@@ -82,13 +82,55 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
           <.inputs_for :let={standing_form} field={@form[:standings]}>
             <input type="hidden" name="tournament[standings_sort][]" value={standing_form.index} />
             <div class="flex items-end gap-3 mb-3 p-3 bg-zinc-50 rounded-lg">
-              <div class="w-20">
-                <.input
-                  field={standing_form[:position]}
-                  type="number"
-                  label="Position"
-                  min="1"
-                />
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-xs text-zinc-500">Position</span>
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    phx-click="move_standing_up"
+                    phx-value-index={standing_form.index}
+                    phx-target={@myself}
+                    disabled={standing_form.index == 0}
+                    class={[
+                      "p-1 rounded transition-colors",
+                      if(standing_form.index == 0,
+                        do: "text-zinc-300 cursor-not-allowed",
+                        else: "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200"
+                      )
+                    ]}
+                    title="Move up"
+                  >
+                    <.icon name="hero-chevron-up" class="w-4 h-4" />
+                  </button>
+
+                  <span class="w-8 text-center font-medium text-zinc-700">
+                    {standing_form[:position].value || standing_form.index + 1}
+                  </span>
+
+                  <input
+                    type="hidden"
+                    name={standing_form[:position].name}
+                    value={standing_form[:position].value || standing_form.index + 1}
+                  />
+
+                  <button
+                    type="button"
+                    phx-click="move_standing_down"
+                    phx-value-index={standing_form.index}
+                    phx-target={@myself}
+                    disabled={standing_form.index == @standings_count - 1}
+                    class={[
+                      "p-1 rounded transition-colors",
+                      if(standing_form.index == @standings_count - 1,
+                        do: "text-zinc-300 cursor-not-allowed",
+                        else: "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200"
+                      )
+                    ]}
+                    title="Move down"
+                  >
+                    <.icon name="hero-chevron-down" class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <div class="flex-1">
                 <.player_search
@@ -260,7 +302,11 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
   end
 
   defp assign_form(socket, changeset) do
-    assign(socket, :form, to_form(changeset))
+    standings = Ecto.Changeset.get_field(changeset, :standings) || []
+
+    socket
+    |> assign(:form, to_form(changeset))
+    |> assign(:standings_count, length(standings))
   end
 
   defp assign_options(socket, current_scope) do
@@ -408,6 +454,34 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
     {:noreply, assign_form(socket, changeset)}
   end
 
+  def handle_event("move_standing_up", %{"index" => index_str}, socket) do
+    index = String.to_integer(index_str)
+
+    if index == 0 do
+      {:noreply, socket}
+    else
+      changeset = socket.assigns.form.source
+      standings = Ecto.Changeset.get_field(changeset, :standings) || []
+      updated_standings = swap_standings(standings, index, index - 1)
+      changeset = Ecto.Changeset.put_assoc(changeset, :standings, updated_standings)
+      {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  def handle_event("move_standing_down", %{"index" => index_str}, socket) do
+    index = String.to_integer(index_str)
+    changeset = socket.assigns.form.source
+    standings = Ecto.Changeset.get_field(changeset, :standings) || []
+
+    if index >= length(standings) - 1 do
+      {:noreply, socket}
+    else
+      updated_standings = swap_standings(standings, index, index + 1)
+      changeset = Ecto.Changeset.put_assoc(changeset, :standings, updated_standings)
+      {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
   defp save_tournament(socket, :edit, tournament_params) do
     old_standings_count = length(socket.assigns.tournament.standings || [])
 
@@ -461,4 +535,13 @@ defmodule OPWeb.Admin.TournamentLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp swap_standings(standings, from_index, to_index) do
+    elem_a = Enum.at(standings, from_index)
+    elem_b = Enum.at(standings, to_index)
+
+    standings
+    |> List.replace_at(from_index, %{elem_b | position: from_index + 1})
+    |> List.replace_at(to_index, %{elem_a | position: to_index + 1})
+  end
 end
