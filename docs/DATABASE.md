@@ -202,7 +202,6 @@ Individual tournament events.
 | `tgp_config` | map | JSON config |
 | `event_booster` | enum | `:none` (default), `:certified`, `:certified_plus`, `:championship_series`, `:major` |
 | `qualifying_format` | enum | `:none` (default), `:single_elimination`, `:double_elimination`, `:match_play`, `:best_game`, `:card_qualifying`, `:pin_golf`, `:flip_frenzy`, `:strike_format`, `:target_match_play`, `:hybrid` |
-| `allows_opt_out` | boolean | Default: false |
 | `base_value` | float | ≥ 0 |
 | `tva_rating` | float | ≥ 0 |
 | `tva_ranking` | float | ≥ 0 |
@@ -229,7 +228,6 @@ Individual player results within a tournament.
 | `player_id` | integer | FK → players.id, NOT NULL, cascade delete |
 | `position` | integer | ≥ 1 |
 | `is_finals` | boolean | Default: false |
-| `opted_out` | boolean | Default: false |
 | `linear_points` | float | Default: 0.0, ≥ 0 |
 | `dynamic_points` | float | Default: 0.0, ≥ 0 |
 | `total_points` | float | |

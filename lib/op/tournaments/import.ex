@@ -400,7 +400,6 @@ defmodule OP.Tournaments.Import do
           player_id: player_id,
           position: mapping.position,
           is_finals: false,
-          opted_out: false,
           linear_points: points[:linear_points] || 0.0,
           dynamic_points: points[:dynamic_points] || 0.0,
           total_points: points[:total_points] || 0.0,

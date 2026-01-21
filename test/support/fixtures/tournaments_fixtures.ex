@@ -45,7 +45,6 @@ defmodule OP.TournamentsFixtures do
           player_id: player.id,
           position: attrs[:position] || 1,
           is_finals: false,
-          opted_out: false,
           inserted_at: now,
           updated_at: now
         },
