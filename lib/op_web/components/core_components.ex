@@ -68,8 +68,6 @@ defmodule OPWeb.CoreComponents do
         _ -> assigns[:color] || "secondary"
       end
 
-    IO.inspect({color, assigns.kind}, label: "ASD")
-
     colors =
       %{
         "primary" => %{
