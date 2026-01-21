@@ -17,6 +17,7 @@ defmodule OP.Tournaments.Import do
   alias OP.Tournaments
   alias OP.Tournaments.Standing
   alias OP.Tournaments.TgpCalculator
+  alias OP.Leagues
 
   @type player_mapping :: %{
           matchplay_player_id: integer() | String.t(),
@@ -157,6 +158,11 @@ defmodule OP.Tournaments.Import do
 
       # Create standings
       standings_count = create_standings(tournament, player_mappings, player_id_map)
+
+      # Recalculate rankings if tournament is assigned to a season
+      if tournament.season_id do
+        Leagues.recalculate_season_rankings(scope, tournament.season_id)
+      end
 
       %{
         tournament: tournament,

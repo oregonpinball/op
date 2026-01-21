@@ -6,7 +6,7 @@ defmodule OP.Leagues do
   import Ecto.Query, warn: false
   alias OP.Repo
 
-  alias OP.Leagues.{League, Season}
+  alias OP.Leagues.{League, Ranking, RankingCalculator, Season}
 
   # League functions
 
@@ -367,5 +367,60 @@ defmodule OP.Leagues do
   """
   def change_season(%Season{} = season, attrs \\ %{}) do
     Season.changeset(season, attrs)
+  end
+
+  # Ranking functions
+
+  @doc """
+  Recalculates rankings for a season by aggregating total_points from tournament standings.
+
+  Returns `{:ok, count}` with the number of rankings upserted, or `{:error, reason}` on failure.
+
+  ## Examples
+
+      iex> recalculate_season_rankings(current_scope, season_id)
+      {:ok, 42}
+
+  """
+  def recalculate_season_rankings(_scope, season_id) do
+    RankingCalculator.recalculate_season_rankings(season_id)
+  end
+
+  @doc """
+  Returns the list of rankings for a season, ordered by ranking position.
+
+  ## Examples
+
+      iex> list_rankings_by_season(current_scope, season_id)
+      [%Ranking{}, ...]
+
+  """
+  def list_rankings_by_season(_scope, season_id) do
+    Ranking
+    |> where([r], r.season_id == ^season_id)
+    |> order_by([r], asc: r.ranking)
+    |> preload(:player)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a player's ranking for a specific season.
+
+  Returns nil if the player has no ranking for that season.
+
+  ## Examples
+
+      iex> get_player_ranking(current_scope, player_id, season_id)
+      %Ranking{}
+
+      iex> get_player_ranking(current_scope, unknown_player_id, season_id)
+      nil
+
+  """
+  def get_player_ranking(_scope, player_id, season_id) do
+    Ranking
+    |> where([r], r.player_id == ^player_id and r.season_id == ^season_id)
+    |> preload(:player)
+    |> Repo.one()
   end
 end
