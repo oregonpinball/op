@@ -57,12 +57,14 @@ defmodule SeedHelpers do
     case repo.get_by(User, email: attrs.email) do
       nil ->
         %User{}
-        |> User.email_changeset(attrs)
+        |> User.changeset(attrs)
+        |> User.password_changeset(attrs)
         |> repo.insert!()
 
       existing ->
         existing
-        |> User.email_changeset(attrs)
+        |> User.changeset(attrs)
+        |> User.password_changeset(attrs)
         |> repo.update!()
     end
   end
@@ -244,29 +246,7 @@ tournament1 =
     external_id: "tournament-1",
     name: "World Pinball Championship 2024",
     start_at: ~U[2024-03-15 00:00:00Z],
-    event_booster: :major,
-    allows_opt_out: false,
-    tgp_config: %{
-      "qualifying" => %{
-        "type" => "limited",
-        "meaningfulGames" => 12,
-        "fourPlayerGroups" => true
-      },
-      "finals" => %{
-        "formatType" => "match-play",
-        "meaningfulGames" => 20,
-        "fourPlayerGroups" => true,
-        "finalistCount" => 16
-      },
-      "ballCountAdjustment" => 1.0
-    },
-    base_value: 32.0,
-    tva_rating: 25.0,
-    tva_ranking: 50.0,
-    total_tva: 75.0,
-    tgp: 1.92,
-    event_booster_multiplier: 2.0,
-    first_place_value: 411.84,
+    meaningful_games: 32.0,
     season_id: season_open_2026.id
   })
 
@@ -275,27 +255,7 @@ tournament2 =
     external_id: "tournament-2",
     name: "Spring Classics 2024",
     start_at: ~U[2024-04-20 00:00:00Z],
-    event_booster: :certified,
-    allows_opt_out: true,
-    tgp_config: %{
-      "qualifying" => %{
-        "type" => "limited",
-        "meaningfulGames" => 7
-      },
-      "finals" => %{
-        "formatType" => "double-elimination",
-        "meaningfulGames" => 15,
-        "fourPlayerGroups" => false,
-        "finalistCount" => 8
-      }
-    },
-    base_value: 28.0,
-    tva_rating: 18.5,
-    tva_ranking: 32.0,
-    total_tva: 50.5,
-    tgp: 0.88,
-    event_booster_multiplier: 1.25,
-    first_place_value: 87.28,
+    meaningful_games: 22.0,
     season_id: season_open_2026.id
   })
 
@@ -304,27 +264,7 @@ tournament3 =
     external_id: "tournament-3",
     name: "Monthly League Finals",
     start_at: ~U[2024-05-10 00:00:00Z],
-    event_booster: :none,
-    allows_opt_out: false,
-    tgp_config: %{
-      "qualifying" => %{
-        "type" => "none",
-        "meaningfulGames" => 0
-      },
-      "finals" => %{
-        "formatType" => "match-play",
-        "meaningfulGames" => 10,
-        "fourPlayerGroups" => true,
-        "finalistCount" => 8
-      }
-    },
-    base_value: 15.0,
-    tva_rating: 8.5,
-    tva_ranking: 12.0,
-    total_tva: 20.5,
-    tgp: 0.80,
-    event_booster_multiplier: 1.0,
-    first_place_value: 28.4,
+    meaningful_games: 10.0,
     season_id: season_women_2026.id
   })
 

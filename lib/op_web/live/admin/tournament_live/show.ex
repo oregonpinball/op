@@ -80,56 +80,13 @@ defmodule OPWeb.Admin.TournamentLive.Show do
             <h3 class="text-lg font-semibold text-zinc-900 mb-4">Configuration</h3>
             <dl class="space-y-3">
               <div>
-                <dt class="text-sm text-zinc-500">Event Booster</dt>
-                <dd class="text-zinc-900 capitalize">
-                  {Phoenix.Naming.humanize(@tournament.event_booster)}
-                </dd>
-              </div>
-              <div>
                 <dt class="text-sm text-zinc-500">Qualifying Format</dt>
                 <dd class="text-zinc-900 capitalize">
                   {Phoenix.Naming.humanize(@tournament.qualifying_format)}
                 </dd>
               </div>
-              <div>
-                <dt class="text-sm text-zinc-500">Allows Opt-Out</dt>
-                <dd class="text-zinc-900">{if @tournament.allows_opt_out, do: "Yes", else: "No"}</dd>
-              </div>
             </dl>
           </div>
-        </div>
-
-        <div
-          :if={@tournament.base_value || @tournament.tgp}
-          class="bg-white rounded-lg border border-zinc-200 p-6"
-        >
-          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Ratings & Values</h3>
-          <dl class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div :if={@tournament.base_value}>
-              <dt class="text-sm text-zinc-500">Base Value</dt>
-              <dd class="text-zinc-900">{@tournament.base_value}</dd>
-            </div>
-            <div :if={@tournament.tgp}>
-              <dt class="text-sm text-zinc-500">TGP</dt>
-              <dd class="text-zinc-900">{@tournament.tgp}</dd>
-            </div>
-            <div :if={@tournament.tva_rating}>
-              <dt class="text-sm text-zinc-500">TVA Rating</dt>
-              <dd class="text-zinc-900">{@tournament.tva_rating}</dd>
-            </div>
-            <div :if={@tournament.tva_ranking}>
-              <dt class="text-sm text-zinc-500">TVA Ranking</dt>
-              <dd class="text-zinc-900">{@tournament.tva_ranking}</dd>
-            </div>
-            <div :if={@tournament.total_tva}>
-              <dt class="text-sm text-zinc-500">Total TVA</dt>
-              <dd class="text-zinc-900">{@tournament.total_tva}</dd>
-            </div>
-            <div :if={@tournament.first_place_value}>
-              <dt class="text-sm text-zinc-500">First Place Value</dt>
-              <dd class="text-zinc-900">{@tournament.first_place_value}</dd>
-            </div>
-          </dl>
         </div>
 
         <div
@@ -284,7 +241,6 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   defp format_points(nil), do: "-"
   defp format_points(value), do: :erlang.float_to_binary(value / 1, decimals: 2)
 
-  defp format_tgp_percent(nil), do: "-"
   defp format_tgp_percent(tgp), do: "#{round(tgp * 100)}%"
 
   defp format_weight_percent(nil), do: "-"
