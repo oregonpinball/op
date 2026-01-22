@@ -523,6 +523,80 @@ defmodule OPWeb.ImportLiveTest do
       assert html =~ "Test Arcade"
     end
 
+    test "auto-creates location when not found in database", %{conn: conn} do
+      # No existing location matches
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 8888,
+            "name" => "New Auto-Created Location",
+            "address" => "789 New St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Created new local location"
+      assert html =~ "New Auto-Created Location"
+
+      # Verify the location was created in database
+      location = OP.Locations.get_location_by_external_id(nil, "matchplay:8888")
+      assert location.name == "New Auto-Created Location"
+      assert location.address == "789 New St"
+    end
+
+    test "re-import uses existing auto-created location", %{conn: conn} do
+      # First, create a location that matches via external_id (simulating previous auto-create)
+      _existing_location =
+        location_with_external_id_fixture("matchplay:7777", %{
+          name: "Previously Created Location"
+        })
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "players" => [tournament_player(301, "Auto Player", 1001)],
+          "location" => %{
+            "locationId" => 7777,
+            "name" => "Different Name Now",
+            "address" => "123 Changed St"
+          }
+        }),
+        standings_response([{301, 1}])
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/import")
+
+      view
+      |> form("#import-form", %{matchplay_id: "12345"})
+      |> render_submit()
+
+      :timer.sleep(100)
+
+      view
+      |> element("button", "Continue")
+      |> render_click()
+
+      html = render(view)
+      # Should show auto-matched, not created
+      assert html =~ "Auto-matched to local location"
+      refute html =~ "Created new local location"
+    end
+
     test "filters seasons when league is selected", %{conn: conn, league: league, season: season} do
       stub_matchplay_api(
         tournament_response(%{

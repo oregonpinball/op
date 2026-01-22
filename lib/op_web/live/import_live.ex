@@ -47,6 +47,7 @@ defmodule OPWeb.ImportLive do
                 selected_league_id={@selected_league_id}
                 location_data={@location_data}
                 matched_location={@matched_location}
+                location_created={@location_created}
               />
             <% :importing -> %>
               <.importing_step />
@@ -369,11 +370,18 @@ defmodule OPWeb.ImportLive do
                 <%= if @location_data["address"] do %>
                   <p class="text-slate-500">{@location_data["address"]}</p>
                 <% end %>
-                <%= if @matched_location do %>
-                  <p class="mt-2 text-green-600">
-                    <.icon name="hero-check-circle" class="size-4 inline" />
-                    Auto-matched to local location
-                  </p>
+                <%= cond do %>
+                  <% @location_created -> %>
+                    <p class="mt-2 text-blue-600">
+                      <.icon name="hero-plus-circle" class="size-4 inline" />
+                      Created new local location
+                    </p>
+                  <% @matched_location -> %>
+                    <p class="mt-2 text-green-600">
+                      <.icon name="hero-check-circle" class="size-4 inline" />
+                      Auto-matched to local location
+                    </p>
+                  <% true -> %>
                 <% end %>
               </div>
             <% end %>
@@ -386,9 +394,11 @@ defmodule OPWeb.ImportLive do
               prompt="-- Select a location --"
               required
             />
-            <p class="text-sm text-slate-500">
-              If your location isn't listed, create it first in the admin area.
-            </p>
+            <%= if is_nil(@matched_location) do %>
+              <p class="text-sm text-slate-500">
+                If your location isn't listed, create it first in the admin area.
+              </p>
+            <% end %>
           </div>
           
     <!-- League/Season Section -->
@@ -738,7 +748,8 @@ defmodule OPWeb.ImportLive do
      |> assign(:tournament_preview, result.tournament)
      |> assign(:player_mappings, result.player_mappings)
      |> assign(:location_data, result.location_data)
-     |> assign(:matched_location, result.matched_location)}
+     |> assign(:matched_location, result.matched_location)
+     |> assign(:location_created, result.location_created)}
   end
 
   def handle_async(:fetch_preview, {:ok, {:error, error}}, socket) do
@@ -797,6 +808,7 @@ defmodule OPWeb.ImportLive do
     |> assign(:tournament_form, nil)
     |> assign(:location_data, nil)
     |> assign(:matched_location, nil)
+    |> assign(:location_created, false)
     |> assign(:location_options, [])
     |> assign(:league_options, [])
     |> assign(:season_options, [])

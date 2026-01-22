@@ -33,7 +33,8 @@ defmodule OP.Tournaments.Import do
           tournament: map(),
           player_mappings: [player_mapping()],
           location_data: map() | nil,
-          matched_location: Locations.Location.t() | nil
+          matched_location: Locations.Location.t() | nil,
+          location_created: boolean()
         }
 
   @type import_result :: %{
@@ -75,17 +76,23 @@ defmodule OP.Tournaments.Import do
 
         player_mappings = analyze_player_mappings(standings, players_map)
 
-        # Extract location info from API response and try to match
+        # Extract location info from API response and find or create location
         location_data = tournament["location"]
-        matched_location = match_location_from_api(location_data)
 
-        {:ok,
-         %{
-           tournament: tournament,
-           player_mappings: player_mappings,
-           location_data: location_data,
-           matched_location: matched_location
-         }}
+        case match_location_from_api(location_data) do
+          {:ok, matched_location, location_created} ->
+            {:ok,
+             %{
+               tournament: tournament,
+               player_mappings: player_mappings,
+               location_data: location_data,
+               matched_location: matched_location,
+               location_created: location_created
+             }}
+
+          {:error, _changeset} = error ->
+            error
+        end
       end
     end
   end
@@ -321,13 +328,10 @@ defmodule OP.Tournaments.Import do
     |> Map.new()
   end
 
-  defp match_location_from_api(nil), do: nil
+  defp match_location_from_api(nil), do: {:ok, nil, false}
 
   defp match_location_from_api(location_data) do
-    external_id = if id = location_data["locationId"], do: "matchplay:#{id}"
-    name = location_data["name"]
-
-    Locations.find_location_by_match(nil, external_id, name)
+    Locations.find_or_create_location_from_matchplay(nil, location_data)
   end
 
   defp maybe_update_location_external_id(_scope, nil, _location_data), do: :ok

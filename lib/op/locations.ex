@@ -178,4 +178,38 @@ defmodule OP.Locations do
     |> limit(1)
     |> Repo.one()
   end
+
+  @doc """
+  Finds an existing location by external_id or name, or creates a new one from Matchplay data.
+
+  ## Examples
+
+      iex> find_or_create_location_from_matchplay(scope, %{"locationId" => 123, "name" => "Test"})
+      {:ok, %Location{}}
+
+      iex> find_or_create_location_from_matchplay(scope, nil)
+      {:ok, nil}
+
+  """
+  def find_or_create_location_from_matchplay(_scope, nil), do: {:ok, nil}
+
+  def find_or_create_location_from_matchplay(scope, location_data) do
+    external_id = if id = location_data["locationId"], do: "matchplay:#{id}"
+    name = location_data["name"]
+
+    case find_location_by_match(scope, external_id, name) do
+      %Location{} = location ->
+        {:ok, location, false}
+
+      nil ->
+        case create_location(scope, %{
+               name: name,
+               external_id: external_id,
+               address: location_data["address"]
+             }) do
+          {:ok, location} -> {:ok, location, true}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
 end
