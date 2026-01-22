@@ -106,6 +106,67 @@ defmodule OPWeb.Admin.SeasonLive.Show do
             </dl>
           </div>
         </div>
+
+        <div class="mt-8">
+          <h3 class="text-lg font-semibold text-zinc-900 mb-4">
+            Player Rankings ({length(@rankings)})
+          </h3>
+
+          <%= if @rankings == [] do %>
+            <p class="text-zinc-500">
+              No rankings yet. Click "Recalculate Rankings" to generate rankings.
+            </p>
+          <% else %>
+            <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+              <table class="min-w-full divide-y divide-zinc-200">
+                <thead class="bg-zinc-50">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100"
+                      phx-click="sort"
+                      phx-value-column="name"
+                    >
+                      <span class="flex items-center gap-1">
+                        Player {sort_indicator("name", @sort_by, @sort_dir)}
+                      </span>
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100"
+                      phx-click="sort"
+                      phx-value-column="ranking"
+                    >
+                      <span class="flex items-center gap-1">
+                        Rank {sort_indicator("ranking", @sort_by, @sort_dir)}
+                      </span>
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100"
+                      phx-click="sort"
+                      phx-value-column="points"
+                    >
+                      <span class="flex items-center gap-1">
+                        Points {sort_indicator("points", @sort_by, @sort_dir)}
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-zinc-200">
+                  <tr :for={ranking <- @rankings} class="hover:bg-zinc-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
+                      {ranking.player.name}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
+                      #{ranking.ranking}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900">
+                      {format_points(ranking.total_points)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          <% end %>
+        </div>
       </div>
     </Layouts.app>
     """
@@ -115,10 +176,21 @@ defmodule OPWeb.Admin.SeasonLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     season = Leagues.get_season_with_preloads!(socket.assigns.current_scope, id)
 
+    rankings =
+      Leagues.list_rankings_by_season_sorted(
+        socket.assigns.current_scope,
+        season.id,
+        sort_by: "ranking",
+        sort_dir: "asc"
+      )
+
     {:ok,
      socket
      |> assign(:season, season)
-     |> assign(:page_title, season.name)}
+     |> assign(:page_title, season.name)
+     |> assign(:rankings, rankings)
+     |> assign(:sort_by, "ranking")
+     |> assign(:sort_dir, "asc")}
   end
 
   @impl true
@@ -133,8 +205,17 @@ defmodule OPWeb.Admin.SeasonLive.Show do
            socket.assigns.season.id
          ) do
       {:ok, count} ->
+        rankings =
+          Leagues.list_rankings_by_season_sorted(
+            socket.assigns.current_scope,
+            socket.assigns.season.id,
+            sort_by: socket.assigns.sort_by,
+            sort_dir: socket.assigns.sort_dir
+          )
+
         {:noreply,
          socket
+         |> assign(:rankings, rankings)
          |> put_flash(:info, "Rankings recalculated. #{count} player(s) ranked.")}
 
       {:error, _reason} ->
@@ -142,6 +223,33 @@ defmodule OPWeb.Admin.SeasonLive.Show do
          socket
          |> put_flash(:error, "Failed to recalculate rankings.")}
     end
+  end
+
+  @impl true
+  def handle_event("sort", %{"column" => column}, socket) do
+    current_sort_by = socket.assigns.sort_by
+    current_sort_dir = socket.assigns.sort_dir
+
+    new_dir =
+      if column == current_sort_by do
+        if current_sort_dir == "asc", do: "desc", else: "asc"
+      else
+        "asc"
+      end
+
+    rankings =
+      Leagues.list_rankings_by_season_sorted(
+        socket.assigns.current_scope,
+        socket.assigns.season.id,
+        sort_by: column,
+        sort_dir: new_dir
+      )
+
+    {:noreply,
+     socket
+     |> assign(:rankings, rankings)
+     |> assign(:sort_by, column)
+     |> assign(:sort_dir, new_dir)}
   end
 
   defp get_season_status(season) do
@@ -163,4 +271,19 @@ defmodule OPWeb.Admin.SeasonLive.Show do
         "Unknown"
     end
   end
+
+  defp sort_indicator(column, sort_by, sort_dir) when column == sort_by do
+    if sort_dir == "asc" do
+      Phoenix.HTML.raw(~s(<span class="text-zinc-700">&#9650;</span>))
+    else
+      Phoenix.HTML.raw(~s(<span class="text-zinc-700">&#9660;</span>))
+    end
+  end
+
+  defp sort_indicator(_column, _sort_by, _sort_dir) do
+    Phoenix.HTML.raw(~s(<span class="text-zinc-300">&#9650;</span>))
+  end
+
+  defp format_points(nil), do: "0.00"
+  defp format_points(points), do: :erlang.float_to_binary(points / 1, decimals: 2)
 end
