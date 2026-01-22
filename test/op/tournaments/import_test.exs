@@ -508,7 +508,9 @@ defmodule OP.Tournaments.ImportTest do
       assert is_nil(updated_location.external_id)
     end
 
-    test "creates composite external_id for combined tournament", %{scope: scope} do
+    test "creates separate external_id and finals_external_id for combined tournament", %{
+      scope: scope
+    } do
       qualifying_data = tournament_response(%{"tournamentId" => 11111})
       finals_data = tournament_response(%{"tournamentId" => 22222})
 
@@ -533,7 +535,26 @@ defmodule OP.Tournaments.ImportTest do
                  finals_tournament: finals_data
                )
 
-      assert result.tournament.external_id == "matchplay:11111+22222"
+      assert result.tournament.external_id == "matchplay:11111"
+      assert result.tournament.finals_external_id == "matchplay:22222"
+    end
+
+    test "sets finals_external_id to nil for single tournament", %{scope: scope} do
+      tournament_data = tournament_response(%{"tournamentId" => 44440})
+
+      player_mappings = [
+        player_mapping_fixture(%{
+          matchplay_player_id: 1001,
+          matchplay_name: "Player One",
+          position: 1,
+          match_type: :create_new
+        })
+      ]
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
+
+      assert result.tournament.external_id == "matchplay:44440"
+      assert is_nil(result.tournament.finals_external_id)
     end
 
     test "sets is_finals correctly for finalists", %{scope: scope} do

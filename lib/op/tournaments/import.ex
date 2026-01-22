@@ -223,12 +223,13 @@ defmodule OP.Tournaments.Import do
     qualifying_id = tournament_data["tournamentId"]
     finals_tournament = Keyword.get(opts, :finals_tournament)
 
-    external_id =
+    external_id = "matchplay:#{qualifying_id}"
+
+    finals_external_id =
       if finals_tournament do
-        finals_id = finals_tournament["tournamentId"]
-        "matchplay:#{qualifying_id}+#{finals_id}"
+        "matchplay:#{finals_tournament["tournamentId"]}"
       else
-        "matchplay:#{qualifying_id}"
+        nil
       end
 
     Repo.transaction(fn ->
@@ -245,6 +246,7 @@ defmodule OP.Tournaments.Import do
         upsert_tournament(
           scope,
           external_id,
+          finals_external_id,
           tournament_data,
           existing_tournament,
           tournament_overrides
@@ -566,10 +568,18 @@ defmodule OP.Tournaments.Import do
     end)
   end
 
-  defp upsert_tournament(scope, external_id, tournament_data, existing, overrides) do
+  defp upsert_tournament(
+         scope,
+         external_id,
+         finals_external_id,
+         tournament_data,
+         existing,
+         overrides
+       ) do
     # Build base attrs from API data
     base_attrs = %{
       external_id: external_id,
+      finals_external_id: finals_external_id,
       external_url: tournament_data["link"],
       name: tournament_data["name"],
       start_at: parse_datetime(tournament_data["startUtc"])

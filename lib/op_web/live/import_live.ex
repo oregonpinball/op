@@ -69,7 +69,13 @@ defmodule OPWeb.ImportLive do
 
   defp enter_id_step(assigns) do
     ~H"""
-    <.form for={@form} id="import-form" phx-submit="fetch_preview" phx-change="update_form" class="space-y-6">
+    <.form
+      for={@form}
+      id="import-form"
+      phx-submit="fetch_preview"
+      phx-change="update_form"
+      class="space-y-6"
+    >
       <.input
         field={@form[:matchplay_id]}
         type="text"
@@ -140,7 +146,9 @@ defmodule OPWeb.ImportLive do
 
       <div>
         <h4 class="font-medium mb-4">
-          Match Players ({length(@player_mappings)} players<%= if @has_finals do %>, {@finalist_count} finalists<% end %>)
+          Match Players ({length(@player_mappings)} players<%= if @has_finals do %>
+            , {@finalist_count} finalists
+          <% end %>)
         </h4>
         <p class="text-sm text-slate-600 mb-4">
           Review player mappings below. Auto-matched players have been linked automatically.
@@ -206,7 +214,10 @@ defmodule OPWeb.ImportLive do
                     <span class="flex items-center gap-2">
                       {mapping.matchplay_name}
                       <%= if mapping.is_finalist do %>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800" title="Finalist">
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800"
+                          title="Finalist"
+                        >
                           <.icon name="hero-star-solid" class="size-3" />
                         </span>
                       <% end %>
@@ -398,8 +409,12 @@ defmodule OPWeb.ImportLive do
                     target="_blank"
                     class="text-sm text-blue-600 hover:underline"
                   >
-                    <%= if @has_finals do %>Qualifying<% else %>View<% end %> on Matchplay
-                    <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
+                    <%= if @has_finals do %>
+                      Qualifying
+                    <% else %>
+                      View
+                    <% end %>
+                    on Matchplay <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
                   </a>
                 <% end %>
                 <%= if @has_finals && @finals_tournament["link"] do %>
