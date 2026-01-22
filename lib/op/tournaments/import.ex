@@ -23,6 +23,9 @@ defmodule OP.Tournaments.Import do
           matchplay_player_id: integer() | String.t(),
           matchplay_name: String.t(),
           position: integer(),
+          qualifying_position: integer(),
+          finals_position: integer() | nil,
+          is_finalist: boolean(),
           match_type: :auto | :suggested | :unmatched | :create_new | :manual,
           local_player_id: integer() | nil,
           local_player: Player.t() | nil,
@@ -34,7 +37,9 @@ defmodule OP.Tournaments.Import do
           player_mappings: [player_mapping()],
           location_data: map() | nil,
           matched_location: Locations.Location.t() | nil,
-          location_created: boolean()
+          location_created: boolean(),
+          finals_tournament: map() | nil,
+          finalist_count: non_neg_integer()
         }
 
   @type import_result :: %{
@@ -87,10 +92,96 @@ defmodule OP.Tournaments.Import do
                player_mappings: player_mappings,
                location_data: location_data,
                matched_location: matched_location,
-               location_created: location_created
+               location_created: location_created,
+               finals_tournament: nil,
+               finalist_count: 0
              }}
 
           {:error, _changeset} = error ->
+            error
+        end
+      end
+    end
+  end
+
+  @doc """
+  Fetches combined tournament preview for qualifying + finals tournaments.
+
+  Fetches both tournaments in parallel, then merges standings:
+  - Finals players get positions 1-N based on their finals finish
+  - Non-finalists retain their qualifying order, shifted to positions (N+1) and beyond
+  - All finals players must appear in qualifying standings
+
+  ## Options
+    * `:api_token` - Override the configured API token
+
+  ## Returns
+    * `{:ok, preview_result()}` on success
+    * `{:error, {:finals_players_not_in_qualifying, [String.t()]}}` if finals players don't exist in qualifying
+    * `{:error, reason}` on failure
+  """
+  @spec fetch_combined_preview(String.t() | integer(), String.t() | integer(), keyword()) ::
+          {:ok, preview_result()} | {:error, term()}
+  def fetch_combined_preview(qualifying_id, finals_id, opts \\ []) do
+    client = Client.new(Keyword.take(opts, [:api_token]))
+
+    if is_nil(client.api_token) or client.api_token == "" do
+      {:error, :api_token_required}
+    else
+      # Fetch both tournaments in parallel
+      qualifying_task =
+        Task.async(fn ->
+          with {:ok, tournament} <- Client.get_tournament(client, qualifying_id),
+               {:ok, standings} <- Client.get_standings(client, qualifying_id) do
+            {:ok, {tournament, standings}}
+          end
+        end)
+
+      finals_task =
+        Task.async(fn ->
+          with {:ok, tournament} <- Client.get_tournament(client, finals_id),
+               {:ok, standings} <- Client.get_standings(client, finals_id) do
+            {:ok, {tournament, standings}}
+          end
+        end)
+
+      with {:ok, {qualifying_tournament, qualifying_standings}} <- Task.await(qualifying_task),
+           {:ok, {finals_tournament, finals_standings}} <- Task.await(finals_task) do
+        # Build players maps
+        qualifying_players_map = build_players_map(qualifying_tournament["players"] || [])
+        finals_players_map = build_players_map(finals_tournament["players"] || [])
+
+        # Merge standings
+        case merge_standings(
+               qualifying_standings,
+               finals_standings,
+               qualifying_players_map,
+               finals_players_map
+             ) do
+          {:ok, merged_standings, finalist_count} ->
+            player_mappings = analyze_player_mappings_with_finals_info(merged_standings)
+
+            # Extract location info from qualifying tournament
+            location_data = qualifying_tournament["location"]
+
+            case match_location_from_api(location_data) do
+              {:ok, matched_location, location_created} ->
+                {:ok,
+                 %{
+                   tournament: qualifying_tournament,
+                   player_mappings: player_mappings,
+                   location_data: location_data,
+                   matched_location: matched_location,
+                   location_created: location_created,
+                   finals_tournament: finals_tournament,
+                   finalist_count: finalist_count
+                 }}
+
+              {:error, _changeset} = error ->
+                error
+            end
+
+          {:error, _} = error ->
             error
         end
       end
@@ -129,8 +220,16 @@ defmodule OP.Tournaments.Import do
         tournament_overrides \\ %{},
         opts \\ []
       ) do
-    matchplay_id = tournament_data["tournamentId"]
-    external_id = "matchplay:#{matchplay_id}"
+    qualifying_id = tournament_data["tournamentId"]
+    finals_tournament = Keyword.get(opts, :finals_tournament)
+
+    external_id =
+      if finals_tournament do
+        finals_id = finals_tournament["tournamentId"]
+        "matchplay:#{qualifying_id}+#{finals_id}"
+      else
+        "matchplay:#{qualifying_id}"
+      end
 
     Repo.transaction(fn ->
       # Find or prepare tournament
@@ -213,6 +312,9 @@ defmodule OP.Tournaments.Import do
             matchplay_player_id: matchplay_id,
             matchplay_name: name,
             position: position,
+            qualifying_position: position,
+            finals_position: nil,
+            is_finalist: false,
             match_type: :auto,
             local_player_id: player.id,
             local_player: player,
@@ -233,11 +335,181 @@ defmodule OP.Tournaments.Import do
             matchplay_player_id: matchplay_id,
             matchplay_name: name,
             position: position,
+            qualifying_position: position,
+            finals_position: nil,
+            is_finalist: false,
             match_type: match_type,
             local_player_id: nil,
             local_player: nil,
             suggested_players: suggested
           }
+      end
+    end)
+  end
+
+  # Merge qualifying and finals standings
+  # Finals players get positions 1-N, non-finalists get (N+1) and beyond
+  defp merge_standings(
+         qualifying_standings,
+         finals_standings,
+         qualifying_players_map,
+         finals_players_map
+       ) do
+    # Build lookup from claimedBy (or name fallback) to qualifying standing
+    qualifying_lookup =
+      Enum.reduce(qualifying_standings, %{}, fn standing, acc ->
+        player_id = standing["playerId"]
+        player_data = Map.get(qualifying_players_map, player_id, %{})
+        claimed_by = player_data["claimedBy"]
+        name = player_data["name"] || ""
+
+        # Use claimedBy as primary key, name as fallback
+        acc =
+          if claimed_by do
+            Map.put(acc, {:claimed_by, claimed_by}, {standing, player_data})
+          else
+            acc
+          end
+
+        if name != "" do
+          Map.put(acc, {:name, name}, {standing, player_data})
+        else
+          acc
+        end
+      end)
+
+    # Check that all finals players exist in qualifying
+    unmatched_finals_players =
+      Enum.reduce(finals_standings, [], fn standing, acc ->
+        player_id = standing["playerId"]
+        player_data = Map.get(finals_players_map, player_id, %{})
+        claimed_by = player_data["claimedBy"]
+        name = player_data["name"] || ""
+
+        found =
+          (claimed_by && Map.has_key?(qualifying_lookup, {:claimed_by, claimed_by})) ||
+            (name != "" && Map.has_key?(qualifying_lookup, {:name, name}))
+
+        if found, do: acc, else: [name | acc]
+      end)
+
+    if unmatched_finals_players != [] do
+      {:error, {:finals_players_not_in_qualifying, Enum.reverse(unmatched_finals_players)}}
+    else
+      # Get set of finalist claimedBy IDs and names
+      finalist_ids =
+        Enum.reduce(finals_standings, MapSet.new(), fn standing, acc ->
+          player_id = standing["playerId"]
+          player_data = Map.get(finals_players_map, player_id, %{})
+          claimed_by = player_data["claimedBy"]
+          name = player_data["name"] || ""
+
+          acc = if claimed_by, do: MapSet.put(acc, {:claimed_by, claimed_by}), else: acc
+          if name != "", do: MapSet.put(acc, {:name, name}), else: acc
+        end)
+
+      finalist_count = length(finals_standings)
+
+      # Build merged standings for finalists (positions 1 to N)
+      finalists_merged =
+        Enum.map(finals_standings, fn finals_standing ->
+          finals_position = finals_standing["position"]
+          player_id = finals_standing["playerId"]
+          finals_player_data = Map.get(finals_players_map, player_id, %{})
+          claimed_by = finals_player_data["claimedBy"]
+          name = finals_player_data["name"] || ""
+
+          # Find matching qualifying standing
+          {qualifying_standing, qualifying_player_data} =
+            cond do
+              claimed_by && Map.has_key?(qualifying_lookup, {:claimed_by, claimed_by}) ->
+                Map.get(qualifying_lookup, {:claimed_by, claimed_by})
+
+              name != "" && Map.has_key?(qualifying_lookup, {:name, name}) ->
+                Map.get(qualifying_lookup, {:name, name})
+            end
+
+          qualifying_position = qualifying_standing["position"]
+
+          # Prefer qualifying player data (has the matchplay account linkage)
+          matchplay_id = qualifying_player_data["claimedBy"] || qualifying_standing["playerId"]
+
+          %{
+            matchplay_player_id: matchplay_id,
+            matchplay_name: qualifying_player_data["name"] || name,
+            position: finals_position,
+            qualifying_position: qualifying_position,
+            finals_position: finals_position,
+            is_finalist: true
+          }
+        end)
+
+      # Build merged standings for non-finalists (positions N+1 onwards)
+      non_finalists =
+        qualifying_standings
+        |> Enum.reject(fn standing ->
+          player_id = standing["playerId"]
+          player_data = Map.get(qualifying_players_map, player_id, %{})
+          claimed_by = player_data["claimedBy"]
+          name = player_data["name"] || ""
+
+          MapSet.member?(finalist_ids, {:claimed_by, claimed_by}) ||
+            MapSet.member?(finalist_ids, {:name, name})
+        end)
+        |> Enum.sort_by(fn standing -> standing["position"] end)
+        |> Enum.with_index(finalist_count + 1)
+        |> Enum.map(fn {standing, new_position} ->
+          player_id = standing["playerId"]
+          player_data = Map.get(qualifying_players_map, player_id, %{})
+          matchplay_id = player_data["claimedBy"] || player_id
+          qualifying_position = standing["position"]
+
+          %{
+            matchplay_player_id: matchplay_id,
+            matchplay_name: player_data["name"] || "",
+            position: new_position,
+            qualifying_position: qualifying_position,
+            finals_position: nil,
+            is_finalist: false
+          }
+        end)
+
+      merged = finalists_merged ++ non_finalists
+      {:ok, merged, finalist_count}
+    end
+  end
+
+  # Analyze player mappings for combined tournament results
+  # Takes merged standings with position info already computed
+  defp analyze_player_mappings_with_finals_info(merged_standings) do
+    Enum.map(merged_standings, fn standing ->
+      matchplay_id = standing.matchplay_player_id
+      external_id = "matchplay:#{matchplay_id}"
+
+      case Players.get_player_by_external_id(nil, external_id) do
+        %Player{} = player ->
+          Map.merge(standing, %{
+            match_type: :auto,
+            local_player_id: player.id,
+            local_player: player,
+            suggested_players: []
+          })
+
+        nil ->
+          suggested = find_players_by_name(standing.matchplay_name)
+
+          match_type =
+            case suggested do
+              [_single] -> :suggested
+              _ -> :unmatched
+            end
+
+          Map.merge(standing, %{
+            match_type: match_type,
+            local_player_id: nil,
+            local_player: nil,
+            suggested_players: suggested
+          })
       end
     end)
   end
@@ -409,7 +681,7 @@ defmodule OP.Tournaments.Import do
           tournament_id: tournament.id,
           player_id: player_id,
           position: mapping.position,
-          is_finals: false,
+          is_finals: Map.get(mapping, :is_finalist, false),
           linear_points: points[:linear_points] || 0.0,
           dynamic_points: points[:dynamic_points] || 0.0,
           total_points: points[:total_points] || 0.0,

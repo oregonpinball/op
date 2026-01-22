@@ -117,11 +117,16 @@ defmodule OP.MatchplayFixtures do
   Returns a player mapping struct for testing.
   """
   def player_mapping_fixture(attrs \\ %{}) do
+    position = Map.get(attrs, :position, 1)
+
     Map.merge(
       %{
         matchplay_player_id: 1001,
         matchplay_name: "Alice Smith",
-        position: 1,
+        position: position,
+        qualifying_position: Map.get(attrs, :qualifying_position, position),
+        finals_position: Map.get(attrs, :finals_position, nil),
+        is_finalist: Map.get(attrs, :is_finalist, false),
         match_type: :unmatched,
         local_player_id: nil,
         local_player: nil,

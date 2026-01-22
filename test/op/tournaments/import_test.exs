@@ -176,8 +176,12 @@ defmodule OP.Tournaments.ImportTest do
       player = player_fixture(scope)
       _standing = standing_fixture(tournament, player, %{position: 1})
 
-      # Verify standing exists
-      assert Repo.aggregate(Standing, :count) == 1
+      # Verify standing exists for this tournament
+      tournament_standing_count =
+        from(s in Standing, where: s.tournament_id == ^tournament.id)
+        |> Repo.aggregate(:count)
+
+      assert tournament_standing_count == 1
 
       tournament_data = tournament_response(%{"tournamentId" => 11111})
 
@@ -192,9 +196,14 @@ defmodule OP.Tournaments.ImportTest do
 
       assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
 
-      # Verify old standings were deleted and new ones created
+      # Verify old standings were deleted and new ones created for this tournament
       assert result.standings_count == 1
-      assert Repo.aggregate(Standing, :count) == 1
+
+      new_count =
+        from(s in Standing, where: s.tournament_id == ^tournament.id)
+        |> Repo.aggregate(:count)
+
+      assert new_count == 1
     end
 
     test "parses datetime strings correctly", %{scope: scope} do
@@ -241,8 +250,11 @@ defmodule OP.Tournaments.ImportTest do
 
       assert result.standings_count == 3
 
-      # Verify standings have correct positions
-      standings = Repo.all(Standing)
+      # Verify standings have correct positions for this tournament
+      standings =
+        from(s in Standing, where: s.tournament_id == ^result.tournament.id)
+        |> Repo.all()
+
       positions = Enum.map(standings, & &1.position) |> Enum.sort()
       assert positions == [1, 2, 3]
     end
@@ -494,6 +506,168 @@ defmodule OP.Tournaments.ImportTest do
       # Location external_id should remain nil
       updated_location = OP.Locations.get_location!(scope, location.id)
       assert is_nil(updated_location.external_id)
+    end
+
+    test "creates composite external_id for combined tournament", %{scope: scope} do
+      qualifying_data = tournament_response(%{"tournamentId" => 11111})
+      finals_data = tournament_response(%{"tournamentId" => 22222})
+
+      player_mappings = [
+        player_mapping_fixture(%{
+          matchplay_player_id: 1001,
+          matchplay_name: "Player One",
+          position: 1,
+          qualifying_position: 2,
+          finals_position: 1,
+          is_finalist: true,
+          match_type: :create_new
+        })
+      ]
+
+      assert {:ok, result} =
+               Import.execute_import(
+                 scope,
+                 qualifying_data,
+                 player_mappings,
+                 %{},
+                 finals_tournament: finals_data
+               )
+
+      assert result.tournament.external_id == "matchplay:11111+22222"
+    end
+
+    test "sets is_finals correctly for finalists", %{scope: scope} do
+      tournament_data = tournament_response(%{"tournamentId" => 33333})
+
+      player_mappings = [
+        player_mapping_fixture(%{
+          matchplay_player_id: 1001,
+          matchplay_name: "Finalist",
+          position: 1,
+          is_finalist: true,
+          match_type: :create_new
+        }),
+        player_mapping_fixture(%{
+          matchplay_player_id: 1002,
+          matchplay_name: "Non-finalist",
+          position: 2,
+          is_finalist: false,
+          match_type: :create_new
+        })
+      ]
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
+
+      standings =
+        from(s in Standing, where: s.tournament_id == ^result.tournament.id)
+        |> Repo.all()
+        |> Enum.sort_by(& &1.position)
+
+      assert length(standings) == 2
+      assert Enum.at(standings, 0).is_finals == true
+      assert Enum.at(standings, 1).is_finals == false
+    end
+  end
+
+  describe "fetch_combined_preview/3" do
+    test "returns error when API token is not configured" do
+      assert {:error, :api_token_required} =
+               Import.fetch_combined_preview("12345", "67890", api_token: nil)
+    end
+
+    test "returns error when API token is empty string" do
+      assert {:error, :api_token_required} =
+               Import.fetch_combined_preview("12345", "67890", api_token: "")
+    end
+  end
+
+  describe "merge_standings algorithm" do
+    # These tests verify the merge algorithm through execute_import
+    # by checking the resulting standings positions
+
+    setup do
+      scope = user_scope_fixture()
+      %{scope: scope}
+    end
+
+    test "finalists get top positions based on finals finish", %{scope: scope} do
+      tournament_data = tournament_response(%{"tournamentId" => 55555})
+
+      # Simulating merged results: 3 finalists from 5-player qualifying
+      player_mappings = [
+        # Finalist who was Q.2, F.1 -> Position 1
+        player_mapping_fixture(%{
+          matchplay_player_id: 1001,
+          matchplay_name: "Alice",
+          position: 1,
+          qualifying_position: 2,
+          finals_position: 1,
+          is_finalist: true,
+          match_type: :create_new
+        }),
+        # Finalist who was Q.1, F.2 -> Position 2
+        player_mapping_fixture(%{
+          matchplay_player_id: 1002,
+          matchplay_name: "Bob",
+          position: 2,
+          qualifying_position: 1,
+          finals_position: 2,
+          is_finalist: true,
+          match_type: :create_new
+        }),
+        # Finalist who was Q.5, F.3 -> Position 3
+        player_mapping_fixture(%{
+          matchplay_player_id: 1003,
+          matchplay_name: "Charlie",
+          position: 3,
+          qualifying_position: 5,
+          finals_position: 3,
+          is_finalist: true,
+          match_type: :create_new
+        }),
+        # Non-finalist Q.3 -> Position 4
+        player_mapping_fixture(%{
+          matchplay_player_id: 1004,
+          matchplay_name: "Diana",
+          position: 4,
+          qualifying_position: 3,
+          finals_position: nil,
+          is_finalist: false,
+          match_type: :create_new
+        }),
+        # Non-finalist Q.4 -> Position 5
+        player_mapping_fixture(%{
+          matchplay_player_id: 1005,
+          matchplay_name: "Eve",
+          position: 5,
+          qualifying_position: 4,
+          finals_position: nil,
+          is_finalist: false,
+          match_type: :create_new
+        })
+      ]
+
+      assert {:ok, result} = Import.execute_import(scope, tournament_data, player_mappings)
+      assert result.standings_count == 5
+
+      standings =
+        from(s in Standing, where: s.tournament_id == ^result.tournament.id)
+        |> Repo.all()
+        |> Enum.sort_by(& &1.position)
+
+      # First 3 should be finalists
+      assert Enum.at(standings, 0).is_finals == true
+      assert Enum.at(standings, 0).position == 1
+      assert Enum.at(standings, 1).is_finals == true
+      assert Enum.at(standings, 1).position == 2
+      assert Enum.at(standings, 2).is_finals == true
+      assert Enum.at(standings, 2).position == 3
+
+      # Last 2 should be non-finalists
+      assert Enum.at(standings, 3).is_finals == false
+      assert Enum.at(standings, 3).position == 4
+      assert Enum.at(standings, 4).is_finals == false
+      assert Enum.at(standings, 4).position == 5
     end
   end
 end

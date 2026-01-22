@@ -28,13 +28,14 @@ defmodule OPWeb.ImportLive do
         <div class="mt-8">
           <%= case @step do %>
             <% :enter_id -> %>
-              <.enter_id_step form={@form} loading={@loading} />
+              <.enter_id_step form={@form} loading={@loading} has_finals={@has_finals} />
             <% :match_players -> %>
               <.match_players_step
                 tournament={@tournament_preview}
                 player_mappings={@player_mappings}
                 search_results={@search_results}
                 search_index={@search_index}
+                finalist_count={@finalist_count}
               />
             <% :tournament_details -> %>
               <.tournament_details_step
@@ -48,6 +49,8 @@ defmodule OPWeb.ImportLive do
                 location_data={@location_data}
                 matched_location={@matched_location}
                 location_created={@location_created}
+                finals_tournament={@finals_tournament}
+                finalist_count={@finalist_count}
               />
             <% :importing -> %>
               <.importing_step />
@@ -66,7 +69,7 @@ defmodule OPWeb.ImportLive do
 
   defp enter_id_step(assigns) do
     ~H"""
-    <.form for={@form} id="import-form" phx-submit="fetch_preview" class="space-y-6">
+    <.form for={@form} id="import-form" phx-submit="fetch_preview" phx-change="update_form" class="space-y-6">
       <.input
         field={@form[:matchplay_id]}
         type="text"
@@ -80,6 +83,36 @@ defmodule OPWeb.ImportLive do
           https://app.matchplay.events/tournaments/<strong>12345</strong>
         </code>
       </p>
+
+      <div class="border-t pt-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="has_finals"
+            checked={@has_finals}
+            phx-click="toggle_finals"
+            class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <span class="text-sm font-medium text-slate-700">
+            This tournament has a separate finals/playoffs
+          </span>
+        </label>
+      </div>
+
+      <%= if @has_finals do %>
+        <div class="pl-6 border-l-2 border-emerald-200">
+          <.input
+            field={@form[:finals_matchplay_id]}
+            type="text"
+            label="Finals Tournament ID"
+            placeholder="e.g., 67890 or the URL"
+          />
+          <p class="text-sm text-slate-500 mt-1">
+            Finals players get top positions in merged standings
+          </p>
+        </div>
+      <% end %>
+
       <.button type="submit" variant="solid" disabled={@loading}>
         <%= if @loading do %>
           <.icon name="hero-arrow-path" class="size-5 mr-2 animate-spin" /> Fetching...
@@ -92,6 +125,8 @@ defmodule OPWeb.ImportLive do
   end
 
   defp match_players_step(assigns) do
+    assigns = assign(assigns, :has_finals, assigns.finalist_count > 0)
+
     ~H"""
     <div class="space-y-6">
       <div class="bg-slate-50 rounded-lg p-4">
@@ -105,7 +140,7 @@ defmodule OPWeb.ImportLive do
 
       <div>
         <h4 class="font-medium mb-4">
-          Match Players ({length(@player_mappings)} players)
+          Match Players ({length(@player_mappings)} players<%= if @has_finals do %>, {@finalist_count} finalists<% end %>)
         </h4>
         <p class="text-sm text-slate-600 mb-4">
           Review player mappings below. Auto-matched players have been linked automatically.
@@ -130,6 +165,14 @@ defmodule OPWeb.ImportLive do
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                   Pos
                 </th>
+                <%= if @has_finals do %>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
+                    Q.Pos
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
+                    F.Pos
+                  </th>
+                <% end %>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                   Matchplay Name
                 </th>
@@ -147,8 +190,27 @@ defmodule OPWeb.ImportLive do
                   <td class="px-4 py-3 text-sm text-slate-900">
                     {mapping.position}
                   </td>
+                  <%= if @has_finals do %>
+                    <td class="px-4 py-3 text-sm text-slate-500">
+                      {mapping.qualifying_position}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-slate-500">
+                      <%= if mapping.is_finalist do %>
+                        {mapping.finals_position}
+                      <% else %>
+                        -
+                      <% end %>
+                    </td>
+                  <% end %>
                   <td class="px-4 py-3 text-sm text-slate-900">
-                    {mapping.matchplay_name}
+                    <span class="flex items-center gap-2">
+                      {mapping.matchplay_name}
+                      <%= if mapping.is_finalist do %>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800" title="Finalist">
+                          <.icon name="hero-star-solid" class="size-3" />
+                        </span>
+                      <% end %>
+                    </span>
                   </td>
                   <td class="px-4 py-3 text-sm">
                     <.match_status_badge match_type={mapping.match_type} />
@@ -314,6 +376,8 @@ defmodule OPWeb.ImportLive do
   end
 
   defp tournament_details_step(assigns) do
+    assigns = assign(assigns, :has_finals, assigns.finalist_count > 0)
+
     ~H"""
     <div class="space-y-6">
       <.form
@@ -327,16 +391,28 @@ defmodule OPWeb.ImportLive do
           <div class="bg-slate-50 rounded-lg p-4 space-y-4">
             <div class="flex items-center justify-between">
               <h3 class="font-semibold text-lg">Tournament Details</h3>
-              <%= if @tournament["link"] do %>
-                <a
-                  href={@tournament["link"]}
-                  target="_blank"
-                  class="text-sm text-blue-600 hover:underline"
-                >
-                  View on Matchplay
-                  <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
-                </a>
-              <% end %>
+              <div class="flex gap-4">
+                <%= if @tournament["link"] do %>
+                  <a
+                    href={@tournament["link"]}
+                    target="_blank"
+                    class="text-sm text-blue-600 hover:underline"
+                  >
+                    <%= if @has_finals do %>Qualifying<% else %>View<% end %> on Matchplay
+                    <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
+                  </a>
+                <% end %>
+                <%= if @has_finals && @finals_tournament["link"] do %>
+                  <a
+                    href={@finals_tournament["link"]}
+                    target="_blank"
+                    class="text-sm text-blue-600 hover:underline"
+                  >
+                    Finals on Matchplay
+                    <.icon name="hero-arrow-top-right-on-square" class="size-3 inline" />
+                  </a>
+                <% end %>
+              </div>
             </div>
 
             <.input field={@tournament_form[:name]} type="text" label="Tournament Name" required />
@@ -437,6 +513,12 @@ defmodule OPWeb.ImportLive do
                 <dt class="text-slate-500">Total Players</dt>
                 <dd class="font-medium">{length(@player_mappings)}</dd>
               </div>
+              <%= if @has_finals do %>
+                <div>
+                  <dt class="text-slate-500">Finalists</dt>
+                  <dd class="font-medium">{@finalist_count}</dd>
+                </div>
+              <% end %>
               <div>
                 <dt class="text-slate-500">New Players to Create</dt>
                 <dd class="font-medium">
@@ -560,18 +642,34 @@ defmodule OPWeb.ImportLive do
   # Event handlers
 
   @impl true
-  def handle_event("fetch_preview", %{"matchplay_id" => matchplay_id}, socket) do
-    matchplay_id = extract_tournament_id(matchplay_id)
+  def handle_event("fetch_preview", params, socket) do
+    matchplay_id = extract_tournament_id(params["matchplay_id"] || "")
+    finals_matchplay_id = extract_tournament_id(params["finals_matchplay_id"] || "")
+    has_finals = socket.assigns.has_finals
+
+    fetch_fn =
+      if has_finals and finals_matchplay_id != "" do
+        fn -> Import.fetch_combined_preview(matchplay_id, finals_matchplay_id) end
+      else
+        fn -> Import.fetch_tournament_preview(matchplay_id) end
+      end
 
     socket =
       socket
       |> assign(:loading, true)
       |> assign(:matchplay_id, matchplay_id)
-      |> start_async(:fetch_preview, fn ->
-        Import.fetch_tournament_preview(matchplay_id)
-      end)
+      |> assign(:finals_matchplay_id, if(has_finals, do: finals_matchplay_id, else: nil))
+      |> start_async(:fetch_preview, fetch_fn)
 
     {:noreply, socket}
+  end
+
+  def handle_event("toggle_finals", _params, socket) do
+    {:noreply, assign(socket, :has_finals, not socket.assigns.has_finals)}
+  end
+
+  def handle_event("update_form", params, socket) do
+    {:noreply, assign(socket, :form, to_form(params))}
   end
 
   def handle_event("back_to_id", _params, socket) do
@@ -714,9 +812,13 @@ defmodule OPWeb.ImportLive do
     current_scope = socket.assigns.current_scope
     tournament_preview = socket.assigns.tournament_preview
     player_mappings = socket.assigns.player_mappings
+    finals_tournament = socket.assigns.finals_tournament
 
     # Build tournament overrides from form params
     tournament_overrides = build_tournament_overrides(params)
+
+    # Build opts with finals_tournament if present
+    opts = if finals_tournament, do: [finals_tournament: finals_tournament], else: []
 
     socket =
       socket
@@ -726,7 +828,8 @@ defmodule OPWeb.ImportLive do
           current_scope,
           tournament_preview,
           player_mappings,
-          tournament_overrides
+          tournament_overrides,
+          opts
         )
       end)
 
@@ -749,7 +852,9 @@ defmodule OPWeb.ImportLive do
      |> assign(:player_mappings, result.player_mappings)
      |> assign(:location_data, result.location_data)
      |> assign(:matched_location, result.matched_location)
-     |> assign(:location_created, result.location_created)}
+     |> assign(:location_created, result.location_created)
+     |> assign(:finals_tournament, result.finals_tournament)
+     |> assign(:finalist_count, result.finalist_count)}
   end
 
   def handle_async(:fetch_preview, {:ok, {:error, error}}, socket) do
@@ -795,9 +900,13 @@ defmodule OPWeb.ImportLive do
     socket
     |> assign(:page_title, "Import Tournament")
     |> assign(:step, :enter_id)
-    |> assign(:form, to_form(%{"matchplay_id" => ""}))
+    |> assign(:form, to_form(%{"matchplay_id" => "", "finals_matchplay_id" => ""}))
     |> assign(:loading, false)
     |> assign(:matchplay_id, nil)
+    |> assign(:has_finals, false)
+    |> assign(:finals_matchplay_id, nil)
+    |> assign(:finals_tournament, nil)
+    |> assign(:finalist_count, 0)
     |> assign(:tournament_preview, nil)
     |> assign(:player_mappings, [])
     |> assign(:search_results, [])
@@ -859,6 +968,13 @@ defmodule OPWeb.ImportLive do
 
   defp format_error(%OP.Matchplay.Errors.NetworkError{}) do
     "Network error connecting to Matchplay. Please check your connection and try again."
+  end
+
+  defp format_error({:finals_players_not_in_qualifying, player_names}) do
+    names = Enum.join(player_names, ", ")
+
+    "The following finals players were not found in qualifying standings: #{names}. " <>
+      "All finals players must have participated in qualifying."
   end
 
   defp format_error(error) when is_binary(error), do: error
