@@ -31,7 +31,6 @@ defmodule OPWeb.Router do
 
     get "/", PageController, :home
 
-    get "/tournaments", TournamentController, :index
     get "/leagues/:slug", LeagueController, :show
     get "/seasons/:slug", SeasonController, :show
     get "/players/:slug", PlayerController, :show
@@ -48,6 +47,9 @@ defmodule OPWeb.Router do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
+
+      # Public tournament list (works with or without authentication)
+      live "/tournaments", TournamentLive, :index
     end
 
     post "/users/log-in", UserSessionController, :create
