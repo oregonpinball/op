@@ -70,10 +70,13 @@ defmodule OP.Tournaments do
     location_id = Keyword.get(opts, :location_id)
     start_date = Keyword.get(opts, :start_date)
     end_date = Keyword.get(opts, :end_date)
+    season_id = Keyword.get(opts, :season_id)
+    league_id = Keyword.get(opts, :league_id)
+    status = Keyword.get(opts, :status)
 
     base_query =
       Tournament
-      |> preload([:organizer, :season, :location, :standings])
+      |> preload([:organizer, [season: :league], :location, :standings])
       |> order_by([t], desc: t.start_at)
 
     filtered_query =
@@ -81,6 +84,9 @@ defmodule OP.Tournaments do
       |> filter_by_search(search)
       |> filter_by_location(location_id)
       |> filter_by_date_range(start_date, end_date)
+      |> filter_by_season(season_id)
+      |> filter_by_league(league_id)
+      |> filter_by_status(status)
 
     total_count = Repo.aggregate(filtered_query, :count, :id)
     total_pages = ceil(total_count / per_page)
@@ -105,8 +111,8 @@ defmodule OP.Tournaments do
   defp filter_by_search(query, ""), do: query
 
   defp filter_by_search(query, search) do
-    search_term = "%#{search}%"
-    where(query, [t], ilike(t.name, ^search_term))
+    search_term = "%#{String.downcase(search)}%"
+    where(query, [t], like(fragment("lower(?)", t.name), ^search_term))
   end
 
   defp filter_by_location(query, nil), do: query
@@ -160,6 +166,36 @@ defmodule OP.Tournaments do
 
   defp date_to_datetime(nil, _), do: nil
   defp date_to_datetime(_, _), do: nil
+
+  defp filter_by_season(query, nil), do: query
+  defp filter_by_season(query, ""), do: query
+
+  defp filter_by_season(query, season_id) do
+    where(query, [t], t.season_id == ^season_id)
+  end
+
+  defp filter_by_league(query, nil), do: query
+  defp filter_by_league(query, ""), do: query
+
+  defp filter_by_league(query, league_id) do
+    from t in query,
+      join: s in assoc(t, :season),
+      where: s.league_id == ^league_id
+  end
+
+  defp filter_by_status(query, nil), do: query
+  defp filter_by_status(query, ""), do: query
+  defp filter_by_status(query, "all"), do: query
+
+  defp filter_by_status(query, "upcoming") do
+    now = DateTime.utc_now()
+    where(query, [t], t.start_at >= ^now)
+  end
+
+  defp filter_by_status(query, "past") do
+    now = DateTime.utc_now()
+    where(query, [t], t.start_at < ^now)
+  end
 
   @doc """
   Returns the list of tournaments filtered by season.
