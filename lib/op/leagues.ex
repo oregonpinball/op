@@ -423,4 +423,52 @@ defmodule OP.Leagues do
     |> preload(:player)
     |> Repo.one()
   end
+
+  @doc """
+  Returns the list of rankings for a season with sorting support.
+
+  ## Options
+
+    * `:sort_by` - Column to sort by: "ranking", "points", or "name". Defaults to "ranking".
+    * `:sort_dir` - Sort direction: "asc" or "desc". Defaults to "asc".
+
+  ## Examples
+
+      iex> list_rankings_by_season_sorted(current_scope, season_id)
+      [%Ranking{}, ...]
+
+      iex> list_rankings_by_season_sorted(current_scope, season_id, sort_by: "points", sort_dir: "desc")
+      [%Ranking{}, ...]
+
+  """
+  def list_rankings_by_season_sorted(_scope, season_id, opts \\ []) do
+    sort_by = Keyword.get(opts, :sort_by, "ranking")
+    sort_dir = Keyword.get(opts, :sort_dir, "asc")
+
+    direction = if sort_dir == "desc", do: :desc, else: :asc
+
+    Ranking
+    |> where([r], r.season_id == ^season_id)
+    |> preload(:player)
+    |> apply_ranking_sort(sort_by, direction)
+    |> Repo.all()
+  end
+
+  defp apply_ranking_sort(query, "ranking", dir) do
+    order_by(query, [r], [{^dir, r.ranking}])
+  end
+
+  defp apply_ranking_sort(query, "points", dir) do
+    order_by(query, [r], [{^dir, r.total_points}])
+  end
+
+  defp apply_ranking_sort(query, "name", dir) do
+    from r in query,
+      join: p in assoc(r, :player),
+      order_by: [{^dir, p.name}]
+  end
+
+  defp apply_ranking_sort(query, _default, dir) do
+    order_by(query, [r], [{^dir, r.ranking}])
+  end
 end
