@@ -22,6 +22,14 @@ defmodule OPWeb.Router do
     storybook_assets()
   end
 
+  #   _____     _     _ _
+  # | ___ \    | |   | (_)
+  # | |_/ /   _| |__ | |_  ___
+  # |  __/ | | | '_ \| | |/ __|
+  # | |  | |_| | |_) | | | (__
+  # \_|   \__,_|_.__/|_|_|\___|
+  #
+  # Viewable by guests/non-authenticated users
   scope "/", OPWeb do
     # Use the default browser pipeline, which notably
     # does NOT require the user to be authenticated.  This is
@@ -37,32 +45,44 @@ defmodule OPWeb.Router do
     get "/locations", LocationController, :index
     get "/locations/:slug", LocationController, :show
 
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
+
     # TODO: Remove later, developer testing route for rendering
     # React components based on Phoenix-rendered templates
     get "/react", PageController, :react
 
-    # Authentication-based routes
+    # Setup `assigns.current_scope` for all sessions, even if it
+    # is `nil`, to keep a standard interface with back-end queries.
     live_session :current_user,
       on_mount: [{OPWeb.UserAuth, :mount_current_scope}] do
+      live "/tournaments", TournamentLive.Index, :index
+      live "/tournaments/:slug", TournamentLive.Show, :show
+
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
-
-      # Public tournament list (works with or without authentication)
-      live "/tournaments", TournamentLive, :index
     end
-
-    post "/users/log-in", UserSessionController, :create
-    delete "/users/log-out", UserSessionController, :delete
 
     # Storybook
     live_storybook("/storybook", backend_module: OPWeb.Storybook)
   end
 
-  ## Authenticated routes
+  #   ___  _   _ _____ _   _  _   _
+  #  / _ \| | | |_   _| | | || \ | |
+  # / /_\ \ | | | | | | |_| ||  \| |
+  # |  _  | | | | | | |  _  || . ` |
+  # | | | | |_| | | | | | | || |\  |
+  # \_| |_/\___/  \_/ \_| |_/\_| \_/
+  #
+  # Authenticated routes (requires user)
   scope "/", OPWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    post "/users/update-password", UserSessionController, :update_password
+
+    # Setup `assigns.current_scope` for all authenticated sessions,
+    # this requires a valid scope.
     live_session :require_authenticated_user,
       on_mount: [{OPWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
@@ -71,29 +91,23 @@ defmodule OPWeb.Router do
       # Matchplay import
       live "/import", ImportLive, :index
     end
-
-    post "/users/update-password", UserSessionController, :update_password
-
-    live_session :require_system_admin,
-      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
-      live "/admin/dashboard", AdminLive.Dashboard, :index
-      live "/admin/locations", LocationLive.Index, :index
-      live "/admin/locations/new", LocationLive.Form, :new
-      live "/admin/locations/:slug/edit", LocationLive.Form, :edit
-      live "/admin/players", PlayerLive.Index, :index
-      live "/admin/players/new", PlayerLive.Form, :new
-      live "/admin/players/:slug/edit", PlayerLive.Form, :edit
-      live "/admin/users", UserLive.Admin.Index, :index
-      live "/admin/users/:id/edit", UserLive.Admin.Form, :edit
-    end
   end
 
-  ## Admin routes
+  #   ___ _________  ________ _   _
+  #  / _ \|  _  \  \/  |_   _| \ | |
+  # / /_\ \ | | | .  . | | | |  \| |
+  # |  _  | | | | |\/| | | | | . ` |
+  # | | | | |/ /| |  | |_| |_| |\  |
+  # \_| |_/___/ \_|  |_/\___/\_| \_/
+  #
+  # Requires system admin users
   scope "/admin", OPWeb.Admin do
     pipe_through [:browser, :require_authenticated_user]
 
-    live_session :require_admin,
-      on_mount: [{OPWeb.UserAuth, :require_admin}] do
+    live_session :require_system_admin,
+      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
+      live "/dashboard", AdminLive.Dashboard, :index
+
       live "/tournaments", TournamentLive.Index, :index
       live "/tournaments/new", TournamentLive.Index, :new
       live "/tournaments/:id/edit", TournamentLive.Index, :edit
@@ -108,6 +122,17 @@ defmodule OPWeb.Router do
       live "/seasons/new", SeasonLive.Form, :new
       live "/seasons/:id/edit", SeasonLive.Form, :edit
       live "/seasons/:id", SeasonLive.Show, :show
+
+      live "/players", PlayerLive.Index, :index
+      live "/players/new", PlayerLive.Form, :new
+      live "/players/:slug/edit", PlayerLive.Form, :edit
+
+      live "/locations", LocationLive.Index, :index
+      live "/locations/new", LocationLive.Form, :new
+      live "/locations/:slug/edit", LocationLive.Form, :edit
+
+      live "/users", UserLive.Index, :index
+      live "/users/:id/edit", UserLive.Form, :edit
     end
   end
 

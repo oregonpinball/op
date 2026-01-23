@@ -21,7 +21,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert {:error, redirect} = live(conn, ~p"/admin/tournaments")
       assert {:redirect, %{to: path, flash: flash}} = redirect
       assert path == ~p"/"
-      assert %{"error" => "You must be an admin to access this page."} = flash
+      assert %{"error" => "You must be a system admin to access this page."} = flash
     end
 
     test "allows system_admin users to access", %{conn: conn} do
@@ -32,12 +32,15 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert html =~ "Tournaments"
     end
 
-    test "allows td users to access", %{conn: conn} do
+    test "disallows td users to access", %{conn: conn} do
+      # Note: 1/22/26: thinking TDs should have a separate
+      # submission page with potentially different UX than
+      # the system admin.  If we want to mirror it, we can
+      # do that, too.
       user = td_user_fixture()
       conn = log_in_user(conn, user)
 
-      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
-      assert html =~ "Tournaments"
+      assert {:error, _lv} = live(conn, ~p"/admin/tournaments")
     end
   end
 

@@ -317,6 +317,26 @@ defmodule OP.Tournaments do
   end
 
   @doc """
+  Gets a tournament by slug with preloaded associations.
+
+  Raises `Ecto.NoResultsError` if the Tournament does not exist.
+
+  ## Examples
+
+      iex> get_tournament_by_slug!(current_scope, "my-tournament")
+      %Tournament{}
+
+      iex> get_tournament_by_slug!(current_scope, "unknown")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_tournament_by_slug!(_scope, slug) when is_binary(slug) do
+    Tournament
+    |> preload([:organizer, :season, :location, standings: :player])
+    |> Repo.get_by!(slug: slug)
+  end
+
+  @doc """
   Creates a tournament.
 
   ## Examples
