@@ -8,7 +8,7 @@ defmodule OPWeb.TournamentLive.Show do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto">
-        <h1> Note: This is a placeholder UI to stub out the public tournament#show page</h1>
+        <h1>Note: This is a placeholder UI to stub out the public tournament#show page</h1>
         <.header>
           {@tournament.name}
           <:subtitle :if={@tournament.start_at}>
@@ -93,14 +93,16 @@ defmodule OPWeb.TournamentLive.Show do
                 rel="noopener noreferrer"
                 class="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700"
               >
-                <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" />
-                View on Matchplay
+                <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" /> View on Matchplay
               </a>
             </div>
           </div>
 
           <%!-- Standings --%>
-          <div :if={@tournament.standings != []} class="bg-white rounded-lg border border-zinc-200 p-6">
+          <div
+            :if={@tournament.standings != []}
+            class="bg-white rounded-lg border border-zinc-200 p-6"
+          >
             <h2 class="text-xl font-semibold text-zinc-900 mb-4">Standings</h2>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-zinc-200">
@@ -121,7 +123,10 @@ defmodule OPWeb.TournamentLive.Show do
                     <th class="px-4 py-3 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
                       Dynamic
                     </th>
-                    <th :if={has_finals_standings?(@tournament.standings)} class="px-4 py-3 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    <th
+                      :if={has_finals_standings?(@tournament.standings)}
+                      class="px-4 py-3 text-center text-xs font-medium text-zinc-500 uppercase tracking-wider"
+                    >
                       Finals
                     </th>
                   </tr>
@@ -168,7 +173,10 @@ defmodule OPWeb.TournamentLive.Show do
             </div>
           </div>
 
-          <div :if={@tournament.standings == []} class="bg-white rounded-lg border border-zinc-200 p-8 text-center">
+          <div
+            :if={@tournament.standings == []}
+            class="bg-white rounded-lg border border-zinc-200 p-8 text-center"
+          >
             <p class="text-zinc-500">No standings available yet.</p>
           </div>
         </div>
