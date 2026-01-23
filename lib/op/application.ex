@@ -16,7 +16,8 @@ defmodule OP.Application do
       # Start a worker by calling: OP.Worker.start_link(arg)
       # {OP.Worker, arg},
       # Start to serve requests, typically the last entry
-      OPWeb.Endpoint
+      OPWeb.Endpoint,
+      TwMerge.Cache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

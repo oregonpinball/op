@@ -25,17 +25,35 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/op";
 import topbar from "../vendor/topbar";
 
+// The trimmed version of SaladUI we're using adds about 200kB unminified
+import SaladUI from "../vendor/salad_ui";
+import "../vendor/salad_ui/components/dropdown_menu";
+
 // Import React mounting functionality
-import { mountReactComponents, ReactMount } from "./react/react_mount";
+//
+// WARN: 1/22/2026 - React is currently removed until we need it, as it
+// adds about 3MB of app.js (unminified).  To re-add, uncomment the lines below,
+// the Hooks, and the mountReactComponents() call below.
+//
+// import { mountReactComponents, ReactMount } from "./react/react_mount";
+
+
 import { initializeDispatchListeners } from "./dispatch";
 
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+const Hooks = {
+  ...colocatedHooks,
+  SaladUI: SaladUI.SaladUIHook,
+  //ReactMount
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, ReactMount },
+  hooks: Hooks,
 });
 
 
@@ -54,9 +72,9 @@ liveSocket.connect();
 window.liveSocket = liveSocket;
 
 // Mount React components on page load
-document.addEventListener("DOMContentLoaded", () => {
-  mountReactComponents();
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//   mountReactComponents();
+// });
 
 // Initialize custom dispatch listeners
 initializeDispatchListeners();
