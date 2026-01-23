@@ -179,7 +179,6 @@ defmodule SaladUI.DropdownMenu do
       style="min-width: var(--salad-reference-width)"
       hidden
     >
-
       <div
         data-part="content"
         class={

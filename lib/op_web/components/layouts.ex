@@ -86,33 +86,24 @@ defmodule OPWeb.Layouts do
       </li>
       <%= if @current_scope do %>
         <li>
-          <.dropdown_menu id="dropdown-default">
-            <.dropdown_menu_trigger>
-              <.button>
-                <.icon name="hero-bars-3" class="size-6" />
-              </.button>
-            </.dropdown_menu_trigger>
-            <.dropdown_menu_content class="w-56" align="end">
-              <div class="flex flex-col p-2">
-                <div class="font-medium">My account</div>
-                <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
-                <div class="space-y-0.5 flex flex-col">
-                  <.link :if={is_system_admin?(@current_scope)} navigate={~p"/admin/dashboard"}>
-                    <.icon name="hero-wrench" class="size-4" />
-                    <span>Admin dashboard</span>
-                  </.link>
-                  <.link navigate={~p"/users/settings"} class="dropdown-menu-item">
-                    <.icon name="hero-cog-6-tooth" class="size-4" />
-                    <span>Settings</span>
-                  </.link>
-                  <.link href={~p"/users/log-out"} method="delete">
-                    <.icon name="hero-arrow-left-end-on-rectangle" class="h-4 w-4" />
-                    <span>Log out</span>
-                  </.link>
+          <%= if @is_mobile? do %>
+            <.nav_buttons_shared current_scope={@current_scope} />
+          <% else %>
+            <.dropdown_menu id="nav-dropdown">
+              <.dropdown_menu_trigger>
+                <.button>
+                  <.icon name="hero-bars-3" class="size-6" />
+                </.button>
+              </.dropdown_menu_trigger>
+              <.dropdown_menu_content class="w-56" align="end">
+                <div class="flex flex-col p-2">
+                  <div class="font-medium">My account</div>
+                  <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                  <.nav_buttons_shared current_scope={@current_scope} />
                 </div>
-              </div>
-            </.dropdown_menu_content>
-          </.dropdown_menu>
+              </.dropdown_menu_content>
+            </.dropdown_menu>
+          <% end %>
         </li>
       <% else %>
         <li>
@@ -136,6 +127,29 @@ defmodule OPWeb.Layouts do
         </.button>
       </li>
     </ul>
+    """
+  end
+
+  attr :current_scope, :map,
+    default: nil,
+    doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+
+  def nav_buttons_shared(assigns) do
+    ~H"""
+    <div class="space-y-0.5 flex flex-col">
+      <.link :if={is_system_admin?(@current_scope)} navigate={~p"/admin/dashboard"}>
+        <.icon name="hero-wrench" class="size-4" />
+        <span>Admin dashboard</span>
+      </.link>
+      <.link navigate={~p"/users/settings"} class="dropdown-menu-item">
+        <.icon name="hero-cog-6-tooth" class="size-4" />
+        <span>Settings</span>
+      </.link>
+      <.link href={~p"/users/log-out"} method="delete">
+        <.icon name="hero-arrow-left-end-on-rectangle" class="h-4 w-4" />
+        <span>Log out</span>
+      </.link>
+    </div>
     """
   end
 
