@@ -6,5 +6,7 @@ defmodule OPWeb.PageHTML do
   """
   use OPWeb, :html
 
+  import SaladUI.DropdownMenu
+
   embed_templates "page_html/*"
 end

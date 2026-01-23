@@ -70,6 +70,7 @@ config :tailwind,
   version: "4.1.7",
   op: [
     args: ~w(
+      --config=assets/tailwind.config.js
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
     ),
