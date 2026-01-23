@@ -57,6 +57,7 @@ defmodule OPWeb.Router do
     live_session :current_user,
       on_mount: [{OPWeb.UserAuth, :mount_current_scope}] do
       live "/tournaments", TournamentLive.Index, :index
+      live "/tournaments/:slug", TournamentLive.Show, :show
 
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
