@@ -72,6 +72,10 @@ defmodule OP.Matchplay.Client do
     headers = build_headers(client)
     opts = [headers: headers, receive_timeout: client.timeout] ++ @req_options
 
+    is_test? = Application.get_env(:op, :env) == :test
+    # Disable retrying to prevent the Req re-attempts when a 500 occurs
+    opts = if is_test?, do: Keyword.put(opts, :retry, false), else: opts
+
     case Req.get(url, opts) do
       {:ok, %Req.Response{status: 200, body: body}} ->
         {:ok, body}

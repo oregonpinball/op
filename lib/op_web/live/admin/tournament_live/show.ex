@@ -157,7 +157,7 @@ defmodule OPWeb.Admin.TournamentLive.Show do
         on_cancel={JS.patch(~p"/admin/tournaments/#{@tournament}")}
       >
         <.live_component
-          module={OPWeb.Admin.TournamentLive.FormComponent}
+          module={OPWeb.Admin.TournamentLive.Form}
           id={@tournament.id}
           title="Edit Tournament"
           action={@live_action}
@@ -185,7 +185,7 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   defp page_title(:edit), do: "Edit Tournament"
 
   @impl true
-  def handle_info({OPWeb.Admin.TournamentLive.FormComponent, {:saved, tournament}}, socket) do
+  def handle_info({OPWeb.Admin.TournamentLive.Form, {:saved, tournament}}, socket) do
     tournament =
       Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, tournament.id)
 

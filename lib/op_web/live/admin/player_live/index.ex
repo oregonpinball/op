@@ -1,4 +1,4 @@
-defmodule OPWeb.PlayerLive.Index do
+defmodule OPWeb.Admin.PlayerLive.Index do
   use OPWeb, :live_view
 
   alias OP.Players

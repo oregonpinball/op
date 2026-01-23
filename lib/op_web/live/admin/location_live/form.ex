@@ -1,4 +1,4 @@
-defmodule OPWeb.LocationLive.Form do
+defmodule OPWeb.Admin.LocationLive.Form do
   use OPWeb, :live_view
 
   alias OP.Locations

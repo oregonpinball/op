@@ -1,4 +1,4 @@
-defmodule OPWeb.PlayerLive.Form do
+defmodule OPWeb.Admin.PlayerLive.Form do
   use OPWeb, :live_view
 
   alias OP.Players

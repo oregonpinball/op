@@ -147,7 +147,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         on_cancel={JS.patch(~p"/admin/tournaments")}
       >
         <.live_component
-          module={OPWeb.Admin.TournamentLive.FormComponent}
+          module={OPWeb.Admin.TournamentLive.Form}
           id={@tournament.id || :new}
           title={@page_title}
           action={@live_action}
@@ -269,7 +269,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   end
 
   @impl true
-  def handle_info({OPWeb.Admin.TournamentLive.FormComponent, {:saved, tournament}}, socket) do
+  def handle_info({OPWeb.Admin.TournamentLive.Form, {:saved, tournament}}, socket) do
     _tournament =
       Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, tournament.id)
 

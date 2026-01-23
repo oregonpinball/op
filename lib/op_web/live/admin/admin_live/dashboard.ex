@@ -1,4 +1,4 @@
-defmodule OPWeb.AdminLive.Dashboard do
+defmodule OPWeb.Admin.AdminLive.Dashboard do
   use OPWeb, :live_view
 
   @impl true

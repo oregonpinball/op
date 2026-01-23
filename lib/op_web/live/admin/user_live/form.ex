@@ -1,4 +1,4 @@
-defmodule OPWeb.UserLive.Admin.Form do
+defmodule OPWeb.Admin.UserLive.Form do
   use OPWeb, :live_view
 
   alias OP.Accounts

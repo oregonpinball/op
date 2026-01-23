@@ -1,4 +1,4 @@
-defmodule OPWeb.TournamentLive do
+defmodule OPWeb.TournamentLive.Index do
   use OPWeb, :live_view
 
   alias OP.Leagues
@@ -114,7 +114,7 @@ defmodule OPWeb.TournamentLive do
         >
           <div class="flex-1">
             <.link
-              navigate={~p"/admin/tournaments/#{tournament}"}
+              navigate={~p"/tournaments/#{tournament.slug}"}
               class="text-lg font-semibold text-gray-900 hover:text-emerald-700"
             >
               {tournament.name}
