@@ -10,6 +10,10 @@
   --animate-slide-in-right: slide-in-right 0.15s ease-in forwards;
   --animate-slide-out-right: slide-out-right 0.15s ease-in forwards;
 
+  --animate-in: in 0.15s ease-in forwards;
+  --animate-out: out 0.15s ease-in forwards;
+  --animate-pop-in: pop-in 0.05s ease-out forwards;
+
   @keyframes slide-in-right {
     from {
       transform: translateX(5%);
@@ -28,6 +32,35 @@
     }
     to {
       transform: translateX(5%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pop-in {
+    from {
+      transform: scale(0.97);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes out {
+    from {
+      opacity: 1;
+    }
+
+    to {
       opacity: 0;
     }
   }

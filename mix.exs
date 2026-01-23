@@ -69,7 +69,8 @@ defmodule OP.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:nanoid, "~> 2.1.0"}
+      {:nanoid, "~> 2.1.0"},
+      {:tw_merge, "~> 0.1"}
     ]
   end
 

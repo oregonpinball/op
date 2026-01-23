@@ -5,6 +5,8 @@ defmodule OPWeb.Layouts do
   """
   use OPWeb, :html
 
+  import SaladUI.DropdownMenu
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -67,29 +69,41 @@ defmodule OPWeb.Layouts do
     class =
       if assigns.is_mobile?,
         do: assigns.class <> " flex flex-col",
-        else: assigns.class <> " hidden md:flex items-center space-x-2"
+        else: assigns.class <> " hidden md:flex items-center justify-between space-x-2"
 
     assigns = Map.put(assigns, :class, class)
 
     ~H"""
     <ul class={[@class]}>
-      <li class="grow">
+      <li class="">
         <.button navigate={~p"/"} color="invisible">
           <span class="font-semibold">Open Pinball</span>
         </.button>
       </li>
+
+      <li>
+        <.button navigate={~p"/tournaments"} color="invisible">Tournaments</.button>
+      </li>
       <%= if @current_scope do %>
         <li>
-          {@current_scope.user.email}
-        </li>
-        <li :if={is_system_admin?(@current_scope)}>
-          <.link href={~p"/admin/dashboard"}>Admin Dashboard</.link>
-        </li>
-        <li>
-          <.link href={~p"/users/settings"}>Settings</.link>
-        </li>
-        <li>
-          <.link href={~p"/users/log-out"} method="delete">Log out</.link>
+          <%= if @is_mobile? do %>
+            <.nav_buttons_shared current_scope={@current_scope} />
+          <% else %>
+            <.dropdown_menu id="nav-dropdown">
+              <.dropdown_menu_trigger>
+                <.button>
+                  <.icon name="hero-bars-3" class="size-6" />
+                </.button>
+              </.dropdown_menu_trigger>
+              <.dropdown_menu_content class="w-56" align="end">
+                <div class="flex flex-col p-2">
+                  <div class="font-medium">My account</div>
+                  <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                  <.nav_buttons_shared current_scope={@current_scope} />
+                </div>
+              </.dropdown_menu_content>
+            </.dropdown_menu>
+          <% end %>
         </li>
       <% else %>
         <li>
@@ -113,6 +127,29 @@ defmodule OPWeb.Layouts do
         </.button>
       </li>
     </ul>
+    """
+  end
+
+  attr :current_scope, :map,
+    default: nil,
+    doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+
+  def nav_buttons_shared(assigns) do
+    ~H"""
+    <div class="space-y-0.5 flex flex-col">
+      <.link :if={is_system_admin?(@current_scope)} navigate={~p"/admin/dashboard"}>
+        <.icon name="hero-wrench" class="size-4" />
+        <span>Admin dashboard</span>
+      </.link>
+      <.link navigate={~p"/users/settings"} class="dropdown-menu-item">
+        <.icon name="hero-cog-6-tooth" class="size-4" />
+        <span>Settings</span>
+      </.link>
+      <.link href={~p"/users/log-out"} method="delete">
+        <.icon name="hero-arrow-left-end-on-rectangle" class="h-4 w-4" />
+        <span>Log out</span>
+      </.link>
+    </div>
     """
   end
 
