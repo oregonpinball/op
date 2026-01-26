@@ -44,6 +44,12 @@ defmodule OPWeb do
 
       import Plug.Conn
 
+      def is_system_admin?(%OP.Accounts.Scope{} = scope) do
+        scope.role == :system_admin
+      end
+
+      def is_system_admin?(_), do: false
+
       unquote(verified_routes())
     end
   end
@@ -78,6 +84,8 @@ defmodule OPWeb do
       def is_system_admin?(%OP.Accounts.Scope{} = scope) do
         scope.role == :system_admin
       end
+
+      def is_system_admin?(_), do: false
     end
   end
 

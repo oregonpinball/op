@@ -160,6 +160,8 @@ defmodule OPWeb.Landing do
         </div>
       </div>
     </div>
+
+    <Layouts.footer />
     """
   end
 
@@ -209,35 +211,7 @@ defmodule OPWeb.Landing do
 
         <div class="grid grid-cols-1 md:grid-cols-3 grid-flow-row-dense gap-4 mt-4">
           <%= for tournament <- Enum.take(Enum.reverse(@tournaments), 3) do %>
-            <div class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all">
-              <.link navigate={~p"/tournaments/#{tournament.slug}"}>
-                <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t-lg bg-cover" />
-              </.link>
-              <div class="p-4">
-                <.link navigate={~p"/tournaments/#{tournament.slug}"}>
-                  <h1 class="text-2xl font-semibold rounded mt-1">{tournament.name}</h1>
-                </.link>
-
-                <h2 class="text-normal font-medium mt-1">
-                  {Calendar.strftime(tournament.start_at, "%a, %b %d, %Y at %-I:%M %p %Z")}
-                </h2>
-
-                <h3
-                  :if={Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location)}
-                  class=""
-                >
-                  <.link navigate={~p"/locations/#{tournament.location.slug}"} class="">
-                    <.underline>
-                      @ {tournament.location.name}
-                    </.underline>
-                  </.link>
-                </h3>
-                <div class="inline-flex space-x-1 mt-2 w-full">
-                  <.badge>$5</.badge>
-                  <.badge>Open</.badge>
-                </div>
-              </div>
-            </div>
+            <OPWeb.Tournaments.card tournament={tournament} />
           <% end %>
         </div>
 
@@ -263,42 +237,7 @@ defmodule OPWeb.Landing do
       </div>
     </div>
 
-    <div class="bg-[#011108] bg-linear-to-b from-[#052e16] to-[#011108] border-t-4 border-green-700 text-white">
-      <div class="container mx-auto p-4">
-        <div class="grid grid-cols-1 md:grid-cols-4">
-          <div>
-            <p class="font-bold text-lg">What is Oregon Pinball?</p>
-            <ul>
-              <li>About us</li>
-              <li>Our board</li>
-              <li>Our rules</li>
-            </ul>
-          </div>
-
-          <div>
-            <p class="font-bold text-lg">Play</p>
-            <ul>
-              <li>View events</li>
-              <li>Code of Conduct</li>
-              <li>Rules</li>
-            </ul>
-          </div>
-
-          <ul class="">
-            <p class="font-bold text-lg">Host</p>
-            <ul>
-              <li>Submit an event</li>
-              <li>Code of Conduct</li>
-              <li>Rules</li>
-            </ul>
-          </ul>
-
-          <div class="flex md:justify-end md:items-end">
-            <p class="">© 2026 Oregon Pinball</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Layouts.footer />
     """
   end
 end

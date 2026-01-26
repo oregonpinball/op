@@ -8,7 +8,7 @@ defmodule OPWeb.UserLive.Registration do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
+      <div class="container mx-auto p-4">
         <div class="text-center">
           <.header>
             Register for an account
@@ -22,22 +22,24 @@ defmodule OPWeb.UserLive.Registration do
           </.header>
         </div>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            required
-            phx-mounted={JS.focus()}
-          />
+        <div class="mx-auto w-1/2">
+          <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+            <.input
+              field={@form[:email]}
+              type="email"
+              label="Email"
+              autocomplete="username"
+              required
+              phx-mounted={JS.focus()}
+            />
 
-          <div class="flex justify-end">
-            <.button phx-disable-with="Creating account..." color="primary">
-              Create an account
-            </.button>
-          </div>
-        </.form>
+            <div class="flex justify-end">
+              <.button phx-disable-with="Creating account..." color="primary">
+                Create an account
+              </.button>
+            </div>
+          </.form>
+        </div>
       </div>
     </Layouts.app>
     """

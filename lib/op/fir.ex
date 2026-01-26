@@ -104,6 +104,46 @@ defmodule OP.Fir do
   end
 
   @doc """
+  Gets a published page by its slug with preloaded associations.
+
+  Returns the page if found and published, nil otherwise.
+
+  ## Examples
+
+      iex> get_published_page_by_slug_with_preloads("my-first-page")
+      %Page{slug: "my-first-page", state: :published, section: %Section{...}}
+
+      iex> get_published_page_by_slug_with_preloads("draft-page")
+      nil
+  """
+  def get_published_page_by_slug_with_preloads(slug) when is_binary(slug) do
+    Page
+    |> preload(:section)
+    |> where([p], p.slug == ^slug and p.state == :published)
+    |> Repo.one()
+  end
+
+  @doc """
+  Gets a published section by its slug with preloaded associations.
+
+  Returns the section if found and published, nil otherwise.
+
+  ## Examples
+
+      iex> get_published_section_by_slug_with_preloads("my-first-section")
+      %Section{slug: "my-first-section", state: :published, parent_section: ..., child_sections: [...], pages: [...]}
+
+      iex> get_published_section_by_slug_with_preloads("draft-section")
+      nil
+  """
+  def get_published_section_by_slug_with_preloads(slug) when is_binary(slug) do
+    Section
+    |> preload([:parent_section, :child_sections, :pages])
+    |> where([s], s.slug == ^slug and s.state == :published)
+    |> Repo.one()
+  end
+
+  @doc """
   Gets all pages matching the provided slugs list.
 
   Returns a list of pages in the order they were found.

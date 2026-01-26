@@ -68,10 +68,18 @@ defmodule OPWeb.Layouts do
         >
           Our events
         </.button>
-        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+        <.button
+          navigate={~p"/f/how-tos/play-in-an-event"}
+          color="invisible"
+          class="hover:text-slate-900 transition-all"
+        >
           Play in an event
         </.button>
-        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+        <.button
+          navigate={~p"/f/how-tos/host-a-certified-event"}
+          color="invisible"
+          class="hover:text-slate-900 transition-all"
+        >
           Host an event
         </.button>
       <% else %>
@@ -104,7 +112,7 @@ defmodule OPWeb.Layouts do
                   About
                 </.button>
                 <.button
-                  navigate={~p"/"}
+                  navigate={~p"/f/how-tos/play-in-an-event"}
                   color="invisible"
                   class="hover:text-slate-900 transition-all"
                 >
@@ -212,80 +220,6 @@ defmodule OPWeb.Layouts do
     """
   end
 
-  @doc """
-  Renders navigation buttons for the layout for normal and mobile.
-  """
-  attr :current_scope, :map,
-    default: nil,
-    doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
-
-  attr :class, :string, default: "", doc: "additional classes for the nav container"
-  attr :is_mobile?, :boolean, default: false, doc: "whether the nav is for mobile view"
-
-  def nav_buttons(assigns) do
-    class =
-      if assigns.is_mobile?,
-        do: assigns.class <> " flex flex-col",
-        else: assigns.class <> " hidden md:flex items-center justify-between space-x-2"
-
-    assigns = Map.put(assigns, :class, class)
-
-    ~H"""
-    <ul class={[@class]}>
-      <li class="">
-        <.button navigate={~p"/"} color="invisible">
-          <span class="font-semibold">Open Pinball</span>
-        </.button>
-      </li>
-
-      <li>
-        <.button navigate={~p"/tournaments"} color="invisible">Tournaments</.button>
-      </li>
-      <%= if @current_scope do %>
-        <li>
-          <%= if @is_mobile? do %>
-            <.nav_buttons_shared current_scope={@current_scope} />
-          <% else %>
-            <.dropdown_menu id="nav-dropdown">
-              <.dropdown_menu_trigger>
-                <.button>
-                  <.icon name="hero-bars-3" class="size-6" />
-                </.button>
-              </.dropdown_menu_trigger>
-              <.dropdown_menu_content class="w-56" align="end">
-                <div class="flex flex-col p-2">
-                  <div class="font-medium">My account</div>
-                  <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
-                  <.nav_buttons_shared current_scope={@current_scope} />
-                </div>
-              </.dropdown_menu_content>
-            </.dropdown_menu>
-          <% end %>
-        </li>
-      <% else %>
-        <li>
-          <.button navigate={~p"/users/register"} color="invisible">Register</.button>
-        </li>
-        <li>
-          <.button navigate={~p"/users/log-in"} color="primary">Log in</.button>
-        </li>
-      <% end %>
-    </ul>
-
-    <ul :if={!@is_mobile?} class="flex justify-end md:hidden">
-      <li class="">
-        <.button
-          phx-click={toggle("#mobile-nav")}
-          color="invisible"
-          class="rounded-full bg-white border-2 border-green-950! p-1! mr-2 mt-2"
-        >
-          <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
-        </.button>
-      </li>
-    </ul>
-    """
-  end
-
   attr :current_scope, :map,
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
@@ -348,6 +282,110 @@ defmodule OPWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
+    </div>
+    """
+  end
+
+  def footer(assigns) do
+    ~H"""
+    <div class="bg-[#011108] bg-linear-to-b from-[#052e16] to-[#011108] border-t-4 border-green-700 text-white">
+      <div class="container mx-auto p-4">
+        <div class="grid grid-cols-1 md:grid-cols-4">
+          <div>
+            <p class="font-bold text-lg">What is Oregon Pinball?</p>
+            <ul>
+              <li>
+                <.button
+                  navigate={~p"/f/about/us"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  About us
+                </.button>
+              </li>
+              <li>
+                <.button
+                  navigate={~p"/f/about/board"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Our board
+                </.button>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p class="font-bold text-lg">Play</p>
+            <ul>
+              <li>
+                <.button
+                  navigate={~p"/tournaments"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  View events
+                </.button>
+              </li>
+              <li>
+                <.button
+                  navigate={~p"/f/rules/code-of-conduct"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Code of Conduct
+                </.button>
+              </li>
+              <li>
+                <.button
+                  navigate={~p"/f/rules/playing"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Rules
+                </.button>
+              </li>
+            </ul>
+          </div>
+
+          <ul class="">
+            <p class="font-bold text-lg">Host</p>
+            <ul>
+              <li>
+                <.button
+                  navigate={~p"/f/how-tos/host-a-certified-event"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Submit an event
+                </.button>
+              </li>
+              <li>
+                <.button
+                  navigate={~p"/f/rules/code-of-conduct"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Code of Conduct
+                </.button>
+              </li>
+              <li>
+                <.button
+                  navigate={~p"/f/rules/hosting"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Rules
+                </.button>
+              </li>
+            </ul>
+          </ul>
+
+          <div class="flex md:justify-end md:items-end">
+            <p class="">© 2026 Oregon Pinball</p>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
