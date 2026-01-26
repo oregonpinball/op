@@ -265,8 +265,6 @@ defmodule OPWeb.Layouts do
       <% else %>
         <li>
           <.button navigate={~p"/users/register"} color="invisible">Register</.button>
-        </li>
-        <li>
           <.button navigate={~p"/users/log-in"} color="primary">Log in</.button>
         </li>
       <% end %>
