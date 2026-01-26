@@ -19,6 +19,7 @@ alias OP.Leagues.{League, Season, Ranking}
 alias OP.Players.Player
 alias OP.Accounts.User
 alias OP.Tournaments.{Standing, Tournament}
+alias OP.Locations.Location
 
 Logger.info("🌱 Seeding database...")
 
@@ -107,6 +108,20 @@ defmodule SeedHelpers do
       existing ->
         existing
         |> Ranking.changeset(attrs)
+        |> repo.update!()
+    end
+  end
+
+  def upsert_location(repo, attrs) do
+    case repo.get_by(OP.Locations.Location, name: attrs.name) do
+      nil ->
+        %OP.Locations.Location{}
+        |> OP.Locations.Location.changeset(attrs)
+        |> repo.insert!()
+
+      existing ->
+        existing
+        |> OP.Locations.Location.changeset(attrs)
         |> repo.update!()
     end
   end
@@ -239,8 +254,114 @@ league_count = Repo.aggregate(League, :count)
 season_count = Repo.aggregate(Season, :count)
 Logger.info("✓ Created #{league_count} leagues and #{season_count} seasons")
 
+# Create locations
+Logger.info("Creating locations...")
+
+location_belmont =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Belmont Inn",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_blackwater =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Black Water",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_cbar =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "C-Bar",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_clinton =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Clinton Street Pub",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_gift =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Gift",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_goodfoot =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Goodfoot Lounge",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_ground_kontrol =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Ground Kontrol Classic Arcade",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_hungry_tiger =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Hungry Tiger",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_level_beer =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Level Beer Buckman Kerns",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_low_bar =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Low Bar",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_fixin =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "The Fixin' To",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_wedgehead =
+  SeedHelpers.upsert_location(Repo, %{
+    name: "Wedgehead",
+    city: "Portland",
+    state: "Oregon"
+  })
+
+location_count = Repo.aggregate(Location, :count)
+Logger.info("✓ Created #{location_count} locations")
+
 # Create sample tournaments (using insert for idempotency)
 Logger.info("Creating tournaments...")
+
+# Store all locations in a list for random selection
+locations = [
+  location_belmont,
+  location_blackwater,
+  location_cbar,
+  location_clinton,
+  location_gift,
+  location_goodfoot,
+  location_ground_kontrol,
+  location_hungry_tiger,
+  location_level_beer,
+  location_low_bar,
+  location_fixin,
+  location_wedgehead
+]
 
 tournament1 =
   SeedHelpers.upsert_tournament(Repo, %{
@@ -248,7 +369,8 @@ tournament1 =
     name: "World Pinball Championship 2024",
     start_at: ~U[2024-03-15 00:00:00Z],
     meaningful_games: 32.0,
-    season_id: season_open_2026.id
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
   })
 
 tournament2 =
@@ -257,7 +379,8 @@ tournament2 =
     name: "Spring Classics 2024",
     start_at: ~U[2024-04-20 00:00:00Z],
     meaningful_games: 22.0,
-    season_id: season_open_2026.id
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
   })
 
 tournament3 =
@@ -266,7 +389,78 @@ tournament3 =
     name: "Monthly League Finals",
     start_at: ~U[2024-05-10 00:00:00Z],
     meaningful_games: 10.0,
-    season_id: season_women_2026.id
+    season_id: season_women_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament4 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-4",
+    name: "Summer Slam 2024",
+    start_at: ~U[2024-06-15 00:00:00Z],
+    meaningful_games: 28.0,
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament5 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-5",
+    name: "Pacific Northwest Championship",
+    start_at: ~U[2024-07-20 00:00:00Z],
+    meaningful_games: 35.0,
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament6 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-6",
+    name: "Fall Classic Tournament",
+    start_at: ~U[2024-09-05 00:00:00Z],
+    meaningful_games: 25.0,
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament7 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-7",
+    name: "Halloween Special",
+    start_at: ~U[2024-10-31 00:00:00Z],
+    meaningful_games: 18.0,
+    season_id: season_women_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament8 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-8",
+    name: "Winter Wonderland Open",
+    start_at: ~U[2024-12-15 00:00:00Z],
+    meaningful_games: 30.0,
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament9 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-9",
+    name: "New Year Kickoff 2025",
+    start_at: ~U[2025-01-05 00:00:00Z],
+    meaningful_games: 20.0,
+    season_id: season_open_2026.id,
+    location_id: Enum.random(locations).id
+  })
+
+tournament10 =
+  SeedHelpers.upsert_tournament(Repo, %{
+    external_id: "tournament-10",
+    name: "Valentine's Day Shootout",
+    start_at: ~U[2025-02-14 00:00:00Z],
+    meaningful_games: 15.0,
+    season_id: season_women_2026.id,
+    location_id: Enum.random(locations).id
   })
 
 tournament_count = Repo.aggregate(Tournament, :count)
@@ -525,6 +719,7 @@ Logger.info("  - #{Repo.aggregate(Player, :count)} players")
 Logger.info("  - #{Repo.aggregate(User, :count)} users")
 Logger.info("  - #{Repo.aggregate(League, :count)} leagues")
 Logger.info("  - #{Repo.aggregate(Season, :count)} seasons")
+Logger.info("  - #{Repo.aggregate(Location, :count)} locations")
 Logger.info("  - #{Repo.aggregate(Tournament, :count)} tournaments")
 Logger.info("  - #{Repo.aggregate(Standing, :count)} standings")
 Logger.info("  - #{Repo.aggregate(Ranking, :count)} season player rankings")

@@ -42,7 +42,10 @@ defmodule OPWeb.TournamentLive.Show do
               <h2 class="text-xl font-medium mt-2">
                 {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %I:%M %p %Z")}
               </h2>
-              <h3 class="">
+              <h3
+                :if={Ecto.assoc_loaded?(@tournament.location) && !is_nil(@tournament.location)}
+                class=""
+              >
                 <.link navigate={~p"/locations/#{@tournament.location.slug}"} class="group">
                   <.underline>
                     @ {@tournament.location.name}

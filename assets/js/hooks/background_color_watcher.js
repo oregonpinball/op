@@ -2,9 +2,10 @@ export default {
   mounted() {
     this.$nav = document.getElementById("nav-op");
     this.$hero = document.getElementById("landing-hero");
-    
-    if (!this.$nav || !this.$hero) {
-      console.warn("BackgroundColorWatcher: nav-op or landing-hero element not found");
+    this.$scrollContainer = document.querySelector(".overflow-y-auto.h-screen");
+
+    if (!this.$nav || !this.$hero || !this.$scrollContainer) {
+      console.warn("BackgroundColorWatcher: nav-op, landing-hero, or overflow-y-auto element not found");
       return;
     }
 
@@ -21,15 +22,15 @@ export default {
       }
     };
 
-    // Listen to scroll events
-    window.addEventListener("scroll", this.handleScroll);
+    // Listen to scroll events on the overflow container
+    this.$scrollContainer.addEventListener("scroll", this.handleScroll);
     this.handleScroll();
   },
 
   destroyed() {
     // Clean up the event listener when the hook is destroyed
-    if (this.handleScroll) {
-      window.removeEventListener("scroll", this.handleScroll);
+    if (this.handleScroll && this.$scrollContainer) {
+      this.$scrollContainer.removeEventListener("scroll", this.handleScroll);
     }
   }
 };

@@ -804,17 +804,23 @@ defmodule OPWeb.CoreComponents do
   Useful for mobile navigation menus or detail panes.
   """
   attr :id, :string, required: true
+  attr :class, :string, default: ""
+  attr :rest, :global
+
   slot :inner_block, required: true
 
   def sheet(assigns) do
     ~H"""
-    <div id={@id} class="hidden z-100 fixed inset-0">
+    <div id={@id} class="hidden z-100 fixed inset-0" phx-update="ignore">
       <div class="fixed inset-0 bg-black/60 pointer-events-none" data-sheet-bg />
       <div
         class="outline-hidden fixed inset-0 flex justify-end animate-slide-in-right"
         data-sheet-content
       >
-        <div class="p-4 min-w-3/4 md:min-w-1/4 overflow-y-auto relative bg-slate-100 border-l-4 dark:bg-slate-800 shadow-base flex flex-col">
+        <div
+          {@rest}
+          class={"p-4 min-w-3/4 md:min-w-1/4 #{@class} overflow-y-auto relative bg-slate-100 border-l-4 dark:bg-slate-800 shadow-base flex flex-col"}
+        >
           <div class="flex justify-end sticky top-0">
             <button phx-click={toggle("##{@id}")} class="" aria-label="Close">
               <.icon
