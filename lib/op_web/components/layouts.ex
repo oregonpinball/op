@@ -33,21 +33,148 @@ defmodule OPWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :is_landing?, :boolean,
+    default: false,
+    doc: "whether to render the landing page layout variant"
+
   slot :inner_block, required: true
 
   def app(assigns) do
+    nav_classes = if assigns.is_landing?, do: "md:-mb-24", else: "bg-green-950"
+    assigns = Map.put(assigns, :nav_classes, nav_classes)
+
     ~H"""
     <.sheet id="mobile-nav">
-      <.nav_buttons current_scope={@current_scope} is_mobile?={true} />
+      <%= if is_nil(@current_scope) do %>
+        <.button
+          navigate={~p"/"}
+          color="invisible"
+          class="text-2xl font-bold! hover:text-slate-900 transition-all"
+        >
+          Oregon Pinball
+        </.button>
+
+        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+          About
+        </.button>
+        <.button
+          navigate={~p"/tournaments"}
+          color="invisible"
+          class="hover:text-slate-900 transition-all"
+        >
+          Our events
+        </.button>
+        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+          Play in an event
+        </.button>
+        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+          Host an event
+        </.button>
+      <% else %>
+      <% end %>
     </.sheet>
 
-    <nav class="sticky top-0 bg-white border-b-2 p-2 z-10">
+    <nav
+      id="nav-op"
+      class={[@nav_classes, "sticky top-0 z-10 transition-all duration-100 md:p-1"]}
+      phx-hook="BackgroundColorWatcher"
+    >
       <div class="container mx-auto">
-        <.nav_buttons current_scope={@current_scope} />
+        <div class="hidden md:block">
+          <%= if is_nil(@current_scope) do %>
+            <div class="text-white flex items-center space-x-1">
+              <.button
+                navigate={~p"/"}
+                color="invisible"
+                class="text-2xl font-bold! hover:text-slate-900 transition-all"
+              >
+                Oregon Pinball
+              </.button>
+
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                About
+              </.button>
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                Play in an event
+              </.button>
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                Host an event
+              </.button>
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                Code of Conduct
+              </.button>
+              <.button
+                navigate={~p"/users/register"}
+                color="invisible"
+                size="sm"
+                class="ml-auto hover:text-slate-900 transition-all"
+              >
+                Register
+              </.button>
+              <.button
+                navigate={~p"/users/log-in"}
+                color="invisible"
+                class="hover:text-slate-900 transition-all"
+              >
+                Log in
+              </.button>
+            </div>
+          <% else %>
+            <div class="text-white flex items-center space-x-1">
+              <.button
+                navigate={~p"/"}
+                color="invisible"
+                class="text-2xl font-bold! hover:text-slate-900 transition-all"
+              >
+                Oregon Pinball
+              </.button>
+
+              <.button
+                navigate={~p"/tournaments"}
+                color="invisible"
+                class="hover:text-slate-900 transition-all"
+              >
+                Tournaments
+              </.button>
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                Host an event
+              </.button>
+              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+                Code of Conduct
+              </.button>
+
+              <.dropdown_menu id="nav-dropdown" class="ml-auto text-slate-900">
+                <.dropdown_menu_trigger>
+                  <.button>
+                    <div class="rounded-full size-6 bg-white" />
+                    <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
+                  </.button>
+                </.dropdown_menu_trigger>
+                <.dropdown_menu_content class="w-56" align="end">
+                  <div class="flex flex-col p-2">
+                    <div class="font-medium">My account</div>
+                    <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                    <.nav_buttons_shared current_scope={@current_scope} />
+                  </div>
+                </.dropdown_menu_content>
+              </.dropdown_menu>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="block md:hidden">
+          <.button
+            phx-click={toggle("#mobile-nav")}
+            color="invisible"
+            class="absolute top-1 right-2 rounded-full bg-white border-2 border-green-950! p-1!"
+          >
+            <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
+          </.button>
+        </div>
       </div>
     </nav>
 
-    <main class="container mx-auto p-4">
+    <main class="">
       {render_slot(@inner_block)}
     </main>
 
@@ -116,14 +243,13 @@ defmodule OPWeb.Layouts do
     </ul>
 
     <ul :if={!@is_mobile?} class="flex justify-end md:hidden">
-      <li class="grow">
-        <.link navigate={~p"/"}>
-          <span class="font-semibold">Open Pinball</span>
-        </.link>
-      </li>
       <li class="">
-        <.button phx-click={toggle("#mobile-nav")} color="invisible">
-          <.icon name="hero-bars-3" class="size-6 text-black dark:text-white hover:cursor-pointer" />
+        <.button
+          phx-click={toggle("#mobile-nav")}
+          color="invisible"
+          class="rounded-full bg-white border-2 border-green-950! p-1! mr-2 mt-2"
+        >
+          <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
         </.button>
       </li>
     </ul>

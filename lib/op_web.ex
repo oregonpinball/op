@@ -94,6 +94,7 @@ defmodule OPWeb do
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias OPWeb.Layouts
+      alias OPWeb.Landing
       alias OPWeb.Rankings
 
       # Routes generation with the ~p sigil

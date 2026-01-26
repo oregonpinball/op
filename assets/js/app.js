@@ -44,9 +44,12 @@ const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
+import BackgroundColorWatcher from "./hooks/background_color_watcher";
+
 const Hooks = {
   ...colocatedHooks,
   SaladUI: SaladUI.SaladUIHook,
+  BackgroundColorWatcher
   //ReactMount
 }
 
