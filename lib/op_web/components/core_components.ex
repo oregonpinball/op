@@ -144,7 +144,7 @@ defmodule OPWeb.CoreComponents do
       <.button phx-click={toggle("#test")} color="primary">Send!</.button>
       <.button navigate={~p"/"} size="xl">Home</.button>
   """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
+  attr :rest, :global, include: ~w(href navigate patch method download name value disabled form)
   attr :class, :string, default: ""
 
   attr :color, :string,

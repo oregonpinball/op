@@ -5,6 +5,7 @@ defmodule OPWeb.Admin.AdminLive.Dashboard do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
+      <div class="container mx-auto p-4">
       <.header>
         Admin Dashboard
       </.header>
@@ -46,6 +47,13 @@ defmodule OPWeb.Admin.AdminLive.Dashboard do
           href={~p"/admin/users"}
           icon="hero-user-circle"
         />
+        <.admin_card
+          title="Fir CMS"
+          description="Manage sections and pages"
+          href={~p"/admin/fir"}
+          icon="hero-document"
+        />
+      </div>
       </div>
     </Layouts.app>
     """

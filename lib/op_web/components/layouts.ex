@@ -54,7 +54,11 @@ defmodule OPWeb.Layouts do
           Oregon Pinball
         </.button>
 
-        <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
+        <.button
+          navigate={~p"/f/about/us"}
+          color="invisible"
+          class="hover:text-slate-900 transition-all"
+        >
           About
         </.button>
         <.button
@@ -74,109 +78,135 @@ defmodule OPWeb.Layouts do
       <% end %>
     </.sheet>
 
-    <nav
-      id="nav-op"
-      class={[@nav_classes, "sticky top-0 z-10 transition-all duration-100 md:p-1"]}
-      phx-hook="BackgroundColorWatcher"
-    >
-      <div class="container mx-auto">
-        <div class="hidden md:block">
-          <%= if is_nil(@current_scope) do %>
-            <div class="text-white flex items-center space-x-1">
-              <.button
-                navigate={~p"/"}
-                color="invisible"
-                class="text-2xl font-bold! hover:text-slate-900 transition-all"
-              >
-                Oregon Pinball
-              </.button>
+    <div class="flex flex-col h-screen overflow-y-auto">
+      <nav
+        id="nav-op"
+        class={[@nav_classes, "sticky top-0 z-10 transition-all duration-100 md:p-1"]}
+        phx-hook="BackgroundColorWatcher"
+      >
+        <div class="container mx-auto">
+          <div class="hidden md:block">
+            <%= if is_nil(@current_scope) do %>
+              <div class="text-white flex items-center space-x-1">
+                <.button
+                  navigate={~p"/"}
+                  color="invisible"
+                  class="text-2xl font-bold! hover:text-slate-900 transition-all"
+                >
+                  Oregon Pinball
+                </.button>
 
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                About
-              </.button>
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                Play in an event
-              </.button>
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                Host an event
-              </.button>
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                Code of Conduct
-              </.button>
-              <.button
-                navigate={~p"/users/register"}
-                color="invisible"
-                size="sm"
-                class="ml-auto hover:text-slate-900 transition-all"
-              >
-                Register
-              </.button>
-              <.button
-                navigate={~p"/users/log-in"}
-                color="invisible"
-                class="hover:text-slate-900 transition-all"
-              >
-                Log in
-              </.button>
-            </div>
-          <% else %>
-            <div class="text-white flex items-center space-x-1">
-              <.button
-                navigate={~p"/"}
-                color="invisible"
-                class="text-2xl font-bold! hover:text-slate-900 transition-all"
-              >
-                Oregon Pinball
-              </.button>
+                <.button
+                  navigate={~p"/f/about/us"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  About
+                </.button>
+                <.button
+                  navigate={~p"/"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Play in an event
+                </.button>
+                <.button
+                  navigate={~p"/f/how-tos/host-a-certified-event"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Host an event
+                </.button>
+                <.button
+                  navigate={~p"/f/rules/code-of-conduct"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Code of Conduct
+                </.button>
+                <.button
+                  navigate={~p"/users/register"}
+                  color="invisible"
+                  size="sm"
+                  class="ml-auto hover:text-slate-900 transition-all"
+                >
+                  Register
+                </.button>
+                <.button
+                  navigate={~p"/users/log-in"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Log in
+                </.button>
+              </div>
+            <% else %>
+              <div class="text-white flex items-center space-x-1">
+                <.button
+                  navigate={~p"/"}
+                  color="invisible"
+                  class="text-2xl font-bold! hover:text-slate-900 transition-all"
+                >
+                  Oregon Pinball
+                </.button>
 
-              <.button
-                navigate={~p"/tournaments"}
-                color="invisible"
-                class="hover:text-slate-900 transition-all"
-              >
-                Tournaments
-              </.button>
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                Host an event
-              </.button>
-              <.button navigate={~p"/"} color="invisible" class="hover:text-slate-900 transition-all">
-                Code of Conduct
-              </.button>
+                <.button
+                  navigate={~p"/tournaments"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Tournaments
+                </.button>
+                <.button
+                  navigate={~p"/f/how-tos/host-a-certified-event"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Host an event
+                </.button>
+                <.button
+                  navigate={~p"/f/rules/code-of-conduct"}
+                  color="invisible"
+                  class="hover:text-slate-900 transition-all"
+                >
+                  Code of Conduct
+                </.button>
 
-              <.dropdown_menu id="nav-dropdown" class="ml-auto text-slate-900">
-                <.dropdown_menu_trigger>
-                  <.button>
-                    <div class="rounded-full size-6 bg-white" />
-                    <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
-                  </.button>
-                </.dropdown_menu_trigger>
-                <.dropdown_menu_content class="w-56" align="end">
-                  <div class="flex flex-col p-2">
-                    <div class="font-medium">My account</div>
-                    <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
-                    <.nav_buttons_shared current_scope={@current_scope} />
-                  </div>
-                </.dropdown_menu_content>
-              </.dropdown_menu>
-            </div>
-          <% end %>
+                <.dropdown_menu id="nav-dropdown" class="ml-auto text-slate-900">
+                  <.dropdown_menu_trigger>
+                    <.button>
+                      <div class="rounded-full size-6 bg-white" />
+                      <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
+                    </.button>
+                  </.dropdown_menu_trigger>
+                  <.dropdown_menu_content class="w-56" align="end">
+                    <div class="flex flex-col p-2">
+                      <div class="font-medium">My account</div>
+                      <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                      <.nav_buttons_shared current_scope={@current_scope} />
+                    </div>
+                  </.dropdown_menu_content>
+                </.dropdown_menu>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="block md:hidden">
+            <.button
+              phx-click={toggle("#mobile-nav")}
+              color="invisible"
+              class="absolute top-1 right-2 rounded-full bg-white border-2 border-green-950! p-1!"
+            >
+              <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
+            </.button>
+          </div>
         </div>
+      </nav>
 
-        <div class="block md:hidden">
-          <.button
-            phx-click={toggle("#mobile-nav")}
-            color="invisible"
-            class="absolute top-1 right-2 rounded-full bg-white border-2 border-green-950! p-1!"
-          >
-            <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
-          </.button>
-        </div>
-      </div>
-    </nav>
-
-    <main class="">
-      {render_slot(@inner_block)}
-    </main>
+      <main class="h-full">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
 
     <.flash_group flash={@flash} />
     """

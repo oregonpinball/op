@@ -196,7 +196,8 @@ admin =
   SeedHelpers.upsert_user(Repo, %{
     email: "admin@example.com",
     password: admin_password,
-    role: :system_admin
+    role: :system_admin,
+    confirmed_at: DateTime.utc_now()
   })
 
 Logger.info("✓ Created admin user (admin@example.com / #{admin_password})")

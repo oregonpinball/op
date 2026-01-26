@@ -45,6 +45,11 @@ defmodule OPWeb.Router do
     get "/locations", LocationController, :index
     get "/locations/:slug", LocationController, :show
 
+    #
+    # Fir CMS
+    #
+    get "/f/*slugs", FirController, :content
+
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
 
@@ -133,6 +138,15 @@ defmodule OPWeb.Router do
 
       live "/users", UserLive.Index, :index
       live "/users/:id/edit", UserLive.Form, :edit
+    end
+  end
+
+  scope "/admin", OPWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_system_admin_fir,
+      on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
+      live "/fir", FirLive.Manager, :index
     end
   end
 
