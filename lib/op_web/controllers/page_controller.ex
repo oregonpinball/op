@@ -15,7 +15,7 @@ defmodule OPWeb.PageController do
     }
 
     # TODO :Scope back to upcoming
-    tournaments = OP.Tournaments.list_tournaments(conn.assigns.current_scope)
+    tournaments = OP.Tournaments.list_tournaments_with_preloads(conn.assigns.current_scope)
 
     render(conn, :home, leagues: leagues, seasons: seasons, tournaments: tournaments)
   end

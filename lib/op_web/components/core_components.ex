@@ -267,6 +267,20 @@ defmodule OPWeb.CoreComponents do
   end
 
   @doc """
+  Renders an underline effect for links or text.
+
+  """
+  slot :inner_block, required: true
+
+  def underline(assigns) do
+    ~H"""
+    <span class="border-b hover:border-b-2 opacity-75 hover:opacity-100 hover:bg-slate-50 transition-all">
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
   Renders an alert message with an icon.
 
   ## Examples
@@ -325,8 +339,8 @@ defmodule OPWeb.CoreComponents do
 
     ~H"""
     <div role="alert" class={@class}>
-      <.icon name="hero-exclamation-circle" class="size-5 shrink-0" />
-      <div>
+      <.icon name="hero-exclamation-circle" class="size-5 shrink-0 self-start" />
+      <div class="w-full">
         {render_slot(@inner_block)}
       </div>
     </div>
@@ -349,7 +363,7 @@ defmodule OPWeb.CoreComponents do
   slot :inner_block, required: true
 
   def badge(assigns) do
-    base = "inline-flex items-center truncate rounded-lg border font-medium transition-all"
+    base = "truncate rounded-lg border font-medium transition-all"
 
     colors =
       %{
