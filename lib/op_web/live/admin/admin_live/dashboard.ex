@@ -6,54 +6,54 @@ defmodule OPWeb.Admin.AdminLive.Dashboard do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="container mx-auto p-4">
-      <.header>
-        Admin Dashboard
-      </.header>
+        <.header>
+          Admin Dashboard
+        </.header>
 
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <.admin_card
-          title="Locations"
-          description="Manage pinball venues and locations"
-          href={~p"/admin/locations"}
-          icon="hero-map-pin"
-        />
-        <.admin_card
-          title="Tournaments"
-          description="Manage pinball tournaments and events"
-          href={~p"/admin/tournaments"}
-          icon="hero-trophy"
-        />
-        <.admin_card
-          title="Players"
-          description="Manage player profiles and user links"
-          href={~p"/admin/players"}
-          icon="hero-users"
-        />
-        <.admin_card
-          title="Leagues"
-          description="Manage leagues and league settings"
-          href={~p"/admin/leagues"}
-          icon="hero-star"
-        />
-        <.admin_card
-          title="Seasons"
-          description="Manage seasons and associate with leagues"
-          href={~p"/admin/seasons"}
-          icon="hero-calendar"
-        />
-        <.admin_card
-          title="Users"
-          description="Manage user accounts and roles"
-          href={~p"/admin/users"}
-          icon="hero-user-circle"
-        />
-        <.admin_card
-          title="Fir CMS"
-          description="Manage sections and pages"
-          href={~p"/admin/fir"}
-          icon="hero-document"
-        />
-      </div>
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <.admin_card
+            title="Locations"
+            description="Manage pinball venues and locations"
+            href={~p"/admin/locations"}
+            icon="hero-map-pin"
+          />
+          <.admin_card
+            title="Tournaments"
+            description="Manage pinball tournaments and events"
+            href={~p"/admin/tournaments"}
+            icon="hero-trophy"
+          />
+          <.admin_card
+            title="Players"
+            description="Manage player profiles and user links"
+            href={~p"/admin/players"}
+            icon="hero-users"
+          />
+          <.admin_card
+            title="Leagues"
+            description="Manage leagues and league settings"
+            href={~p"/admin/leagues"}
+            icon="hero-star"
+          />
+          <.admin_card
+            title="Seasons"
+            description="Manage seasons and associate with leagues"
+            href={~p"/admin/seasons"}
+            icon="hero-calendar"
+          />
+          <.admin_card
+            title="Users"
+            description="Manage user accounts and roles"
+            href={~p"/admin/users"}
+            icon="hero-user-circle"
+          />
+          <.admin_card
+            title="Fir CMS"
+            description="Manage sections and pages"
+            href={~p"/admin/fir"}
+            icon="hero-document"
+          />
+        </div>
       </div>
     </Layouts.app>
     """
