@@ -20,6 +20,10 @@ defmodule OPWeb.PageController do
     render(conn, :home, leagues: leagues, seasons: seasons, tournaments: tournaments)
   end
 
+  def coming_soon(conn, _params) do
+    render(conn, :coming_soon)
+  end
+
   def react(conn, _params) do
     render(conn, :react)
   end

@@ -31,10 +31,11 @@ defmodule OPWeb.Tournaments do
             </.underline>
           </.link>
         </h3>
-        <div class="inline-flex space-x-1 mt-2 w-full">
-          <.badge>$5</.badge>
-          <.badge>Open</.badge>
-        </div>
+        <%= if Ecto.assoc_loaded?(@tournament.season) && !is_nil(@tournament.season) do %>
+          <div class="inline-flex space-x-1 mt-2 w-full">
+            <.badge>{@tournament.season.name}</.badge>
+          </div>
+        <% end %>
       </div>
     </div>
     """

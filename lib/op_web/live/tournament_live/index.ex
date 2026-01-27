@@ -95,7 +95,13 @@ defmodule OPWeb.TournamentLive.Index do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="h-full bg-[url('/images/mt-hood.svg')] bg-position-[34%_95%] bg-no-repeat">
         <div class="container mx-auto p-4">
-          <h1 class="text-7xl font-bold">Events</h1>
+          <div class="flex items-center justify-between">
+            <h1 class="text-7xl font-bold">Events</h1>
+            <.button href={~p"/coming-soon"} color="primary" class="whitespace-nowrap">
+              <.icon name="hero-plus" class="w-5 h-5 mr-1" />
+              <span>Submit tournament</span>
+            </.button>
+          </div>
           <h2 class="text-3xl font-medium mt-2">
             Oregon Pinball tournaments, competitions, and more
           </h2>

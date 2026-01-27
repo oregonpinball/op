@@ -7,10 +7,10 @@ defmodule OPWeb.TournamentLive.Show do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="container mx-auto">
-        <div class="bg-[url('/images/wedgehead.webp')] bg-cover p-4">
-          <div class="bg-white max-w-xl p-4 rounded">
-            <div>
+      <div class="bg-linear-to-b from-black to-slate-700 bg-[url('/images/wedgehead.webp')] bg-cover">
+        <div class="container mx-auto pt-4 px-4">
+          <div class="col-span-1 md:col-span-6 bg-white/95 p-4 rounded-t">
+            <div class="">
               <div class="text-xs flex justify-between">
                 <.button
                   navigate={~p"/tournaments"}
@@ -20,13 +20,9 @@ defmodule OPWeb.TournamentLive.Show do
                   <.icon name="hero-arrow-left" class="w-4 h-4 inline-block mr-1" /> Back
                 </.button>
                 <div class="flex items-center space-x-1">
-                  <%= if DateTime.compare(@tournament.start_at, DateTime.utc_now()) == :lt do %>
-                    <.badge color="warning">
-                      Past
-                    </.badge>
-                  <% else %>
-                    <.badge color="success">
-                      Upcoming
+                  <%= if @tournament.qualifying_format != :none do %>
+                    <.badge color="secondary">
+                      {@tournament.qualifying_format}
                     </.badge>
                   <% end %>
                   <.link
@@ -38,10 +34,22 @@ defmodule OPWeb.TournamentLive.Show do
                 </div>
               </div>
 
-              <h1 class="text-4xl font-bold rounded mt-1">{@tournament.name}</h1>
-              <h2 class="text-xl font-medium mt-2">
-                {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %I:%M %p %Z")}
-              </h2>
+              <p class="text-lg font-slate-800">Tournament</p>
+              <h1 class="text-5xl font-bold rounded leading-10">{@tournament.name}</h1>
+              <div class="mt-1 flex items-center space-x-2">
+                <%= if DateTime.compare(@tournament.start_at, DateTime.utc_now()) == :lt do %>
+                  <.badge color="warning">
+                    Past
+                  </.badge>
+                <% else %>
+                  <.badge color="success">
+                    Upcoming
+                  </.badge>
+                <% end %>
+                <h2 class="text-xl font-medium mt-1">
+                  {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %I:%M %p %Z")}
+                </h2>
+              </div>
               <h3
                 :if={Ecto.assoc_loaded?(@tournament.location) && !is_nil(@tournament.location)}
                 class=""
@@ -56,25 +64,12 @@ defmodule OPWeb.TournamentLive.Show do
           </div>
         </div>
       </div>
-      <div class="container mx-auto p-4">
-        <div class="mt-2">
-          <.alert color="info" class="w-full max-w-full!">
-            <p>An update for the tournament!</p>
-            <div class="flex justify-end items-center">
-              <.icon name="hero-arrow-left" class="size-4 mx-1" />
-              <span class="text-sm">1 / 3</span>
-              <.icon name="hero-arrow-right" class="size-4 mx-1" />
-            </div>
-          </.alert>
-        </div>
-
-        <div class="mt-2 ">
-          <div class="bg-white p-4">
-            <h1 class="text-2xl font-semibold">Description</h1>
-            <p class="mt-2 break-words">
-              {@tournament.description || "No description available."}
-            </p>
-          </div>
+      <div class="container mx-auto px-4 pb-4">
+        <div class="bg-white p-4 rounded-b">
+          <h1 class="text-3xl font-semibold">Description</h1>
+          <p class="mt-2 break-words">
+            {@tournament.description || "No description available."}
+          </p>
         </div>
       </div>
     </Layouts.app>

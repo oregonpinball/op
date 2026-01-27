@@ -94,109 +94,95 @@ defmodule OPWeb.Layouts do
       >
         <div class="container mx-auto">
           <div class="hidden md:block">
-            <%= if is_nil(@current_scope) do %>
-              <div class="text-white flex items-center space-x-1">
-                <.button
-                  navigate={~p"/"}
-                  color="invisible"
-                  class="text-2xl font-bold! hover:text-slate-900 transition-all"
-                >
-                  Oregon Pinball
-                </.button>
+            <div class="text-white flex items-center space-x-1">
+              <.button
+                navigate={~p"/"}
+                color="invisible"
+                class="truncate text-2xl font-bold! hover:text-slate-900 transition-all"
+              >
+                <span class="">Oregon Pinball</span>
+              </.button>
 
-                <.button
-                  navigate={~p"/f/about/us"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  About
-                </.button>
-                <.button
-                  navigate={~p"/f/how-tos/play-in-an-event"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Play in an event
-                </.button>
-                <.button
-                  navigate={~p"/f/how-tos/host-a-certified-event"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Host an event
-                </.button>
-                <.button
-                  navigate={~p"/f/rules/code-of-conduct"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Code of Conduct
-                </.button>
+              <.button
+                navigate={~p"/tournaments"}
+                color="invisible"
+                class="truncate hover:text-slate-900 transition-all"
+              >
+                <span class="truncate">
+                  <span class="hidden lg:block">Join an event</span>
+                  <span class="block lg:hidden">Join</span>
+                </span>
+              </.button>
+              <.button
+                navigate={~p"/f/how-tos/host-a-certified-event"}
+                color="invisible"
+                class="truncate hover:text-slate-900 transition-all"
+              >
+                <span class="hidden lg:block">Host an event</span>
+                <span class="block lg:hidden">Host</span>
+              </.button>
+              <.button
+                navigate={~p"/f/rules/code-of-conduct"}
+                color="invisible"
+                class="truncate hover:text-slate-900 transition-all"
+              >
+                <span class="truncate">Code of Conduct</span>
+              </.button>
+              <.button
+                navigate={~p"/f/about/us"}
+                color="invisible"
+                class="truncate hover:text-slate-900 transition-all"
+              >
+                <span class="truncate">About</span>
+              </.button>
+
+              <%= if is_nil(@current_scope) do %>
                 <.button
                   navigate={~p"/users/register"}
                   color="invisible"
                   size="sm"
                   class="ml-auto hover:text-slate-900 transition-all"
                 >
-                  Register
+                  <span class="truncate">Register</span>
                 </.button>
                 <.button
                   navigate={~p"/users/log-in"}
                   color="invisible"
                   class="hover:text-slate-900 transition-all"
                 >
-                  Log in
+                  <span class="truncate">Log in</span>
                 </.button>
-              </div>
-            <% else %>
-              <div class="text-white flex items-center space-x-1">
-                <.button
-                  navigate={~p"/"}
-                  color="invisible"
-                  class="text-2xl font-bold! hover:text-slate-900 transition-all"
-                >
-                  Oregon Pinball
-                </.button>
-
-                <.button
-                  navigate={~p"/tournaments"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Tournaments
-                </.button>
-                <.button
-                  navigate={~p"/f/how-tos/host-a-certified-event"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Host an event
-                </.button>
-                <.button
-                  navigate={~p"/f/rules/code-of-conduct"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Code of Conduct
-                </.button>
-
-                <.dropdown_menu id="nav-dropdown" class="ml-auto text-slate-900">
-                  <.dropdown_menu_trigger>
-                    <.button>
-                      <div class="rounded-full size-6 bg-white" />
-                      <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
-                    </.button>
-                  </.dropdown_menu_trigger>
-                  <.dropdown_menu_content class="w-56" align="end">
-                    <div class="flex flex-col p-2">
-                      <div class="font-medium">My account</div>
-                      <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
-                      <.nav_buttons_shared current_scope={@current_scope} />
-                    </div>
-                  </.dropdown_menu_content>
-                </.dropdown_menu>
-              </div>
-            <% end %>
+              <% else %>
+                <div class="ml-auto flex items-center space-x-2">
+                  <.button
+                    size="sm"
+                    color="invisible"
+                    navigate={~p"/coming-soon"}
+                    class="truncate flex items-center space-x-1"
+                  >
+                    <.icon name="hero-trophy" class="size-4" />
+                    <span class="truncate">My tournaments</span>
+                  </.button>
+                  <.dropdown_menu id="nav-dropdown" class="text-slate-900">
+                    <.dropdown_menu_trigger>
+                      <.button>
+                        <div class="rounded-full size-6 bg-white flex">
+                          <.icon name="hero-user-circle" class="size-6" />
+                        </div>
+                        <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
+                      </.button>
+                    </.dropdown_menu_trigger>
+                    <.dropdown_menu_content class="w-56" align="end">
+                      <div class="flex flex-col p-2">
+                        <div class="font-medium">My account</div>
+                        <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                        <.nav_buttons_shared current_scope={@current_scope} />
+                      </div>
+                    </.dropdown_menu_content>
+                  </.dropdown_menu>
+                </div>
+              <% end %>
+            </div>
           </div>
 
           <div class="block md:hidden">
