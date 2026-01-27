@@ -11,6 +11,7 @@ defmodule OP.Tournaments.Tournament do
 
   schema "tournaments" do
     field :external_id, :string
+    field :finals_external_id, :string
     field :external_url, :string
 
     field :name, :string
@@ -54,6 +55,7 @@ defmodule OP.Tournaments.Tournament do
     tournament
     |> cast(attrs, [
       :external_id,
+      :finals_external_id,
       :external_url,
       :name,
       :description,
