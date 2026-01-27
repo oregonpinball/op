@@ -45,6 +45,8 @@ defmodule OPWeb.Router do
     get "/locations", LocationController, :index
     get "/locations/:slug", LocationController, :show
 
+    get "/coming-soon", PageController, :coming_soon
+
     #
     # Fir CMS
     #

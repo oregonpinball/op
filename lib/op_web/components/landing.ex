@@ -15,9 +15,14 @@ defmodule OPWeb.Landing do
         Welcome back, {@current_scope.user.email}
       </h1>
       <div class="mt-4 flex items-center justify-center space-x-2">
-        <.button color="primary" size="lg">Add tournament</.button>
-        <.button color="secondary" size="lg">Submit results</.button>
-        <.button color="secondary" size="lg">View submissions</.button>
+        <.button href={~p"/coming-soon"} color="primary" class="flex items-center space-x-1">
+          <.icon name="hero-plus" class="w-5 h-5" />
+          <span>Submit tournament</span>
+        </.button>
+        <.button href={~p"/coming-soon"} color="secondary" class="flex items-center space-x-1">
+          <.icon name="hero-trophy" class="w-5 h-5" />
+          <span>My tournaments</span>
+        </.button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 mt-6 gap-6">
@@ -68,88 +73,11 @@ defmodule OPWeb.Landing do
         <div>
           <h1 class="text-3xl font-semibold">Upcoming tournaments</h1>
 
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="space-y-4 order-2 md:order-1 md:col-span-3">
-              <%= for tournament <- @tournaments do %>
-                <.link
-                  navigate={~p"/tournaments"}
-                  class="bg-white block border-2 border-slate-300 shadow-xs rounded-lg hover:border-emerald-700 hover:bg-slate-50 hover:scale-101 transition-all group"
-                >
-                  <div class="grid grid-cols-3">
-                    <div class="col-span-3 md:col-span-2">
-                      <div class="relative block mx-auto md:hidden">
-                        <div class="block mx-auto md:hidden h-32 bg-[url('/images/wedgehead.webp')] bg-cover rounded">
-                        </div>
-                        <div class="absolute top-0 right-0 flex justify-end p-2">
-                          <div class="bg-white size-12 border-2 border-slate-200 rounded-full bg-cover bg-[url('/images/dogsoccer.png')]">
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="p-4">
-                        <div class="flex flex-col">
-                          <h3 class="text-2xl font-semibold text-slate-900">Monthly League Finals</h3>
-                        </div>
-                        <p class="font-medium mt-1">
-                          Mon, May 9
-                          <.icon
-                            name="hero-clock"
-                            class="size-4 inline stroke-black relative -top-0.5"
-                          /> 5:00 PM PST
-                        </p>
-                        <%= if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) do %>
-                          <p class="text-slate-700">@ {tournament.location.name}</p>
-                        <% end %>
-                        <p class="text-slate-500 text-sm mt-1">Hosted by Dog Soccer Entertainment</p>
-
-                        <div class="inline-flex space-x-1 mt-2 w-full">
-                          <.badge>$5</.badge>
-                          <.badge>Open</.badge>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="hidden md:flex md:flex-col md:items-end md:justify-end">
-                      <div class="flex flex-col top-0 w-full h-full text-right bg-cover bg-no-repeat [--mask-stop:25%] group-hover:[--mask-stop:20%] bg-[url('/images/wedgehead.webp')] [-webkit-mask-image:linear-gradient(115deg,transparent_0%,transparent_calc(var(--mask-stop)-1px),black_var(--mask-stop),black_100%)] mask-[linear-gradient(115deg,transparent_0%,transparent_calc(var(--mask-stop)-1px),black_var(--mask-stop),black_100%)] transition-[--mask-stop] duration-300 ease-in-out rounded-r-lg">
-                        <div class="flex justify-end p-2">
-                          <div class="bg-white size-12 border-2 border-slate-200 rounded-full bg-cover bg-[url('/images/dogsoccer.png')]">
-                          </div>
-                        </div>
-                        <div class="h-full flex items-end justify-end p-2">
-                          <.badge class="group-hover:bg-white group-hover:border-amber-200 group-hover:opacity-100">
-                            Details ->
-                          </.badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </.link>
+          <div class="mt-4">
+            <div class="space-y-4">
+              <%= for tournament <- Enum.take(@tournaments, 3) do %>
+                <OPWeb.Tournaments.card tournament={tournament} />
               <% end %>
-            </div>
-
-            <div class="order-1 md:order-2 space-x-1 md:space-y-1">
-              <h1>Filters</h1>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Crawl
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Women's
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Open
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Certified
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Major
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Chaos
-              </span>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                Starts early
-              </span>
             </div>
           </div>
           <div class="text-right mt-2">

@@ -494,11 +494,14 @@ defmodule OPWeb.CoreComponents do
     ~H"""
     <div class="fieldset mb-2">
       <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="font-semibold mb-1">{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class || "w-full bg-white p-2 border rounded",
+            @errors != [] && (@error_class || "select-error")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -537,7 +540,7 @@ defmodule OPWeb.CoreComponents do
     ~H"""
     <div class="mb-2">
       <label>
-        <span :if={@label} class="">{@label}</span>
+        <span :if={@label} class="font-semibold">{@label}</span>
         <input
           type={@type}
           name={@name}
