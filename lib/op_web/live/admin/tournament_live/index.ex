@@ -87,6 +87,18 @@ defmodule OPWeb.Admin.TournamentLive.Index do
             )} of {@pagination.total_count} tournaments
           <% end %>
         </span>
+        <form phx-change="change_per_page">
+          <label for="per-page" class="mr-2">Per page:</label>
+          <select
+            id="per-page"
+            name="per_page"
+            class="rounded-md border-gray-300 text-sm py-1 pl-2 pr-8"
+          >
+            <option :for={opt <- [10, 25, 50, 100]} value={opt} selected={opt == @pagination.per_page}>
+              {opt}
+            </option>
+          </select>
+        </form>
       </div>
 
       <div id="tournaments" phx-update="stream" class="mt-4 space-y-4">
@@ -137,7 +149,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         page={@pagination.page}
         total_pages={@pagination.total_pages}
         path={~p"/admin/tournaments"}
-        params={filter_params_for_pagination(@filter_form)}
+        params={filter_params_for_pagination(@filter_form, @pagination.per_page)}
       />
 
       <.modal
@@ -204,6 +216,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
 
   defp apply_filters(socket, params) do
     page = parse_page(params["page"])
+    per_page = parse_per_page(params["per_page"])
     search = params["search"] || ""
     location_id = params["location_id"] || ""
     start_date = params["start_date"] || ""
@@ -220,7 +233,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       Tournaments.list_tournaments_paginated(
         socket.assigns.current_scope,
         page: page,
-        per_page: @default_per_page,
+        per_page: per_page,
         search: non_empty(search),
         location_id: non_empty(location_id),
         start_date: non_empty(start_date),
@@ -243,27 +256,47 @@ defmodule OPWeb.Admin.TournamentLive.Index do
     end
   end
 
+  @allowed_per_page [10, 25, 50, 100]
+
+  defp parse_per_page(nil), do: @default_per_page
+
+  defp parse_per_page(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {num, _} when num in @allowed_per_page -> num
+      _ -> @default_per_page
+    end
+  end
+
   defp non_empty(""), do: nil
   defp non_empty(value), do: value
 
   defp current_filter_params(socket) do
     form = socket.assigns.filter_form
+    per_page = socket.assigns.pagination.per_page
 
     %{
       search: non_empty(form[:search].value),
       location_id: non_empty(form[:location_id].value),
       start_date: non_empty(form[:start_date].value),
-      end_date: non_empty(form[:end_date].value)
+      end_date: non_empty(form[:end_date].value),
+      per_page: if(per_page != @default_per_page, do: per_page)
     }
   end
 
-  defp filter_params_for_pagination(filter_form) do
-    %{
+  defp filter_params_for_pagination(filter_form, per_page) do
+    params = %{
       "search" => filter_form[:search].value,
       "location_id" => filter_form[:location_id].value,
       "start_date" => filter_form[:start_date].value,
       "end_date" => filter_form[:end_date].value
     }
+
+    params =
+      if per_page != @default_per_page,
+        do: Map.put(params, "per_page", per_page),
+        else: params
+
+    params
     |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
     |> Map.new()
   end
@@ -279,7 +312,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       Tournaments.list_tournaments_paginated(
         socket.assigns.current_scope,
         page: socket.assigns.pagination.page,
-        per_page: @default_per_page,
+        per_page: socket.assigns.pagination.per_page,
         search: params.search,
         location_id: params.location_id,
         start_date: params.start_date,
@@ -295,11 +328,28 @@ defmodule OPWeb.Admin.TournamentLive.Index do
 
   @impl true
   def handle_event("filter", %{"filters" => filter_params}, socket) do
+    per_page = socket.assigns.pagination.per_page
+
     params =
       filter_params
       |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
       |> Map.new()
       |> Map.put("page", "1")
+
+    params =
+      if per_page != @default_per_page,
+        do: Map.put(params, "per_page", per_page),
+        else: params
+
+    {:noreply, push_patch(socket, to: ~p"/admin/tournaments?#{params}")}
+  end
+
+  def handle_event("change_per_page", %{"per_page" => per_page}, socket) do
+    params =
+      socket.assigns.filter_form
+      |> filter_params_for_pagination(parse_per_page(per_page))
+      |> Map.put("page", "1")
+      |> Map.put("per_page", per_page)
 
     {:noreply, push_patch(socket, to: ~p"/admin/tournaments?#{params}")}
   end
@@ -318,7 +368,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       Tournaments.list_tournaments_paginated(
         socket.assigns.current_scope,
         page: socket.assigns.pagination.page,
-        per_page: @default_per_page,
+        per_page: socket.assigns.pagination.per_page,
         search: params.search,
         location_id: params.location_id,
         start_date: params.start_date,
@@ -329,7 +379,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       if tournaments == [] and pagination.page > 1 do
         params =
           socket.assigns.filter_form
-          |> filter_params_for_pagination()
+          |> filter_params_for_pagination(socket.assigns.pagination.per_page)
           |> Map.put("page", pagination.page - 1)
 
         push_patch(socket, to: ~p"/admin/tournaments?#{params}")
