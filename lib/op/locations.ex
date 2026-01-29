@@ -158,6 +158,26 @@ defmodule OP.Locations do
   end
 
   @doc """
+  Lists tournaments at a given location, preloading season and league.
+
+  ## Examples
+
+      iex> list_tournaments_at_location(current_scope, 1)
+      [%Tournament{}, ...]
+
+  """
+  def list_tournaments_at_location(_scope, location_id) do
+    alias OP.Tournaments.Tournament
+
+    Tournament
+    |> where([t], t.location_id == ^location_id)
+    |> order_by([t], desc: t.start_at)
+    |> limit(10)
+    |> preload(season: :league)
+    |> Repo.all()
+  end
+
+  @doc """
   Finds a location by name (case-insensitive).
 
   ## Examples
