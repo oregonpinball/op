@@ -105,12 +105,44 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
           <thead class="bg-gray-50">
             <tr>
-              <.sort_header field="name" label="Name" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
-              <.sort_header field="start_at" label="Date" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
-              <.sort_header field="location" label="Location" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
-              <.sort_header field="status" label="Status" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
-              <.sort_header field="organizer" label="Organizer" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <.sort_header
+                field="name"
+                label="Name"
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                params={@sort_params}
+              />
+              <.sort_header
+                field="start_at"
+                label="Date"
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                params={@sort_params}
+              />
+              <.sort_header
+                field="location"
+                label="Location"
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                params={@sort_params}
+              />
+              <.sort_header
+                field="status"
+                label="Status"
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                params={@sort_params}
+              />
+              <.sort_header
+                field="organizer"
+                label="Organizer"
+                sort_by={@sort_by}
+                sort_dir={@sort_dir}
+                params={@sort_params}
+              />
+              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody id="tournaments" phx-update="stream" class="divide-y divide-gray-200">
@@ -204,19 +236,27 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   attr :params, :map, required: true
 
   defp sort_header(assigns) do
-    next_dir = if assigns.field == assigns.sort_by and assigns.sort_dir == "asc", do: "desc", else: "asc"
+    next_dir =
+      if assigns.field == assigns.sort_by and assigns.sort_dir == "asc", do: "desc", else: "asc"
+
     params = Map.merge(assigns.params, %{"sort_by" => assigns.field, "sort_dir" => next_dir})
     assigns = assign(assigns, :href_params, params)
 
     ~H"""
     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-      <.link patch={~p"/admin/tournaments?#{@href_params}"} class="group inline-flex items-center gap-1 hover:text-gray-700">
+      <.link
+        patch={~p"/admin/tournaments?#{@href_params}"}
+        class="group inline-flex items-center gap-1 hover:text-gray-700"
+      >
         {@label}
         <span :if={@field == @sort_by} class="text-gray-400">
           <.icon :if={@sort_dir == "asc"} name="hero-chevron-up" class="w-3 h-3" />
           <.icon :if={@sort_dir == "desc"} name="hero-chevron-down" class="w-3 h-3" />
         </span>
-        <span :if={@field != @sort_by} class="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span
+          :if={@field != @sort_by}
+          class="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
           <.icon name="hero-chevron-up-down" class="w-3 h-3" />
         </span>
       </.link>
@@ -451,7 +491,11 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   def handle_event("change_per_page", %{"per_page" => per_page}, socket) do
     params =
       socket.assigns.filter_form
-      |> filter_params_for_pagination(parse_per_page(per_page), socket.assigns.sort_by, socket.assigns.sort_dir)
+      |> filter_params_for_pagination(
+        parse_per_page(per_page),
+        socket.assigns.sort_by,
+        socket.assigns.sort_dir
+      )
       |> Map.put("page", "1")
       |> Map.put("per_page", per_page)
 
@@ -485,7 +529,11 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       if tournaments == [] and pagination.page > 1 do
         params =
           socket.assigns.filter_form
-          |> filter_params_for_pagination(socket.assigns.pagination.per_page, socket.assigns.sort_by, socket.assigns.sort_dir)
+          |> filter_params_for_pagination(
+            socket.assigns.pagination.per_page,
+            socket.assigns.sort_by,
+            socket.assigns.sort_dir
+          )
           |> Map.put("page", pagination.page - 1)
 
         push_patch(socket, to: ~p"/admin/tournaments?#{params}")
