@@ -15,7 +15,7 @@ defmodule OPWeb.Landing do
         Welcome back, {@current_scope.user.email}
       </h1>
       <div class="mt-4 flex items-center justify-center space-x-2">
-        <.button href={~p"/coming-soon"} color="primary" class="flex items-center space-x-1">
+        <.button href={~p"/tournaments/submit"} color="primary" class="flex items-center space-x-1">
           <.icon name="hero-plus" class="w-5 h-5" />
           <span>Submit tournament</span>
         </.button>
