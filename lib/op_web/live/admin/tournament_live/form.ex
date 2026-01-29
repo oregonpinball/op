@@ -73,6 +73,13 @@ defmodule OPWeb.Admin.TournamentLive.Form do
           phx-debounce="blur"
         />
 
+        <.input
+          field={@form[:status]}
+          type="select"
+          label="Status"
+          options={@status_options}
+        />
+
         <div class="border-t border-zinc-200 pt-6 mt-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-zinc-900">Standings</h3>
@@ -297,11 +304,18 @@ defmodule OPWeb.Admin.TournamentLive.Form do
       {"Max Match Play", :max_match_play}
     ]
 
+    status_options = [
+      {"Draft", :draft},
+      {"Pending Review", :pending_review},
+      {"Sanctioned", :sanctioned}
+    ]
+
     socket
     |> assign(:season_options, season_options)
     |> assign(:location_options, location_options)
     |> assign(:qualifying_format_options, qualifying_format_options)
     |> assign(:finals_format_options, finals_format_options)
+    |> assign(:status_options, status_options)
   end
 
   @impl true
