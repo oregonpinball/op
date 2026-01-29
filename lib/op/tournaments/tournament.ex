@@ -56,6 +56,10 @@ defmodule OP.Tournaments.Tournament do
       ],
       default: :none
 
+    field :status, Ecto.Enum,
+      values: [:draft, :pending_review, :sanctioned],
+      default: :draft
+
     field :meaningful_games, :float
 
     belongs_to :organizer, User
@@ -85,6 +89,7 @@ defmodule OP.Tournaments.Tournament do
       :organizer_id,
       :season_id,
       :location_id,
+      :status,
       :slug,
       :created_by_id,
       :updated_by_id
