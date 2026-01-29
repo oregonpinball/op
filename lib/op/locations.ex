@@ -171,9 +171,9 @@ defmodule OP.Locations do
 
     Tournament
     |> where([t], t.location_id == ^location_id)
-    |> order_by([t], [desc: t.start_at])
+    |> order_by([t], desc: t.start_at)
     |> limit(10)
-    |> preload([season: :league])
+    |> preload(season: :league)
     |> Repo.all()
   end
 

@@ -11,7 +11,9 @@
         <span :if={@location.address_2}>, {@location.address_2}</span>
       </p>
       <p :if={@location.city || @location.state || @location.postal_code}>
-        <span :if={@location.city}>{@location.city}</span><span :if={@location.city && @location.state}>, </span><span :if={@location.state}>{@location.state}</span>
+        <span :if={@location.city}>{@location.city}</span><span :if={
+          @location.city && @location.state
+        }>, </span><span :if={@location.state}>{@location.state}</span>
         <span :if={@location.postal_code}>{@location.postal_code}</span>
       </p>
       <p :if={@location.country}>{@location.country}</p>
