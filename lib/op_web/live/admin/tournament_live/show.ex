@@ -7,171 +7,173 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        {@tournament.name}
-        <:subtitle>Tournament details</:subtitle>
-        <:actions>
-          <.link patch={~p"/admin/tournaments/#{@tournament}/edit"}>
-            <.button variant="solid">Edit Tournament</.button>
-          </.link>
-          <.link navigate={~p"/admin/tournaments"}>
-            <.button variant="invisible">Back to Tournaments</.button>
-          </.link>
-        </:actions>
-      </.header>
+      <div class="container mx-auto p-4">
+        <.header>
+          {@tournament.name}
+          <:subtitle>Tournament details</:subtitle>
+          <:actions>
+            <.link patch={~p"/admin/tournaments/#{@tournament}/edit"}>
+              <.button variant="solid">Edit Tournament</.button>
+            </.link>
+            <.link navigate={~p"/admin/tournaments"}>
+              <.button variant="invisible">Back to Tournaments</.button>
+            </.link>
+          </:actions>
+        </.header>
 
-      <div class="mt-8 space-y-6">
-        <div class="bg-white rounded-lg border border-zinc-200 p-6">
-          <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-            <div :if={@tournament.start_at}>
-              <dt class="text-sm text-zinc-500">Start Date</dt>
-              <dd class="text-zinc-900">
-                {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
-              </dd>
+        <div class="mt-8 space-y-6">
+          <div class="bg-white rounded-lg border border-zinc-200 p-6">
+            <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+              <div :if={@tournament.start_at}>
+                <dt class="text-sm text-zinc-500">Start Date</dt>
+                <dd class="text-zinc-900">
+                  {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Season</dt>
+                <dd class="text-zinc-900">
+                  {if @tournament.season, do: @tournament.season.name, else: "None"}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Location</dt>
+                <dd class="text-zinc-900">
+                  {if @tournament.location, do: @tournament.location.name, else: "None"}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Organizer</dt>
+                <dd class="text-zinc-900">
+                  {if @tournament.organizer, do: @tournament.organizer.email, else: "None"}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Qualifying Format</dt>
+                <dd class="text-zinc-900 capitalize">
+                  {Phoenix.Naming.humanize(@tournament.qualifying_format)}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Finals Format</dt>
+                <dd class="text-zinc-900 capitalize">
+                  {Phoenix.Naming.humanize(@tournament.finals_format)}
+                </dd>
+              </div>
+              <div :if={@tournament.slug}>
+                <dt class="text-sm text-zinc-500">Slug</dt>
+                <dd class="text-zinc-900 font-mono text-sm">{@tournament.slug}</dd>
+              </div>
+              <div :if={@tournament.description} class="md:col-span-2 lg:col-span-3">
+                <dt class="text-sm text-zinc-500">Description</dt>
+                <dd class="text-zinc-900">{@tournament.description}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div
+            :if={@tournament.standings != [] && @tournament.meaningful_games}
+            class="bg-white rounded-lg border border-zinc-200 p-6"
+          >
+            <% standings_with_weight = standings_with_weight(@tournament) %>
+            <% first_place = Enum.find(@tournament.standings, &(&1.position == 1)) %>
+            <% first_place_value = if first_place, do: first_place.total_points || 0.0, else: 0.0 %>
+            <% player_count = length(@tournament.standings) %>
+            <% tgp = ((@tournament.meaningful_games || 0) * 0.04) |> min(2.0) %>
+
+            <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <dt class="text-sm text-zinc-500">TGP</dt>
+                <dd class="text-2xl font-semibold">{format_tgp_percent(tgp)}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">First Place Value</dt>
+                <dd class="text-2xl font-semibold">{format_points(first_place_value)}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Players</dt>
+                <dd class="text-2xl font-semibold">{player_count}</dd>
+              </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Meaningful Games</dt>
+                <dd class="text-2xl font-semibold">{@tournament.meaningful_games}</dd>
+              </div>
             </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Season</dt>
-              <dd class="text-zinc-900">
-                {if @tournament.season, do: @tournament.season.name, else: "None"}
-              </dd>
+
+            <h3 class="text-lg font-semibold text-zinc-900 mb-4">Point Breakdown</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-zinc-200">
+                <thead>
+                  <tr>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Pos
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Player
+                    </th>
+                    <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Linear
+                    </th>
+                    <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Dynamic
+                    </th>
+                    <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Weight
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                  <tr :for={standing <- standings_with_weight} class="hover:bg-zinc-50">
+                    <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
+                      {standing.position}
+                    </td>
+                    <td class="px-3 py-2 text-sm text-zinc-900">
+                      <.link
+                        navigate={~p"/admin/players/#{standing.player.slug}/edit"}
+                        class="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {standing.player.name}
+                      </.link>
+                    </td>
+                    <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                      {format_points(standing.linear_points)}
+                    </td>
+                    <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                      {format_points(standing.dynamic_points)}
+                    </td>
+                    <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono font-semibold">
+                      {format_points(standing.total_points)}
+                    </td>
+                    <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
+                      {format_weight_percent(standing.weight)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Location</dt>
-              <dd class="text-zinc-900">
-                {if @tournament.location, do: @tournament.location.name, else: "None"}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Organizer</dt>
-              <dd class="text-zinc-900">
-                {if @tournament.organizer, do: @tournament.organizer.email, else: "None"}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Qualifying Format</dt>
-              <dd class="text-zinc-900 capitalize">
-                {Phoenix.Naming.humanize(@tournament.qualifying_format)}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Finals Format</dt>
-              <dd class="text-zinc-900 capitalize">
-                {Phoenix.Naming.humanize(@tournament.finals_format)}
-              </dd>
-            </div>
-            <div :if={@tournament.slug}>
-              <dt class="text-sm text-zinc-500">Slug</dt>
-              <dd class="text-zinc-900 font-mono text-sm">{@tournament.slug}</dd>
-            </div>
-            <div :if={@tournament.description} class="md:col-span-2 lg:col-span-3">
-              <dt class="text-sm text-zinc-500">Description</dt>
-              <dd class="text-zinc-900">{@tournament.description}</dd>
-            </div>
-          </dl>
+          </div>
         </div>
 
-        <div
-          :if={@tournament.standings != [] && @tournament.meaningful_games}
-          class="bg-white rounded-lg border border-zinc-200 p-6"
+        <.modal
+          :if={@live_action == :edit}
+          id="tournament-modal"
+          show
+          on_cancel={JS.patch(~p"/admin/tournaments/#{@tournament}")}
         >
-          <% standings_with_weight = standings_with_weight(@tournament) %>
-          <% first_place = Enum.find(@tournament.standings, &(&1.position == 1)) %>
-          <% first_place_value = if first_place, do: first_place.total_points || 0.0, else: 0.0 %>
-          <% player_count = length(@tournament.standings) %>
-          <% tgp = ((@tournament.meaningful_games || 0) * 0.04) |> min(2.0) %>
-
-          <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <dt class="text-sm text-zinc-500">TGP</dt>
-              <dd class="text-2xl font-semibold">{format_tgp_percent(tgp)}</dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">First Place Value</dt>
-              <dd class="text-2xl font-semibold">{format_points(first_place_value)}</dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Players</dt>
-              <dd class="text-2xl font-semibold">{player_count}</dd>
-            </div>
-            <div>
-              <dt class="text-sm text-zinc-500">Meaningful Games</dt>
-              <dd class="text-2xl font-semibold">{@tournament.meaningful_games}</dd>
-            </div>
-          </div>
-
-          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Point Breakdown</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200">
-              <thead>
-                <tr>
-                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Pos
-                  </th>
-                  <th class="px-3 py-2 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Player
-                  </th>
-                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Linear
-                  </th>
-                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Dynamic
-                  </th>
-                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th class="px-3 py-2 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Weight
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-zinc-100">
-                <tr :for={standing <- standings_with_weight} class="hover:bg-zinc-50">
-                  <td class="px-3 py-2 text-sm text-zinc-900 font-medium">
-                    {standing.position}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900">
-                    <.link
-                      navigate={~p"/admin/players/#{standing.player.slug}/edit"}
-                      class="text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      {standing.player.name}
-                    </.link>
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_points(standing.linear_points)}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_points(standing.dynamic_points)}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono font-semibold">
-                    {format_points(standing.total_points)}
-                  </td>
-                  <td class="px-3 py-2 text-sm text-zinc-900 text-right font-mono">
-                    {format_weight_percent(standing.weight)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <.live_component
+            module={OPWeb.Admin.TournamentLive.Form}
+            id={@tournament.id}
+            title="Edit Tournament"
+            action={@live_action}
+            tournament={@tournament}
+            current_scope={@current_scope}
+            patch={~p"/admin/tournaments/#{@tournament}"}
+          />
+        </.modal>
       </div>
-
-      <.modal
-        :if={@live_action == :edit}
-        id="tournament-modal"
-        show
-        on_cancel={JS.patch(~p"/admin/tournaments/#{@tournament}")}
-      >
-        <.live_component
-          module={OPWeb.Admin.TournamentLive.Form}
-          id={@tournament.id}
-          title="Edit Tournament"
-          action={@live_action}
-          tournament={@tournament}
-          current_scope={@current_scope}
-          patch={~p"/admin/tournaments/#{@tournament}"}
-        />
-      </.modal>
     </Layouts.app>
     """
   end

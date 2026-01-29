@@ -7,39 +7,41 @@ defmodule OPWeb.Admin.LocationLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Manage Locations
-        <:actions>
-          <.button navigate={~p"/admin/locations/new"} color="primary">
-            <.icon name="hero-plus" class="mr-1" /> New Location
-          </.button>
-        </:actions>
-      </.header>
-
-      <div class="mt-6">
-        <.table id="locations" rows={@streams.locations}>
-          <:col :let={{_id, location}} label="Name">{location.name}</:col>
-          <:col :let={{_id, location}} label="City">{location.city}</:col>
-          <:col :let={{_id, location}} label="State">{location.state}</:col>
-          <:action :let={{_id, location}}>
-            <.link navigate={~p"/admin/locations/#{location.slug}/edit"}>
-              <.button size="sm" variant="invisible">Edit</.button>
-            </.link>
-          </:action>
-          <:action :let={{_id, location}}>
-            <.button
-              size="sm"
-              color="error"
-              variant="invisible"
-              phx-click={JS.push("delete", value: %{id: location.id})}
-              data-confirm="Are you sure you want to delete this location?"
-            >
-              Delete
+      <div class="container mx-auto p-4">
+        <.header>
+          Manage Locations
+          <:actions>
+            <.button navigate={~p"/admin/locations/new"} color="primary">
+              <.icon name="hero-plus" class="mr-1" /> New Location
             </.button>
-          </:action>
-        </.table>
-        <div :if={@locations_empty?} class="text-center text-base-content/70 py-8">
-          No locations found. Create your first location to get started.
+          </:actions>
+        </.header>
+
+        <div class="mt-6">
+          <.table id="locations" rows={@streams.locations}>
+            <:col :let={{_id, location}} label="Name">{location.name}</:col>
+            <:col :let={{_id, location}} label="City">{location.city}</:col>
+            <:col :let={{_id, location}} label="State">{location.state}</:col>
+            <:action :let={{_id, location}}>
+              <.link navigate={~p"/admin/locations/#{location.slug}/edit"}>
+                <.button size="sm" variant="invisible">Edit</.button>
+              </.link>
+            </:action>
+            <:action :let={{_id, location}}>
+              <.button
+                size="sm"
+                color="error"
+                variant="invisible"
+                phx-click={JS.push("delete", value: %{id: location.id})}
+                data-confirm="Are you sure you want to delete this location?"
+              >
+                Delete
+              </.button>
+            </:action>
+          </.table>
+          <div :if={@locations_empty?} class="text-center text-base-content/70 py-8">
+            No locations found. Create your first location to get started.
+          </div>
         </div>
       </div>
     </Layouts.app>

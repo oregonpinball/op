@@ -11,220 +11,228 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Tournaments
-        <:subtitle>Manage tournaments in the system</:subtitle>
-        <:actions>
-          <.link navigate={~p"/import"}>
-            <.button variant="solid">
-              <.icon name="hero-arrow-up-tray" class="mr-1" /> Import from MatchPlay
+      <div class="container mx-auto p-4">
+        <.header>
+          Tournaments
+          <:subtitle>Manage tournaments in the system</:subtitle>
+          <:actions>
+            <.link navigate={~p"/import"}>
+              <.button variant="solid">
+                <.icon name="hero-arrow-up-tray" class="mr-1" /> Import from MatchPlay
+              </.button>
+            </.link>
+            <.button patch={~p"/admin/tournaments/new"} color="primary">
+              <.icon name="hero-plus" class="mr-1" /> New Tournament
             </.button>
-          </.link>
-          <.button patch={~p"/admin/tournaments/new"} color="primary">
-            <.icon name="hero-plus" class="mr-1" /> New Tournament
-          </.button>
-        </:actions>
-      </.header>
+          </:actions>
+        </.header>
 
-      <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
-        <.form
-          for={@filter_form}
-          id="tournament-filters"
-          phx-change="filter"
-          phx-submit="filter"
-          class="space-y-4"
-        >
-          <div class="flex gap-4 items-end">
-            <div class="flex-1">
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
+          <.form
+            for={@filter_form}
+            id="tournament-filters"
+            phx-change="filter"
+            phx-submit="filter"
+            class="space-y-4"
+          >
+            <div class="flex gap-4 items-end">
+              <div class="flex-1">
+                <.input
+                  field={@filter_form[:search]}
+                  type="search"
+                  label="Search tournaments"
+                  placeholder="Search by name..."
+                  phx-debounce="300"
+                />
+              </div>
+              <.button
+                type="button"
+                variant="invisible"
+                phx-click="clear_filters"
+                class="mb-2"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear
+              </.button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <.input
-                field={@filter_form[:search]}
-                type="search"
-                label="Search tournaments"
-                placeholder="Search by name..."
-                phx-debounce="300"
+                field={@filter_form[:location_id]}
+                type="select"
+                label="Location"
+                options={@location_options}
+                prompt="All locations"
+              />
+              <.input
+                field={@filter_form[:start_date]}
+                type="date"
+                label="From date"
+              />
+              <.input
+                field={@filter_form[:end_date]}
+                type="date"
+                label="To date"
               />
             </div>
-            <.button
-              type="button"
-              variant="invisible"
-              phx-click="clear_filters"
-              class="mb-2"
+          </.form>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
+          <span>
+            <%= if @tournaments_empty? do %>
+              No tournaments found
+            <% else %>
+              Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
+                @pagination.page * @pagination.per_page,
+                @pagination.total_count
+              )} of {@pagination.total_count} tournaments
+            <% end %>
+          </span>
+          <form phx-change="change_per_page">
+            <label for="per-page" class="mr-2">Per page:</label>
+            <select
+              id="per-page"
+              name="per_page"
+              class="rounded-md border-gray-300 text-sm py-1 pl-2 pr-8"
             >
-              <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear
-            </.button>
-          </div>
+              <option
+                :for={opt <- [10, 25, 50, 100]}
+                value={opt}
+                selected={opt == @pagination.per_page}
+              >
+                {opt}
+              </option>
+            </select>
+          </form>
+        </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <.input
-              field={@filter_form[:location_id]}
-              type="select"
-              label="Location"
-              options={@location_options}
-              prompt="All locations"
-            />
-            <.input
-              field={@filter_form[:start_date]}
-              type="date"
-              label="From date"
-            />
-            <.input
-              field={@filter_form[:end_date]}
-              type="date"
-              label="To date"
-            />
-          </div>
-        </.form>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-        <span>
-          <%= if @tournaments_empty? do %>
-            No tournaments found
-          <% else %>
-            Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
-              @pagination.page * @pagination.per_page,
-              @pagination.total_count
-            )} of {@pagination.total_count} tournaments
-          <% end %>
-        </span>
-        <form phx-change="change_per_page">
-          <label for="per-page" class="mr-2">Per page:</label>
-          <select
-            id="per-page"
-            name="per_page"
-            class="rounded-md border-gray-300 text-sm py-1 pl-2 pr-8"
-          >
-            <option :for={opt <- [10, 25, 50, 100]} value={opt} selected={opt == @pagination.per_page}>
-              {opt}
-            </option>
-          </select>
-        </form>
-      </div>
-
-      <div class="mt-4 overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
-          <thead class="bg-gray-50">
-            <tr>
-              <.sort_header
-                field="name"
-                label="Name"
-                sort_by={@sort_by}
-                sort_dir={@sort_dir}
-                params={@sort_params}
-              />
-              <.sort_header
-                field="start_at"
-                label="Date"
-                sort_by={@sort_by}
-                sort_dir={@sort_dir}
-                params={@sort_params}
-              />
-              <.sort_header
-                field="location"
-                label="Location"
-                sort_by={@sort_by}
-                sort_dir={@sort_dir}
-                params={@sort_params}
-              />
-              <.sort_header
-                field="status"
-                label="Status"
-                sort_by={@sort_by}
-                sort_dir={@sort_dir}
-                params={@sort_params}
-              />
-              <.sort_header
-                field="organizer"
-                label="Organizer"
-                sort_by={@sort_by}
-                sort_dir={@sort_dir}
-                params={@sort_params}
-              />
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody id="tournaments" phx-update="stream" class="divide-y divide-gray-200">
-            <tr id="empty-tournaments" class="hidden only:table-row">
-              <td colspan="6" class="text-center py-8 text-gray-500">
-                No tournaments match your filters. Try adjusting your search criteria.
-              </td>
-            </tr>
-            <tr
-              :for={{id, tournament} <- @streams.tournaments}
-              id={id}
-              class="hover:bg-gray-50"
-            >
-              <td class="px-4 py-3 text-sm">
-                <.link
-                  navigate={~p"/admin/tournaments/#{tournament}"}
-                  class="font-medium text-gray-900 hover:text-blue-600"
-                >
-                  {tournament.name}
-                </.link>
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-500">
-                {if tournament.location, do: tournament.location.name}
-              </td>
-              <td class="px-4 py-3 text-sm">
-                <span class={[
-                  "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-                  status_badge_class(tournament.status)
-                ]}>
-                  {tournament.status}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-500">
-                {if tournament.organizer, do: tournament.organizer.email}
-              </td>
-              <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
-                <.link patch={~p"/admin/tournaments/#{tournament}/edit"}>
-                  <.button variant="invisible" size="sm">
-                    <.icon name="hero-pencil-square" class="w-4 h-4" />
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
+            <thead class="bg-gray-50">
+              <tr>
+                <.sort_header
+                  field="name"
+                  label="Name"
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  params={@sort_params}
+                />
+                <.sort_header
+                  field="start_at"
+                  label="Date"
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  params={@sort_params}
+                />
+                <.sort_header
+                  field="location"
+                  label="Location"
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  params={@sort_params}
+                />
+                <.sort_header
+                  field="status"
+                  label="Status"
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  params={@sort_params}
+                />
+                <.sort_header
+                  field="organizer"
+                  label="Organizer"
+                  sort_by={@sort_by}
+                  sort_dir={@sort_dir}
+                  params={@sort_params}
+                />
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tournaments" phx-update="stream" class="divide-y divide-gray-200">
+              <tr id="empty-tournaments" class="hidden only:table-row">
+                <td colspan="6" class="text-center py-8 text-gray-500">
+                  No tournaments match your filters. Try adjusting your search criteria.
+                </td>
+              </tr>
+              <tr
+                :for={{id, tournament} <- @streams.tournaments}
+                id={id}
+                class="hover:bg-gray-50"
+              >
+                <td class="px-4 py-3 text-sm">
+                  <.link
+                    navigate={~p"/admin/tournaments/#{tournament}"}
+                    class="font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    {tournament.name}
+                  </.link>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                  {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500">
+                  {if tournament.location, do: tournament.location.name}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <span class={[
+                    "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                    status_badge_class(tournament.status)
+                  ]}>
+                    {tournament.status}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500">
+                  {if tournament.organizer, do: tournament.organizer.email}
+                </td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                  <.link patch={~p"/admin/tournaments/#{tournament}/edit"}>
+                    <.button variant="invisible" size="sm">
+                      <.icon name="hero-pencil-square" class="w-4 h-4" />
+                    </.button>
+                  </.link>
+                  <.button
+                    variant="invisible"
+                    size="sm"
+                    phx-click="delete"
+                    phx-value-id={tournament.id}
+                    data-confirm="Are you sure you want to delete this tournament?"
+                  >
+                    <.icon name="hero-trash" class="w-4 h-4" />
                   </.button>
-                </.link>
-                <.button
-                  variant="invisible"
-                  size="sm"
-                  phx-click="delete"
-                  phx-value-id={tournament.id}
-                  data-confirm="Are you sure you want to delete this tournament?"
-                >
-                  <.icon name="hero-trash" class="w-4 h-4" />
-                </.button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <.pagination
-        page={@pagination.page}
-        total_pages={@pagination.total_pages}
-        path={~p"/admin/tournaments"}
-        params={filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)}
-      />
-
-      <.modal
-        :if={@live_action in [:new, :edit]}
-        id="tournament-modal"
-        show
-        on_cancel={JS.patch(~p"/admin/tournaments")}
-      >
-        <.live_component
-          module={OPWeb.Admin.TournamentLive.Form}
-          id={@tournament.id || :new}
-          title={@page_title}
-          action={@live_action}
-          tournament={@tournament}
-          current_scope={@current_scope}
-          patch={~p"/admin/tournaments"}
+        <.pagination
+          page={@pagination.page}
+          total_pages={@pagination.total_pages}
+          path={~p"/admin/tournaments"}
+          params={
+            filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)
+          }
         />
-      </.modal>
+
+        <.modal
+          :if={@live_action in [:new, :edit]}
+          id="tournament-modal"
+          show
+          on_cancel={JS.patch(~p"/admin/tournaments")}
+        >
+          <.live_component
+            module={OPWeb.Admin.TournamentLive.Form}
+            id={@tournament.id || :new}
+            title={@page_title}
+            action={@live_action}
+            tournament={@tournament}
+            current_scope={@current_scope}
+            patch={~p"/admin/tournaments"}
+          />
+        </.modal>
+      </div>
     </Layouts.app>
     """
   end

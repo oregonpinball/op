@@ -7,83 +7,89 @@ defmodule OPWeb.Admin.PlayerLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Manage Players
-        <:subtitle>
-          {if @total_count > 0, do: "#{@total_count} players total", else: "No players yet"}
-        </:subtitle>
-        <:actions>
-          <.button navigate={~p"/admin/players/new"} color="primary">
-            <.icon name="hero-plus" class="mr-1" /> New Player
-          </.button>
-        </:actions>
-      </.header>
-
-      <div class="mt-6 space-y-4">
-        <.form
-          for={@filter_form}
-          id="player-filters"
-          phx-change="filter"
-          phx-submit="filter"
-          class="flex flex-col sm:flex-row gap-4"
-        >
-          <div class="flex-1">
-            <.input
-              field={@filter_form[:search]}
-              type="search"
-              placeholder="Search players by name..."
-              phx-debounce="300"
-              class="w-full input"
-            />
-          </div>
-          <div class="w-full sm:w-48">
-            <.input
-              field={@filter_form[:linked]}
-              type="select"
-              options={[{"All players", ""}, {"Linked to user", "linked"}, {"Not linked", "unlinked"}]}
-              class="w-full select"
-            />
-          </div>
-        </.form>
-
-        <.table id="players" rows={@streams.players}>
-          <:col :let={{_id, player}} label="Name">{player.name}</:col>
-          <:col :let={{_id, player}} label="External ID">{player.external_id || "-"}</:col>
-          <:col :let={{_id, player}} label="Linked User">
-            {if player.user, do: player.user.email, else: "-"}
-          </:col>
-          <:action :let={{_id, player}}>
-            <.link navigate={~p"/admin/players/#{player.slug}/edit"}>
-              <.button size="sm" variant="invisible">Edit</.button>
-            </.link>
-          </:action>
-          <:action :let={{_id, player}}>
-            <.button
-              size="sm"
-              color="error"
-              variant="invisible"
-              phx-click={JS.push("scrub", value: %{id: player.id})}
-              data-confirm="Are you sure you want to scrub this player? This will anonymize their data but keep the record for historical purposes."
-            >
-              Scrub
+      <div class="container mx-auto p-4">
+        <.header>
+          Manage Players
+          <:subtitle>
+            {if @total_count > 0, do: "#{@total_count} players total", else: "No players yet"}
+          </:subtitle>
+          <:actions>
+            <.button navigate={~p"/admin/players/new"} color="primary">
+              <.icon name="hero-plus" class="mr-1" /> New Player
             </.button>
-          </:action>
-        </.table>
+          </:actions>
+        </.header>
 
-        <div :if={@players_empty?} class="text-center text-base-content/70 py-8">
-          <%= if @has_filters? do %>
-            No players match your search criteria.
-          <% else %>
-            No players found. Create your first player to get started.
-          <% end %>
+        <div class="mt-6 space-y-4">
+          <.form
+            for={@filter_form}
+            id="player-filters"
+            phx-change="filter"
+            phx-submit="filter"
+            class="flex flex-col sm:flex-row gap-4"
+          >
+            <div class="flex-1">
+              <.input
+                field={@filter_form[:search]}
+                type="search"
+                placeholder="Search players by name..."
+                phx-debounce="300"
+                class="w-full input"
+              />
+            </div>
+            <div class="w-full sm:w-48">
+              <.input
+                field={@filter_form[:linked]}
+                type="select"
+                options={[
+                  {"All players", ""},
+                  {"Linked to user", "linked"},
+                  {"Not linked", "unlinked"}
+                ]}
+                class="w-full select"
+              />
+            </div>
+          </.form>
+
+          <.table id="players" rows={@streams.players}>
+            <:col :let={{_id, player}} label="Name">{player.name}</:col>
+            <:col :let={{_id, player}} label="External ID">{player.external_id || "-"}</:col>
+            <:col :let={{_id, player}} label="Linked User">
+              {if player.user, do: player.user.email, else: "-"}
+            </:col>
+            <:action :let={{_id, player}}>
+              <.link navigate={~p"/admin/players/#{player.slug}/edit"}>
+                <.button size="sm" variant="invisible">Edit</.button>
+              </.link>
+            </:action>
+            <:action :let={{_id, player}}>
+              <.button
+                size="sm"
+                color="error"
+                variant="invisible"
+                phx-click={JS.push("scrub", value: %{id: player.id})}
+                data-confirm="Are you sure you want to scrub this player? This will anonymize their data but keep the record for historical purposes."
+              >
+                Scrub
+              </.button>
+            </:action>
+          </.table>
+
+          <div :if={@players_empty?} class="text-center text-base-content/70 py-8">
+            <%= if @has_filters? do %>
+              No players match your search criteria.
+            <% else %>
+              No players found. Create your first player to get started.
+            <% end %>
+          </div>
+
+          <.pagination
+            page={@page}
+            total_pages={@total_pages}
+            path={~p"/admin/players"}
+            params={@filter_params}
+          />
         </div>
-
-        <.pagination
-          page={@page}
-          total_pages={@total_pages}
-          path={~p"/admin/players"}
-          params={@filter_params}
-        />
       </div>
     </Layouts.app>
     """

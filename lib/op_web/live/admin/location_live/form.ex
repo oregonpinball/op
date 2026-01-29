@@ -8,49 +8,51 @@ defmodule OPWeb.Admin.LocationLive.Form do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        {@page_title}
-        <:subtitle>
-          <%= if @live_action == :new do %>
-            Add a new pinball location
-          <% else %>
-            Update location details
-          <% end %>
-        </:subtitle>
-      </.header>
+      <div class="container mx-auto p-4">
+        <.header>
+          {@page_title}
+          <:subtitle>
+            <%= if @live_action == :new do %>
+              Add a new pinball location
+            <% else %>
+              Update location details
+            <% end %>
+          </:subtitle>
+        </.header>
 
-      <div class="mt-6 max-w-2xl">
-        <.form for={@form} id="location-form" phx-change="validate" phx-submit="save">
-          <.input field={@form[:name]} type="text" label="Name" required />
+        <div class="mt-6 max-w-2xl">
+          <.form for={@form} id="location-form" phx-change="validate" phx-submit="save">
+            <.input field={@form[:name]} type="text" label="Name" required />
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <.input field={@form[:address]} type="text" label="Address" />
-            <.input field={@form[:address_2]} type="text" label="Address 2" />
-          </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <.input field={@form[:address]} type="text" label="Address" />
+              <.input field={@form[:address_2]} type="text" label="Address 2" />
+            </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <.input field={@form[:city]} type="text" label="City" />
-            <.input field={@form[:state]} type="text" label="State" />
-            <.input field={@form[:postal_code]} type="text" label="Postal Code" />
-            <.input field={@form[:country]} type="text" label="Country" />
-          </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <.input field={@form[:city]} type="text" label="City" />
+              <.input field={@form[:state]} type="text" label="State" />
+              <.input field={@form[:postal_code]} type="text" label="Postal Code" />
+              <.input field={@form[:country]} type="text" label="Country" />
+            </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <.input field={@form[:latitude]} type="number" label="Latitude" step="any" />
-            <.input field={@form[:longitude]} type="number" label="Longitude" step="any" />
-          </div>
+            <div class="grid grid-cols-2 gap-4">
+              <.input field={@form[:latitude]} type="number" label="Latitude" step="any" />
+              <.input field={@form[:longitude]} type="number" label="Longitude" step="any" />
+            </div>
 
-          <.input field={@form[:external_id]} type="text" label="External ID" />
+            <.input field={@form[:external_id]} type="text" label="External ID" />
 
-          <div class="mt-6 flex gap-4">
-            <.button type="submit" color="primary" phx-disable-with="Saving...">
-              Save Location
-            </.button>
-            <.button navigate={~p"/admin/locations"} variant="invisible">
-              Cancel
-            </.button>
-          </div>
-        </.form>
+            <div class="mt-6 flex gap-4">
+              <.button type="submit" color="primary" phx-disable-with="Saving...">
+                Save Location
+              </.button>
+              <.button navigate={~p"/admin/locations"} variant="invisible">
+                Cancel
+              </.button>
+            </div>
+          </.form>
+        </div>
       </div>
     </Layouts.app>
     """

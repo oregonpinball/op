@@ -7,41 +7,43 @@ defmodule OPWeb.Admin.LeagueLive.Form do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        {@page_title}
-        <:subtitle>Use this form to manage league records.</:subtitle>
-      </.header>
+      <div class="container mx-auto p-4">
+        <.header>
+          {@page_title}
+          <:subtitle>Use this form to manage league records.</:subtitle>
+        </.header>
 
-      <div class="mt-8 max-w-2xl">
-        <.form
-          for={@form}
-          id="league-form"
-          phx-change="validate"
-          phx-submit="save"
-          class="space-y-6"
-        >
-          <.input field={@form[:name]} type="text" label="Name" required />
-          <.input field={@form[:description]} type="textarea" label="Description" />
-          <.input
-            field={@form[:slug]}
-            type="text"
-            label="Slug"
-            placeholder="Auto-generated if left blank"
-          />
+        <div class="mt-8 max-w-2xl">
+          <.form
+            for={@form}
+            id="league-form"
+            phx-change="validate"
+            phx-submit="save"
+            class="space-y-6"
+          >
+            <.input field={@form[:name]} type="text" label="Name" required />
+            <.input field={@form[:description]} type="textarea" label="Description" />
+            <.input
+              field={@form[:slug]}
+              type="text"
+              label="Slug"
+              placeholder="Auto-generated if left blank"
+            />
 
-          <input type="hidden" name={@form[:author_id].name} value={@current_scope.user.id} />
+            <input type="hidden" name={@form[:author_id].name} value={@current_scope.user.id} />
 
-          <div class="flex items-center justify-end gap-3 pt-6">
-            <.link navigate={~p"/admin/leagues"}>
-              <.button type="button" variant="invisible">
-                Cancel
+            <div class="flex items-center justify-end gap-3 pt-6">
+              <.link navigate={~p"/admin/leagues"}>
+                <.button type="button" variant="invisible">
+                  Cancel
+                </.button>
+              </.link>
+              <.button type="submit" variant="solid" phx-disable-with="Saving...">
+                Save League
               </.button>
-            </.link>
-            <.button type="submit" variant="solid" phx-disable-with="Saving...">
-              Save League
-            </.button>
-          </div>
-        </.form>
+            </div>
+          </.form>
+        </div>
       </div>
     </Layouts.app>
     """

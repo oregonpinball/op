@@ -8,106 +8,108 @@ defmodule OPWeb.Admin.UserLive.Form do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        {@page_title}
-        <:subtitle>
-          Edit user role and linked player account
-        </:subtitle>
-      </.header>
+      <div class="container mx-auto p-4">
+        <.header>
+          {@page_title}
+          <:subtitle>
+            Edit user role and linked player account
+          </:subtitle>
+        </.header>
 
-      <div class="mt-6 max-w-2xl">
-        <.form for={@form} id="user-form" phx-change="validate" phx-submit="save">
-          <.input field={@form[:email]} type="text" label="Email" disabled />
+        <div class="mt-6 max-w-2xl">
+          <.form for={@form} id="user-form" phx-change="validate" phx-submit="save">
+            <.input field={@form[:email]} type="text" label="Email" disabled />
 
-          <.input
-            field={@form[:role]}
-            type="select"
-            label="Role"
-            options={[
-              {"System Admin", :system_admin},
-              {"TD", :td},
-              {"Player", :player}
-            ]}
-            required
-          />
+            <.input
+              field={@form[:role]}
+              type="select"
+              label="Role"
+              options={[
+                {"System Admin", :system_admin},
+                {"TD", :td},
+                {"Player", :player}
+              ]}
+              required
+            />
 
-          <div class="mt-6 flex gap-4">
-            <.button type="submit" color="primary" phx-disable-with="Saving...">
-              Save User
-            </.button>
-            <.button navigate={~p"/admin/users"} variant="invisible">
-              Cancel
-            </.button>
-          </div>
-        </.form>
-
-        <div class="mt-8 pt-6 border-t border-slate-300">
-          <h3 class="text-base font-semibold mb-4">Linked Player Account</h3>
-
-          <%= if @user.player do %>
-            <div class="flex items-center gap-4 p-4 bg-slate-100 rounded-lg">
-              <div class="flex-1">
-                <p class="font-medium">{@user.player.name}</p>
-                <p class="text-sm text-slate-600">Currently linked</p>
-              </div>
-              <.button
-                color="error"
-                variant="invisible"
-                phx-click="unlink_player"
-                data-confirm="Are you sure you want to unlink this player?"
-              >
-                <.icon name="hero-x-mark" class="mr-1" /> Unlink
+            <div class="mt-6 flex gap-4">
+              <.button type="submit" color="primary" phx-disable-with="Saving...">
+                Save User
+              </.button>
+              <.button navigate={~p"/admin/users"} variant="invisible">
+                Cancel
               </.button>
             </div>
-          <% else %>
-            <div class="space-y-4">
-              <p class="text-slate-600">No player account linked to this user.</p>
+          </.form>
 
-              <.form
-                for={@player_search_form}
-                id="player-search-form"
-                phx-change="search_players"
-                phx-submit="search_players"
-              >
-                <.input
-                  field={@player_search_form[:query]}
-                  type="search"
-                  label="Search for player by name"
-                  placeholder="Start typing player name..."
-                  phx-debounce="300"
-                />
-              </.form>
+          <div class="mt-8 pt-6 border-t border-slate-300">
+            <h3 class="text-base font-semibold mb-4">Linked Player Account</h3>
 
-              <div :if={@player_results != []} class="border border-slate-300 rounded-lg divide-y">
-                <div
-                  :for={player <- @player_results}
-                  class="p-3 flex items-center justify-between hover:bg-slate-50"
-                >
-                  <div class="flex-1">
-                    <span class="font-medium">{player.name}</span>
-                    <%= if player.user do %>
-                      <span class="text-sm text-amber-600 ml-2">
-                        (already linked to {player.user.email})
-                      </span>
-                    <% end %>
-                  </div>
-                  <.button
-                    size="sm"
-                    color="primary"
-                    phx-click="link_player"
-                    phx-value-player-id={player.id}
-                    disabled={player.user != nil}
-                  >
-                    Link
-                  </.button>
+            <%= if @user.player do %>
+              <div class="flex items-center gap-4 p-4 bg-slate-100 rounded-lg">
+                <div class="flex-1">
+                  <p class="font-medium">{@user.player.name}</p>
+                  <p class="text-sm text-slate-600">Currently linked</p>
                 </div>
+                <.button
+                  color="error"
+                  variant="invisible"
+                  phx-click="unlink_player"
+                  data-confirm="Are you sure you want to unlink this player?"
+                >
+                  <.icon name="hero-x-mark" class="mr-1" /> Unlink
+                </.button>
               </div>
+            <% else %>
+              <div class="space-y-4">
+                <p class="text-slate-600">No player account linked to this user.</p>
 
-              <p :if={@player_search != "" && @player_results == []} class="text-slate-500 text-sm">
-                No players found matching "{@player_search}"
-              </p>
-            </div>
-          <% end %>
+                <.form
+                  for={@player_search_form}
+                  id="player-search-form"
+                  phx-change="search_players"
+                  phx-submit="search_players"
+                >
+                  <.input
+                    field={@player_search_form[:query]}
+                    type="search"
+                    label="Search for player by name"
+                    placeholder="Start typing player name..."
+                    phx-debounce="300"
+                  />
+                </.form>
+
+                <div :if={@player_results != []} class="border border-slate-300 rounded-lg divide-y">
+                  <div
+                    :for={player <- @player_results}
+                    class="p-3 flex items-center justify-between hover:bg-slate-50"
+                  >
+                    <div class="flex-1">
+                      <span class="font-medium">{player.name}</span>
+                      <%= if player.user do %>
+                        <span class="text-sm text-amber-600 ml-2">
+                          (already linked to {player.user.email})
+                        </span>
+                      <% end %>
+                    </div>
+                    <.button
+                      size="sm"
+                      color="primary"
+                      phx-click="link_player"
+                      phx-value-player-id={player.id}
+                      disabled={player.user != nil}
+                    >
+                      Link
+                    </.button>
+                  </div>
+                </div>
+
+                <p :if={@player_search != "" && @player_results == []} class="text-slate-500 text-sm">
+                  No players found matching "{@player_search}"
+                </p>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
     </Layouts.app>

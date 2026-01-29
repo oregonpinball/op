@@ -9,129 +9,131 @@ defmodule OPWeb.Admin.SeasonLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Seasons
-        <:subtitle>Manage seasons in the system</:subtitle>
-        <:actions>
-          <.button navigate={~p"/admin/seasons/new"} color="primary">
-            <.icon name="hero-plus" class="mr-1" /> New Season
-          </.button>
-        </:actions>
-      </.header>
+      <div class="container mx-auto p-4">
+        <.header>
+          Seasons
+          <:subtitle>Manage seasons in the system</:subtitle>
+          <:actions>
+            <.button navigate={~p"/admin/seasons/new"} color="primary">
+              <.icon name="hero-plus" class="mr-1" /> New Season
+            </.button>
+          </:actions>
+        </.header>
 
-      <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
-        <.form
-          for={@filter_form}
-          id="season-filters"
-          phx-change="filter"
-          phx-submit="filter"
-          class="space-y-4"
-        >
-          <div class="flex gap-4 items-end">
-            <div class="flex-1">
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
+          <.form
+            for={@filter_form}
+            id="season-filters"
+            phx-change="filter"
+            phx-submit="filter"
+            class="space-y-4"
+          >
+            <div class="flex gap-4 items-end">
+              <div class="flex-1">
+                <.input
+                  field={@filter_form[:search]}
+                  type="search"
+                  label="Search seasons"
+                  placeholder="Search by name..."
+                  phx-debounce="300"
+                />
+              </div>
+              <.button
+                type="button"
+                variant="invisible"
+                phx-click="clear_filters"
+                class="mb-2"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear
+              </.button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <.input
-                field={@filter_form[:search]}
-                type="search"
-                label="Search seasons"
-                placeholder="Search by name..."
-                phx-debounce="300"
+                field={@filter_form[:league_id]}
+                type="select"
+                label="League"
+                options={@league_options}
+                prompt="All leagues"
+              />
+              <.input
+                field={@filter_form[:start_date]}
+                type="date"
+                label="From date"
+              />
+              <.input
+                field={@filter_form[:end_date]}
+                type="date"
+                label="To date"
               />
             </div>
-            <.button
-              type="button"
-              variant="invisible"
-              phx-click="clear_filters"
-              class="mb-2"
-            >
-              <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear
-            </.button>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <.input
-              field={@filter_form[:league_id]}
-              type="select"
-              label="League"
-              options={@league_options}
-              prompt="All leagues"
-            />
-            <.input
-              field={@filter_form[:start_date]}
-              type="date"
-              label="From date"
-            />
-            <.input
-              field={@filter_form[:end_date]}
-              type="date"
-              label="To date"
-            />
-          </div>
-        </.form>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-        <span>
-          <%= if @seasons_empty? do %>
-            No seasons found
-          <% else %>
-            Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
-              @pagination.page * @pagination.per_page,
-              @pagination.total_count
-            )} of {@pagination.total_count} seasons
-          <% end %>
-        </span>
-      </div>
-
-      <div id="seasons" phx-update="stream" class="mt-4 space-y-4">
-        <div id="empty-seasons" class="hidden only:block text-center py-8 text-gray-500">
-          No seasons match your filters. Try adjusting your search criteria.
+          </.form>
         </div>
-        <div
-          :for={{id, season} <- @streams.seasons}
-          id={id}
-          class="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
-        >
-          <div class="flex-1">
-            <.link
-              navigate={~p"/admin/seasons/#{season}"}
-              class="text-lg font-semibold text-gray-900 hover:text-blue-600"
-            >
-              {season.name}
-            </.link>
-            <div class="text-sm text-gray-500 mt-1">
-              <span :if={season.start_at}>
-                {Calendar.strftime(season.start_at, "%B %d, %Y")}
-              </span>
-              <span :if={season.end_at}>
-                - {Calendar.strftime(season.end_at, "%B %d, %Y")}
-              </span>
-              <span :if={season.league} class="ml-4">
-                League: {season.league.name}
-              </span>
+
+        <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
+          <span>
+            <%= if @seasons_empty? do %>
+              No seasons found
+            <% else %>
+              Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
+                @pagination.page * @pagination.per_page,
+                @pagination.total_count
+              )} of {@pagination.total_count} seasons
+            <% end %>
+          </span>
+        </div>
+
+        <div id="seasons" phx-update="stream" class="mt-4 space-y-4">
+          <div id="empty-seasons" class="hidden only:block text-center py-8 text-gray-500">
+            No seasons match your filters. Try adjusting your search criteria.
+          </div>
+          <div
+            :for={{id, season} <- @streams.seasons}
+            id={id}
+            class="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
+          >
+            <div class="flex-1">
+              <.link
+                navigate={~p"/admin/seasons/#{season}"}
+                class="text-lg font-semibold text-gray-900 hover:text-blue-600"
+              >
+                {season.name}
+              </.link>
+              <div class="text-sm text-gray-500 mt-1">
+                <span :if={season.start_at}>
+                  {Calendar.strftime(season.start_at, "%B %d, %Y")}
+                </span>
+                <span :if={season.end_at}>
+                  - {Calendar.strftime(season.end_at, "%B %d, %Y")}
+                </span>
+                <span :if={season.league} class="ml-4">
+                  League: {season.league.name}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <.link navigate={~p"/admin/seasons/#{season}/edit"}>
+                <.button variant="invisible">Edit</.button>
+              </.link>
+              <.button
+                variant="invisible"
+                phx-click="delete"
+                phx-value-id={season.id}
+                data-confirm="Are you sure you want to delete this season?"
+              >
+                Delete
+              </.button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <.link navigate={~p"/admin/seasons/#{season}/edit"}>
-              <.button variant="invisible">Edit</.button>
-            </.link>
-            <.button
-              variant="invisible"
-              phx-click="delete"
-              phx-value-id={season.id}
-              data-confirm="Are you sure you want to delete this season?"
-            >
-              Delete
-            </.button>
-          </div>
         </div>
-      </div>
 
-      <.pagination
-        page={@pagination.page}
-        total_pages={@pagination.total_pages}
-        path={~p"/admin/seasons"}
-        params={filter_params_for_pagination(@filter_form)}
-      />
+        <.pagination
+          page={@pagination.page}
+          total_pages={@pagination.total_pages}
+          path={~p"/admin/seasons"}
+          params={filter_params_for_pagination(@filter_form)}
+        />
+      </div>
     </Layouts.app>
     """
   end
