@@ -1,10 +1,106 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <h1>Player Profile</h1>
+  <.header>
+    {@player.name}
+    <:subtitle>Player Profile</:subtitle>
+  </.header>
 
-  <h2 class="">Player: {@player.slug}</h2>
-  <p class="">Profile information and statistics coming soon.</p>
+  <div
+    :if={@rankings == []}
+    class="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-8 text-center"
+  >
+    <p class="text-slate-500">No rankings yet.</p>
+  </div>
 
-  <.link navigate={~p"/"} class="">
-    ← Back to Home
-  </.link>
+  <div :if={@rankings != []} class="mt-8">
+    <%!-- Desktop table --%>
+    <div class="hidden sm:block">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-500">
+          <tr>
+            <th class="pb-3 pr-4 font-medium">Season</th>
+            <th class="pb-3 pr-4 font-medium">League</th>
+            <th class="pb-3 pr-4 font-medium text-right">Rank</th>
+            <th class="pb-3 pr-4 font-medium text-right">Rating</th>
+            <th class="pb-3 pr-4 font-medium text-right">Points</th>
+            <th class="pb-3 font-medium text-right">Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={ranking <- @rankings} class="border-b border-slate-100">
+            <td class="py-3 pr-4">
+              <.link
+                navigate={~p"/seasons/#{ranking.season.slug}"}
+                class="text-emerald-600 hover:text-emerald-700 hover:underline"
+              >
+                {ranking.season.name}
+              </.link>
+            </td>
+            <td class="py-3 pr-4 text-slate-600">{ranking.season.league.name}</td>
+            <td class="py-3 pr-4 text-right">
+              <span :if={ranking.ranking == 1} class="text-yellow-500" title="1st place">🥇</span>
+              <span :if={ranking.ranking == 2} class="text-slate-400" title="2nd place">🥈</span>
+              <span :if={ranking.ranking == 3} class="text-amber-600" title="3rd place">🥉</span>
+              <span :if={ranking.ranking > 3}>#{ranking.ranking}</span>
+            </td>
+            <td class="py-3 pr-4 text-right text-slate-600">
+              {Float.round(ranking.rating, 0) |> trunc()}
+            </td>
+            <td class="py-3 pr-4 text-right text-slate-600">
+              {Float.round(ranking.total_points, 1)}
+            </td>
+            <td class="py-3 text-right text-slate-600">{ranking.event_count}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <%!-- Mobile cards --%>
+    <div class="sm:hidden space-y-4">
+      <div
+        :for={ranking <- @rankings}
+        class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      >
+        <div class="flex items-center justify-between">
+          <.link
+            navigate={~p"/seasons/#{ranking.season.slug}"}
+            class="font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+          >
+            {ranking.season.name}
+          </.link>
+          <span class="text-sm text-slate-500">{ranking.season.league.name}</span>
+        </div>
+        <div class="mt-3 grid grid-cols-4 gap-2 text-center text-sm">
+          <div>
+            <div class="text-slate-400">Rank</div>
+            <div class="font-medium">
+              <span :if={ranking.ranking == 1}>🥇</span>
+              <span :if={ranking.ranking == 2}>🥈</span>
+              <span :if={ranking.ranking == 3}>🥉</span>
+              <span :if={ranking.ranking > 3}>#{ranking.ranking}</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-slate-400">Rating</div>
+            <div class="font-medium">{Float.round(ranking.rating, 0) |> trunc()}</div>
+          </div>
+          <div>
+            <div class="text-slate-400">Points</div>
+            <div class="font-medium">{Float.round(ranking.total_points, 1)}</div>
+          </div>
+          <div>
+            <div class="text-slate-400">Events</div>
+            <div class="font-medium">{ranking.event_count}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <.link navigate={~p"/"}>
+      <.button variant="invisible">
+        <.icon name="hero-arrow-left" class="mr-1" /> Back to Home
+      </.button>
+    </.link>
+  </div>
 </Layouts.app>

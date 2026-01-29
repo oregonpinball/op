@@ -60,4 +60,20 @@ defmodule OP.LeaguesFixtures do
 
     season
   end
+
+  def ranking_fixture(player, season, attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        player_id: player.id,
+        season_id: season.id,
+        ranking: 1,
+        rating: 1500.0,
+        total_points: 100.0,
+        event_count: 5
+      })
+
+    %OP.Leagues.Ranking{}
+    |> OP.Leagues.Ranking.changeset(attrs)
+    |> OP.Repo.insert!()
+  end
 end
