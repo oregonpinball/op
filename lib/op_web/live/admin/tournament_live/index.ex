@@ -216,6 +216,9 @@ defmodule OPWeb.Admin.TournamentLive.Index do
           <.icon :if={@sort_dir == "asc"} name="hero-chevron-up" class="w-3 h-3" />
           <.icon :if={@sort_dir == "desc"} name="hero-chevron-down" class="w-3 h-3" />
         </span>
+        <span :if={@field != @sort_by} class="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+          <.icon name="hero-chevron-up-down" class="w-3 h-3" />
+        </span>
       </.link>
     </th>
     """
