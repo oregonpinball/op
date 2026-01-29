@@ -50,7 +50,12 @@
           <tbody>
             <tr :for={tournament <- @tournaments} class="border-b border-slate-100">
               <td class="py-3 pr-4">
-                {tournament.name}
+                <.link
+                  navigate={~p"/tournaments/#{tournament.slug}"}
+                  class="text-emerald-600 hover:text-emerald-700 hover:underline"
+                >
+                  {tournament.name}
+                </.link>
               </td>
               <td class="py-3 pr-4">
                 <.link
@@ -77,9 +82,12 @@
           :for={tournament <- @tournaments}
           class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
         >
-          <div class="font-medium text-slate-800">
+          <.link
+            navigate={~p"/tournaments/#{tournament.slug}"}
+            class="font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+          >
             {tournament.name}
-          </div>
+          </.link>
           <div :if={tournament.season} class="mt-1 text-sm">
             <.link
               navigate={~p"/seasons/#{tournament.season.slug}"}
