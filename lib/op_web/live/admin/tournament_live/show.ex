@@ -53,6 +53,12 @@ defmodule OPWeb.Admin.TournamentLive.Show do
                 {Phoenix.Naming.humanize(@tournament.qualifying_format)}
               </dd>
             </div>
+            <div>
+              <dt class="text-sm text-zinc-500">Finals Format</dt>
+              <dd class="text-zinc-900 capitalize">
+                {Phoenix.Naming.humanize(@tournament.finals_format)}
+              </dd>
+            </div>
             <div :if={@tournament.slug}>
               <dt class="text-sm text-zinc-500">Slug</dt>
               <dd class="text-zinc-900 font-mono text-sm">{@tournament.slug}</dd>
