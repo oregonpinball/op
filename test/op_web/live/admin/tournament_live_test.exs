@@ -130,6 +130,38 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert html =~ "Finals Format Tournament"
     end
 
+    test "creates a tournament with status", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      start_at =
+        DateTime.utc_now()
+        |> DateTime.add(1, :day)
+        |> DateTime.truncate(:second)
+        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "name" => "Sanctioned Tournament",
+          "start_at" => start_at,
+          "status" => "sanctioned"
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      html = render(lv)
+      assert html =~ "Tournament created successfully"
+      assert html =~ "Sanctioned Tournament"
+    end
+
+    test "defaults status to draft", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/new")
+
+      assert html =~ "Draft"
+    end
+
     test "shows validation errors with invalid data", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
 
@@ -178,6 +210,23 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       |> form("#tournament-form", %{
         "tournament" => %{
           "finals_format" => "double_elimination"
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      html = render(lv)
+      assert html =~ "Tournament updated successfully"
+    end
+
+    test "updates tournament status", %{conn: conn, tournament: tournament} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "status" => "pending_review"
         }
       })
       |> render_submit()
