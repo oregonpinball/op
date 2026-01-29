@@ -39,6 +39,23 @@ defmodule OP.Tournaments.Tournament do
       ],
       default: :none
 
+    field :finals_format, Ecto.Enum,
+      values: [
+        :single_elimination,
+        :double_elimination,
+        :strike_knockout_standard,
+        :strike_knockout_fair,
+        :strike_knockout_progressive,
+        :group_match_play,
+        :ladder,
+        :amazing_race,
+        :flip_frenzy,
+        :target_match_play,
+        :max_match_play,
+        :none
+      ],
+      default: :none
+
     field :meaningful_games, :float
 
     belongs_to :organizer, User
@@ -61,6 +78,7 @@ defmodule OP.Tournaments.Tournament do
       :description,
       :start_at,
       :qualifying_format,
+      :finals_format,
       :meaningful_games,
       :organizer_id,
       :season_id,
