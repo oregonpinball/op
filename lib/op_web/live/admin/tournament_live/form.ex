@@ -58,6 +58,13 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         />
 
         <.input
+          field={@form[:finals_format]}
+          type="select"
+          label="Finals Format"
+          options={@finals_format_options}
+        />
+
+        <.input
           field={@form[:meaningful_games]}
           type="number"
           label="Meaningful Games"
@@ -275,10 +282,26 @@ defmodule OPWeb.Admin.TournamentLive.Form do
       {"Hybrid", :hybrid}
     ]
 
+    finals_format_options = [
+      {"None", :none},
+      {"Single Elimination", :single_elimination},
+      {"Double Elimination", :double_elimination},
+      {"Strike Knockout Standard", :strike_knockout_standard},
+      {"Strike Knockout Fair", :strike_knockout_fair},
+      {"Strike Knockout Progressive", :strike_knockout_progressive},
+      {"Group Match Play", :group_match_play},
+      {"Ladder", :ladder},
+      {"Amazing Race", :amazing_race},
+      {"Flip Frenzy", :flip_frenzy},
+      {"Target Match Play", :target_match_play},
+      {"Max Match Play", :max_match_play}
+    ]
+
     socket
     |> assign(:season_options, season_options)
     |> assign(:location_options, location_options)
     |> assign(:qualifying_format_options, qualifying_format_options)
+    |> assign(:finals_format_options, finals_format_options)
   end
 
   @impl true

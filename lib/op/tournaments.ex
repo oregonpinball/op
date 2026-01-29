@@ -348,7 +348,9 @@ defmodule OP.Tournaments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_tournament(_scope, attrs \\ %{}) do
+  def create_tournament(scope, attrs \\ %{}) do
+    attrs = maybe_put_user_tracking(attrs, scope, :create)
+
     %Tournament{}
     |> Tournament.changeset(attrs)
     |> Repo.insert()
@@ -372,6 +374,7 @@ defmodule OP.Tournaments do
   def update_tournament(scope, %Tournament{} = tournament, attrs) do
     old_meaningful_games = tournament.meaningful_games
     old_season_id = tournament.season_id
+    attrs = maybe_put_user_tracking(attrs, scope, :update)
 
     result =
       tournament
@@ -509,6 +512,28 @@ defmodule OP.Tournaments do
     Standing
     |> where([s], s.tournament_id == ^tournament_id)
     |> Repo.delete_all()
+  end
+
+  defp maybe_put_user_tracking(attrs, %{user: %{id: user_id}}, :create) do
+    attrs
+    |> put_attr(:created_by_id, user_id)
+    |> put_attr(:updated_by_id, user_id)
+  end
+
+  defp maybe_put_user_tracking(attrs, %{user: %{id: user_id}}, :update) do
+    put_attr(attrs, :updated_by_id, user_id)
+  end
+
+  defp maybe_put_user_tracking(attrs, _scope, _action), do: attrs
+
+  defp put_attr(attrs, key, value) when is_map(attrs) do
+    string_keys? = attrs |> Map.keys() |> Enum.any?(&is_binary/1)
+
+    if string_keys? do
+      Map.put(attrs, to_string(key), value)
+    else
+      Map.put(attrs, key, value)
+    end
   end
 
   defp maybe_recalculate_season_rankings(scope, old_season_id, new_season_id) do

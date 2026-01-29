@@ -25,6 +25,11 @@ defmodule OPWeb.TournamentLive.Show do
                       {@tournament.qualifying_format}
                     </.badge>
                   <% end %>
+                  <%= if @tournament.finals_format != :none do %>
+                    <.badge color="secondary">
+                      {@tournament.finals_format}
+                    </.badge>
+                  <% end %>
                   <.link
                     navigate={~p"/seasons/#{@tournament.season.slug}"}
                     class="min-w-0 max-w-[200px]"
