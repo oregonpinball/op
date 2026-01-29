@@ -253,6 +253,57 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
   end
 
+  describe "Per-page selector" do
+    setup %{conn: conn} do
+      user = admin_user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "renders with default value of 25", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments")
+
+      assert html =~ "Per page:"
+      assert html =~ ~s(value="25" selected)
+    end
+
+    test "changing per_page updates URL and limits results", %{conn: conn} do
+      for i <- 1..15, do: tournament_fixture(%{name: "Tournament #{i}"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments")
+
+      lv
+      |> element("form[phx-change=change_per_page]")
+      |> render_change(%{"per_page" => "10"})
+
+      path = assert_patch(lv)
+      assert path =~ "per_page=10"
+
+      html = render(lv)
+      assert html =~ "of 15 tournaments"
+      assert html =~ "1 to 10"
+    end
+
+    test "per_page persists with search", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments?per_page=10")
+
+      lv
+      |> form("#tournament-filters", %{"filters" => %{"search" => "test"}})
+      |> render_change()
+
+      path = assert_patch(lv)
+      assert path =~ "per_page=10"
+      assert path =~ "search=test"
+    end
+
+    test "per_page persists across pagination", %{conn: conn} do
+      for i <- 1..15, do: tournament_fixture(%{name: "Tournament #{i}"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments?per_page=10")
+
+      assert html =~ ~r/page=2[^"]*per_page=10|per_page=10[^"]*page=2/
+    end
+  end
+
   describe "Delete Tournament" do
     setup %{conn: conn} do
       user = admin_user_fixture()
@@ -266,7 +317,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert html =~ tournament.name
 
       lv
-      |> element("button", "Delete")
+      |> element("button[phx-click=delete]")
       |> render_click()
 
       refute render(lv) =~ tournament.name

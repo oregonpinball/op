@@ -74,10 +74,13 @@ defmodule OP.Tournaments do
     league_id = Keyword.get(opts, :league_id)
     status = Keyword.get(opts, :status)
 
+    sort_by = Keyword.get(opts, :sort_by, :start_at)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
+
     base_query =
       Tournament
       |> preload([:organizer, [season: :league], :location, :standings])
-      |> order_by([t], desc: t.start_at)
+      |> apply_sort(sort_by, sort_dir)
 
     filtered_query =
       base_query
@@ -195,6 +198,29 @@ defmodule OP.Tournaments do
   defp filter_by_status(query, "past") do
     now = DateTime.utc_now()
     where(query, [t], t.start_at < ^now)
+  end
+
+  @allowed_sort_fields ~w(name start_at status)a
+
+  defp apply_sort(query, sort_by, sort_dir)
+       when sort_by in @allowed_sort_fields and sort_dir in [:asc, :desc] do
+    order_by(query, [t], [{^sort_dir, field(t, ^sort_by)}])
+  end
+
+  defp apply_sort(query, :location, sort_dir) when sort_dir in [:asc, :desc] do
+    from t in query,
+      left_join: l in assoc(t, :location),
+      order_by: [{^sort_dir, l.name}]
+  end
+
+  defp apply_sort(query, :organizer, sort_dir) when sort_dir in [:asc, :desc] do
+    from t in query,
+      left_join: u in assoc(t, :organizer),
+      order_by: [{^sort_dir, u.email}]
+  end
+
+  defp apply_sort(query, _sort_by, _sort_dir) do
+    order_by(query, [t], desc: t.start_at)
   end
 
   @doc """
