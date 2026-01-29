@@ -52,6 +52,13 @@ defmodule OPWeb.Admin.SeasonLive.Form do
             required
           />
 
+          <.input
+            field={@form[:ranking_calculation_method]}
+            type="select"
+            label="Ranking Calculation Method"
+            options={[{"OPPRv1.0", :oppr_v1_0}]}
+          />
+
           <div class="flex items-center justify-end gap-3 pt-6">
             <.link navigate={~p"/admin/seasons"}>
               <.button type="button" variant="invisible">

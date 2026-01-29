@@ -40,6 +40,12 @@ defmodule OPWeb.Admin.SeasonLive.Show do
                 <dt class="text-sm text-zinc-500">Slug</dt>
                 <dd class="text-zinc-900 font-mono text-sm">{@season.slug}</dd>
               </div>
+              <div>
+                <dt class="text-sm text-zinc-500">Ranking Calculation Method</dt>
+                <dd class="text-zinc-900">
+                  {ranking_calculation_method_label(@season.ranking_calculation_method)}
+                </dd>
+              </div>
             </dl>
           </div>
 
@@ -283,6 +289,9 @@ defmodule OPWeb.Admin.SeasonLive.Show do
   defp sort_indicator(_column, _sort_by, _sort_dir) do
     Phoenix.HTML.raw(~s(<span class="text-zinc-300">&#9650;</span>))
   end
+
+  defp ranking_calculation_method_label(:oppr_v1_0), do: "OPPRv1.0"
+  defp ranking_calculation_method_label(_), do: "Unknown"
 
   defp format_points(nil), do: "0.00"
   defp format_points(points), do: :erlang.float_to_binary(points / 1, decimals: 2)

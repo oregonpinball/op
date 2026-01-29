@@ -18,6 +18,10 @@ defmodule OP.Leagues.Season do
     field :start_at, :utc_datetime
     field :end_at, :utc_datetime
 
+    field :ranking_calculation_method, Ecto.Enum,
+      values: [:oppr_v1_0],
+      default: :oppr_v1_0
+
     belongs_to :league, League
     has_many :rankings, Ranking
 
@@ -27,7 +31,15 @@ defmodule OP.Leagues.Season do
   @doc false
   def changeset(season, attrs) do
     season
-    |> cast(attrs, [:name, :description, :slug, :start_at, :end_at, :league_id])
+    |> cast(attrs, [
+      :name,
+      :description,
+      :slug,
+      :start_at,
+      :end_at,
+      :league_id,
+      :ranking_calculation_method
+    ])
     |> generate_slug()
     |> validate_required([:name, :league_id])
     |> validate_length(:name, min: 1, max: 255)
