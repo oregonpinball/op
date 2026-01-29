@@ -317,7 +317,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       assert html =~ tournament.name
 
       lv
-      |> element("button", "Delete")
+      |> element("button[phx-click=delete]")
       |> render_click()
 
       refute render(lv) =~ tournament.name

@@ -101,55 +101,80 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         </form>
       </div>
 
-      <div id="tournaments" phx-update="stream" class="mt-4 space-y-4">
-        <div id="empty-tournaments" class="hidden only:block text-center py-8 text-gray-500">
-          No tournaments match your filters. Try adjusting your search criteria.
-        </div>
-        <div
-          :for={{id, tournament} <- @streams.tournaments}
-          id={id}
-          class="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
-        >
-          <div class="flex-1">
-            <.link
-              navigate={~p"/admin/tournaments/#{tournament}"}
-              class="text-lg font-semibold text-gray-900 hover:text-blue-600"
+      <div class="mt-4 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
+          <thead class="bg-gray-50">
+            <tr>
+              <.sort_header field="name" label="Name" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
+              <.sort_header field="start_at" label="Date" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
+              <.sort_header field="location" label="Location" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
+              <.sort_header field="status" label="Status" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
+              <.sort_header field="organizer" label="Organizer" sort_by={@sort_by} sort_dir={@sort_dir} params={@sort_params} />
+              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tournaments" phx-update="stream" class="divide-y divide-gray-200">
+            <tr id="empty-tournaments" class="hidden only:table-row">
+              <td colspan="6" class="text-center py-8 text-gray-500">
+                No tournaments match your filters. Try adjusting your search criteria.
+              </td>
+            </tr>
+            <tr
+              :for={{id, tournament} <- @streams.tournaments}
+              id={id}
+              class="hover:bg-gray-50"
             >
-              {tournament.name}
-            </.link>
-            <div class="text-sm text-gray-500 mt-1">
-              <span :if={tournament.start_at}>
-                {Calendar.strftime(tournament.start_at, "%B %d, %Y at %I:%M %p")}
-              </span>
-              <span :if={tournament.season} class="ml-4">
-                Season: {tournament.season.name}
-              </span>
-              <span :if={tournament.location} class="ml-4">
-                Location: {tournament.location.name}
-              </span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <.link patch={~p"/admin/tournaments/#{tournament}/edit"}>
-              <.button variant="invisible">Edit</.button>
-            </.link>
-            <.button
-              variant="invisible"
-              phx-click="delete"
-              phx-value-id={tournament.id}
-              data-confirm="Are you sure you want to delete this tournament?"
-            >
-              Delete
-            </.button>
-          </div>
-        </div>
+              <td class="px-4 py-3 text-sm">
+                <.link
+                  navigate={~p"/admin/tournaments/#{tournament}"}
+                  class="font-medium text-gray-900 hover:text-blue-600"
+                >
+                  {tournament.name}
+                </.link>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500">
+                {if tournament.location, do: tournament.location.name}
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <span class={[
+                  "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                  status_badge_class(tournament.status)
+                ]}>
+                  {tournament.status}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500">
+                {if tournament.organizer, do: tournament.organizer.email}
+              </td>
+              <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                <.link patch={~p"/admin/tournaments/#{tournament}/edit"}>
+                  <.button variant="invisible" size="sm">
+                    <.icon name="hero-pencil-square" class="w-4 h-4" />
+                  </.button>
+                </.link>
+                <.button
+                  variant="invisible"
+                  size="sm"
+                  phx-click="delete"
+                  phx-value-id={tournament.id}
+                  data-confirm="Are you sure you want to delete this tournament?"
+                >
+                  <.icon name="hero-trash" class="w-4 h-4" />
+                </.button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <.pagination
         page={@pagination.page}
         total_pages={@pagination.total_pages}
         path={~p"/admin/tournaments"}
-        params={filter_params_for_pagination(@filter_form, @pagination.per_page)}
+        params={filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)}
       />
 
       <.modal
@@ -171,6 +196,37 @@ defmodule OPWeb.Admin.TournamentLive.Index do
     </Layouts.app>
     """
   end
+
+  attr :field, :string, required: true
+  attr :label, :string, required: true
+  attr :sort_by, :string, required: true
+  attr :sort_dir, :string, required: true
+  attr :params, :map, required: true
+
+  defp sort_header(assigns) do
+    next_dir = if assigns.field == assigns.sort_by and assigns.sort_dir == "asc", do: "desc", else: "asc"
+    params = Map.merge(assigns.params, %{"sort_by" => assigns.field, "sort_dir" => next_dir})
+    assigns = assign(assigns, :href_params, params)
+
+    ~H"""
+    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      <.link patch={~p"/admin/tournaments?#{@href_params}"} class="group inline-flex items-center gap-1 hover:text-gray-700">
+        {@label}
+        <span :if={@field == @sort_by} class="text-gray-400">
+          <.icon :if={@sort_dir == "asc"} name="hero-chevron-up" class="w-3 h-3" />
+          <.icon :if={@sort_dir == "desc"} name="hero-chevron-down" class="w-3 h-3" />
+        </span>
+      </.link>
+    </th>
+    """
+  end
+
+  defp status_badge_class(:draft), do: "bg-gray-100 text-gray-800"
+  defp status_badge_class(:scheduled), do: "bg-blue-100 text-blue-800"
+  defp status_badge_class(:in_progress), do: "bg-yellow-100 text-yellow-800"
+  defp status_badge_class(:completed), do: "bg-green-100 text-green-800"
+  defp status_badge_class(:cancelled), do: "bg-red-100 text-red-800"
+  defp status_badge_class(_), do: "bg-gray-100 text-gray-800"
 
   @impl true
   def mount(_params, _session, socket) do
@@ -214,6 +270,8 @@ defmodule OPWeb.Admin.TournamentLive.Index do
     |> assign(:tournament, nil)
   end
 
+  @allowed_sort_fields ~w(name start_at location status organizer)
+
   defp apply_filters(socket, params) do
     page = parse_page(params["page"])
     per_page = parse_per_page(params["per_page"])
@@ -221,6 +279,8 @@ defmodule OPWeb.Admin.TournamentLive.Index do
     location_id = params["location_id"] || ""
     start_date = params["start_date"] || ""
     end_date = params["end_date"] || ""
+    sort_by = parse_sort_by(params["sort_by"])
+    sort_dir = parse_sort_dir(params["sort_dir"])
 
     filter_params = %{
       "search" => search,
@@ -237,14 +297,41 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         search: non_empty(search),
         location_id: non_empty(location_id),
         start_date: non_empty(start_date),
-        end_date: non_empty(end_date)
+        end_date: non_empty(end_date),
+        sort_by: String.to_existing_atom(sort_by),
+        sort_dir: String.to_existing_atom(sort_dir)
       )
 
     socket
     |> assign(:filter_form, to_form(filter_params, as: :filters))
     |> assign(:pagination, pagination)
+    |> assign(:sort_by, sort_by)
+    |> assign(:sort_dir, sort_dir)
+    |> assign(:sort_params, sort_params_for_url(filter_params, per_page, sort_by, sort_dir))
     |> assign(:tournaments_empty?, tournaments == [])
     |> stream(:tournaments, tournaments, reset: true)
+  end
+
+  defp parse_sort_by(val) when is_binary(val) do
+    if val in @allowed_sort_fields, do: val, else: "start_at"
+  end
+
+  defp parse_sort_by(_), do: "start_at"
+
+  defp parse_sort_dir("asc"), do: "asc"
+  defp parse_sort_dir("desc"), do: "desc"
+  defp parse_sort_dir(_), do: "desc"
+
+  defp sort_params_for_url(filter_params, per_page, sort_by, sort_dir) do
+    base =
+      filter_params
+      |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
+      |> Map.new()
+
+    base = if per_page != @default_per_page, do: Map.put(base, "per_page", per_page), else: base
+    base = if sort_by != "start_at", do: Map.put(base, "sort_by", sort_by), else: base
+    base = if sort_dir != "desc", do: Map.put(base, "sort_dir", sort_dir), else: base
+    base
   end
 
   defp parse_page(nil), do: 1
@@ -273,17 +360,21 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   defp current_filter_params(socket) do
     form = socket.assigns.filter_form
     per_page = socket.assigns.pagination.per_page
+    sort_by = socket.assigns.sort_by
+    sort_dir = socket.assigns.sort_dir
 
     %{
       search: non_empty(form[:search].value),
       location_id: non_empty(form[:location_id].value),
       start_date: non_empty(form[:start_date].value),
       end_date: non_empty(form[:end_date].value),
-      per_page: if(per_page != @default_per_page, do: per_page)
+      per_page: if(per_page != @default_per_page, do: per_page),
+      sort_by: if(sort_by != "start_at", do: sort_by),
+      sort_dir: if(sort_dir != "desc", do: sort_dir)
     }
   end
 
-  defp filter_params_for_pagination(filter_form, per_page) do
+  defp filter_params_for_pagination(filter_form, per_page, sort_by, sort_dir) do
     params = %{
       "search" => filter_form[:search].value,
       "location_id" => filter_form[:location_id].value,
@@ -295,6 +386,9 @@ defmodule OPWeb.Admin.TournamentLive.Index do
       if per_page != @default_per_page,
         do: Map.put(params, "per_page", per_page),
         else: params
+
+    params = if sort_by != "start_at", do: Map.put(params, "sort_by", sort_by), else: params
+    params = if sort_dir != "desc", do: Map.put(params, "sort_dir", sort_dir), else: params
 
     params
     |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
@@ -316,7 +410,9 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         search: params.search,
         location_id: params.location_id,
         start_date: params.start_date,
-        end_date: params.end_date
+        end_date: params.end_date,
+        sort_by: sort_by_atom(params),
+        sort_dir: sort_dir_atom(params)
       )
 
     {:noreply,
@@ -329,6 +425,8 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   @impl true
   def handle_event("filter", %{"filters" => filter_params}, socket) do
     per_page = socket.assigns.pagination.per_page
+    sort_by = socket.assigns.sort_by
+    sort_dir = socket.assigns.sort_dir
 
     params =
       filter_params
@@ -341,13 +439,16 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         do: Map.put(params, "per_page", per_page),
         else: params
 
+    params = if sort_by != "start_at", do: Map.put(params, "sort_by", sort_by), else: params
+    params = if sort_dir != "desc", do: Map.put(params, "sort_dir", sort_dir), else: params
+
     {:noreply, push_patch(socket, to: ~p"/admin/tournaments?#{params}")}
   end
 
   def handle_event("change_per_page", %{"per_page" => per_page}, socket) do
     params =
       socket.assigns.filter_form
-      |> filter_params_for_pagination(parse_per_page(per_page))
+      |> filter_params_for_pagination(parse_per_page(per_page), socket.assigns.sort_by, socket.assigns.sort_dir)
       |> Map.put("page", "1")
       |> Map.put("per_page", per_page)
 
@@ -372,14 +473,16 @@ defmodule OPWeb.Admin.TournamentLive.Index do
         search: params.search,
         location_id: params.location_id,
         start_date: params.start_date,
-        end_date: params.end_date
+        end_date: params.end_date,
+        sort_by: sort_by_atom(params),
+        sort_dir: sort_dir_atom(params)
       )
 
     socket =
       if tournaments == [] and pagination.page > 1 do
         params =
           socket.assigns.filter_form
-          |> filter_params_for_pagination(socket.assigns.pagination.per_page)
+          |> filter_params_for_pagination(socket.assigns.pagination.per_page, socket.assigns.sort_by, socket.assigns.sort_dir)
           |> Map.put("page", pagination.page - 1)
 
         push_patch(socket, to: ~p"/admin/tournaments?#{params}")
@@ -392,4 +495,12 @@ defmodule OPWeb.Admin.TournamentLive.Index do
 
     {:noreply, socket}
   end
+
+  defp sort_by_atom(%{sort_by: nil}), do: :start_at
+  defp sort_by_atom(%{sort_by: val}) when is_binary(val), do: String.to_existing_atom(val)
+  defp sort_by_atom(_), do: :start_at
+
+  defp sort_dir_atom(%{sort_dir: nil}), do: :desc
+  defp sort_dir_atom(%{sort_dir: val}) when is_binary(val), do: String.to_existing_atom(val)
+  defp sort_dir_atom(_), do: :desc
 end
