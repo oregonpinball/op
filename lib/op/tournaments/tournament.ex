@@ -61,6 +61,8 @@ defmodule OP.Tournaments.Tournament do
     belongs_to :organizer, User
     belongs_to :season, Season
     belongs_to :location, Location
+    belongs_to :created_by, User
+    belongs_to :updated_by, User
 
     has_many :standings, Standing
 
@@ -83,7 +85,9 @@ defmodule OP.Tournaments.Tournament do
       :organizer_id,
       :season_id,
       :location_id,
-      :slug
+      :slug,
+      :created_by_id,
+      :updated_by_id
     ])
     |> generate_slug()
     |> cast_assoc(:standings,
