@@ -301,7 +301,9 @@ defmodule OP.Leagues do
 
   """
   def get_season_by_slug(_scope, slug) when is_binary(slug) do
-    Repo.get_by(Season, slug: slug)
+    Season
+    |> Repo.get_by(slug: slug)
+    |> Repo.preload(:league)
   end
 
   @doc """
