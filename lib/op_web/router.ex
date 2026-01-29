@@ -22,6 +22,24 @@ defmodule OPWeb.Router do
     storybook_assets()
   end
 
+  #   _____ ____
+  #  |_   _|  _ \
+  #    | | | | | |
+  #    | | | |_| |
+  #    |_| |____/
+  #
+  # Tournament Director / Admin routes
+  # NOTE: Must be defined before public /tournaments/:slug route
+  scope "/", OPWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_admin,
+      on_mount: [{OPWeb.UserAuth, :require_admin}] do
+      live "/tournaments/submit", TournamentLive.Submit, :new
+      live "/tournaments/submit/:id/edit", TournamentLive.Submit, :edit
+    end
+  end
+
   #   _____     _     _ _
   # | ___ \    | |   | (_)
   # | |_/ /   _| |__ | |_  ___
