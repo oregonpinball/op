@@ -471,4 +471,23 @@ defmodule OP.Leagues do
   defp apply_ranking_sort(query, _default, dir) do
     order_by(query, [r], [{^dir, r.ranking}])
   end
+
+  @doc """
+  Returns the list of rankings for a player, ordered by ranking position.
+
+  Preloads season and its league.
+
+  ## Examples
+
+      iex> list_rankings_by_player(current_scope, player_id)
+      [%Ranking{}, ...]
+
+  """
+  def list_rankings_by_player(_scope, player_id) do
+    Ranking
+    |> where([r], r.player_id == ^player_id)
+    |> order_by([r], asc: r.ranking)
+    |> preload(season: :league)
+    |> Repo.all()
+  end
 end
