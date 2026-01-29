@@ -50,6 +50,9 @@ defmodule OPWeb do
 
       def is_system_admin?(_), do: false
 
+      def is_admin?(%OP.Accounts.Scope{} = scope), do: scope.role in [:system_admin, :td]
+      def is_admin?(_), do: false
+
       unquote(verified_routes())
     end
   end
@@ -105,6 +108,9 @@ defmodule OPWeb do
       alias OPWeb.Landing
       alias OPWeb.Fir
       alias OPWeb.Rankings
+
+      def is_admin?(%OP.Accounts.Scope{} = scope), do: scope.role in [:system_admin, :td]
+      def is_admin?(_), do: false
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
