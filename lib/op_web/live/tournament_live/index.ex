@@ -99,7 +99,7 @@ defmodule OPWeb.TournamentLive.Index do
             <h1 class="text-7xl font-bold">Events</h1>
             <.button
               :if={is_admin?(@current_scope)}
-              href={~p"/coming-soon"}
+              href={~p"/tournaments/submit"}
               color="primary"
               class="whitespace-nowrap"
             >
