@@ -42,7 +42,27 @@ defmodule OPWeb.UserLive.Registration do
                   checked={@agreed}
                   phx-click="toggle_agreed"
                   class="rounded border-zinc-300"
-                /> I agree to the Code of Conduct, Terms of Service, and Privacy Policy
+                />
+                I agree to the <.link
+                  href="/f/rules/code-of-conduct"
+                  target="_blank"
+                  class="text-blue-600 underline"
+                >
+                  Code of Conduct
+                </.link>, <.link
+                  href="/f/rules/terms-of-service"
+                  target="_blank"
+                  class="text-blue-600 underline"
+                >
+                  Terms of Service
+                </.link>, and
+                <.link
+                  href="/f/rules/privacy-policy"
+                  target="_blank"
+                  class="text-blue-600 underline"
+                >
+                  Privacy Policy
+                </.link>
               </label>
             </div>
 

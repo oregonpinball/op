@@ -40,7 +40,10 @@ defmodule OPWeb.UserLive.RegistrationTest do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
 
       assert html =~ "disabled"
-      assert html =~ "I agree to the Code of Conduct, Terms of Service, and Privacy Policy"
+      assert html =~ "I agree to the"
+      assert html =~ "Code of Conduct"
+      assert html =~ "Terms of Service"
+      assert html =~ "Privacy Policy"
     end
 
     test "creates account but does not log in", %{conn: conn} do
