@@ -17,75 +17,68 @@ defmodule OPWeb.My.TournamentLive.Index do
         </.header>
 
         <%!-- Organized Section --%>
-        <h2 class="mt-8 text-lg font-semibold text-gray-900">Tournaments Organized</h2>
-        <.section_filters
-          id="organized"
-          filter_form={@org_filter_form}
-          location_options={@location_options}
-          prefix="org"
-        />
-        <.section_summary
-          empty?={@org_empty?}
-          pagination={@org_pagination}
-          prefix="org"
-          label="organized tournaments"
-        />
-        <.organized_table
-          streams={@streams}
-          sort_by={@org_sort_by}
-          sort_dir={@org_sort_dir}
-          sort_params={@org_sort_params}
-        />
-        <.pagination
-          page={@org_pagination.page}
-          total_pages={@org_pagination.total_pages}
-          path={~p"/my/tournaments"}
-          params={
-            pagination_params(
-              @org_filter_form,
-              @org_pagination.per_page,
-              @org_sort_by,
-              @org_sort_dir,
-              "org"
-            )
-          }
-        />
+        <section class="mt-12">
+          <h2 class="text-2xl font-bold text-gray-900">Tournaments Organized</h2>
+          <.section_filters
+            id="organized"
+            filter_form={@org_filter_form}
+            location_options={@location_options}
+            prefix="org"
+          />
+          <.section_summary
+            empty?={@org_empty?}
+            pagination={@org_pagination}
+            prefix="org"
+            label="organized tournaments"
+          />
+          <.organized_cards streams={@streams} />
+          <.pagination
+            page={@org_pagination.page}
+            total_pages={@org_pagination.total_pages}
+            path={~p"/my/tournaments"}
+            params={
+              pagination_params(
+                @org_filter_form,
+                @org_pagination.per_page,
+                @org_sort_by,
+                @org_sort_dir,
+                "org"
+              )
+            }
+          />
+        </section>
 
         <%!-- Played Section --%>
-        <h2 class="mt-12 text-lg font-semibold text-gray-900">Tournaments Played</h2>
-        <.section_filters
-          id="played"
-          filter_form={@played_filter_form}
-          location_options={@location_options}
-          prefix="played"
-        />
-        <.section_summary
-          empty?={@played_empty?}
-          pagination={@played_pagination}
-          prefix="played"
-          label="played tournaments"
-        />
-        <.played_table
-          streams={@streams}
-          sort_by={@played_sort_by}
-          sort_dir={@played_sort_dir}
-          sort_params={@played_sort_params}
-          user_player_id={@user_player_id}
-        />
-        <.pagination
-          page={@played_pagination.page}
-          total_pages={@played_pagination.total_pages}
-          path={~p"/my/tournaments"}
-          params={
-            pagination_params(
-              @played_filter_form,
-              @played_pagination.per_page,
-              @played_sort_by,
-              @played_sort_dir,
-              "played"
-            )
-          }
-        />
+        <section class="mt-16">
+          <h2 class="text-2xl font-bold text-gray-900">Tournaments Played</h2>
+          <.section_filters
+            id="played"
+            filter_form={@played_filter_form}
+            location_options={@location_options}
+            prefix="played"
+          />
+          <.section_summary
+            empty?={@played_empty?}
+            pagination={@played_pagination}
+            prefix="played"
+            label="played tournaments"
+          />
+          <.played_cards streams={@streams} user_player_id={@user_player_id} />
+          <.pagination
+            page={@played_pagination.page}
+            total_pages={@played_pagination.total_pages}
+            path={~p"/my/tournaments"}
+            params={
+              pagination_params(
+                @played_filter_form,
+                @played_pagination.per_page,
+                @played_sort_by,
+                @played_sort_dir,
+                "played"
+              )
+            }
+          />
+        </section>
       </div>
     </Layouts.app>
     """
@@ -179,223 +172,92 @@ defmodule OPWeb.My.TournamentLive.Index do
   end
 
   attr :streams, :any, required: true
-  attr :sort_by, :string, required: true
-  attr :sort_dir, :string, required: true
-  attr :sort_params, :map, required: true
 
-  defp organized_table(assigns) do
+  defp organized_cards(assigns) do
     ~H"""
-    <div class="mt-4 overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
-        <thead class="bg-gray-50">
-          <tr>
-            <.sort_header
-              field="name"
-              label="Name"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="org"
-            />
-            <.sort_header
-              field="start_at"
-              label="Date"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="org"
-            />
-            <.sort_header
-              field="location"
-              label="Location"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="org"
-            />
-            <.sort_header
-              field="status"
-              label="Status"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="org"
-            />
-            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody id="organized-tournaments" phx-update="stream" class="divide-y divide-gray-200">
-          <tr id="empty-organized" class="hidden only:table-row">
-            <td colspan="5" class="text-center py-8 text-gray-500">
-              You haven't organized any tournaments yet.
-            </td>
-          </tr>
-          <tr
-            :for={{id, tournament} <- @streams.organized_tournaments}
-            id={id}
-            class="hover:bg-gray-50"
-          >
-            <td class="px-4 py-3 text-sm">
-              <.link
-                navigate={~p"/tournaments/#{tournament.slug}"}
-                class="font-medium text-gray-900 hover:text-blue-600"
-              >
-                {tournament.name}
-              </.link>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-              {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-500">
-              {if tournament.location, do: tournament.location.name}
-            </td>
-            <td class="px-4 py-3 text-sm">
-              <span class={[
-                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-                status_badge_class(tournament.status)
-              ]}>
-                {tournament.status}
-              </span>
-            </td>
-            <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
-              <.link navigate={~p"/tournaments/#{tournament.slug}"}>
-                <.button variant="invisible" size="sm">
-                  <.icon name="hero-eye" class="w-4 h-4" />
-                </.button>
-              </.link>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div
+      id="organized-tournaments"
+      phx-update="stream"
+      class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+    >
+      <div id="empty-organized" class="hidden only:block col-span-full text-center py-8 text-gray-500">
+        You haven't organized any tournaments yet.
+      </div>
+      <div
+        :for={{id, tournament} <- @streams.organized_tournaments}
+        id={id}
+        class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600"
+      >
+        <.link navigate={~p"/tournaments/#{tournament.slug}"}>
+          <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t bg-cover" />
+        </.link>
+        <div class="p-4">
+          <.link navigate={~p"/tournaments/#{tournament.slug}"}>
+            <h3 class="text-xl font-semibold mt-1">{tournament.name}</h3>
+          </.link>
+          <p :if={tournament.start_at} class="text-sm font-medium mt-1">
+            {Calendar.strftime(tournament.start_at, "%a, %b %d, %Y")}
+          </p>
+          <p :if={tournament.location} class="text-sm text-gray-500">
+            @ {tournament.location.name}
+          </p>
+          <div class="mt-2">
+            <span class={[
+              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+              status_badge_class(tournament.status)
+            ]}>
+              {tournament.status}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
 
   attr :streams, :any, required: true
-  attr :sort_by, :string, required: true
-  attr :sort_dir, :string, required: true
-  attr :sort_params, :map, required: true
-
   attr :user_player_id, :any, required: true
 
-  defp played_table(assigns) do
+  defp played_cards(assigns) do
     ~H"""
-    <div class="mt-4 overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
-        <thead class="bg-gray-50">
-          <tr>
-            <.sort_header
-              field="name"
-              label="Name"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="played"
-            />
-            <.sort_header
-              field="start_at"
-              label="Date"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="played"
-            />
-            <.sort_header
-              field="location"
-              label="Location"
-              sort_by={@sort_by}
-              sort_dir={@sort_dir}
-              params={@sort_params}
-              prefix="played"
-            />
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Position
-            </th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Points
-            </th>
-          </tr>
-        </thead>
-        <tbody id="played-tournaments" phx-update="stream" class="divide-y divide-gray-200">
-          <tr id="empty-played" class="hidden only:table-row">
-            <td colspan="5" class="text-center py-8 text-gray-500">
-              No tournament results found for your player profile.
-            </td>
-          </tr>
-          <tr
-            :for={{id, tournament} <- @streams.played_tournaments}
-            id={id}
-            class="hover:bg-gray-50"
-          >
-            <td class="px-4 py-3 text-sm">
-              <.link
-                navigate={~p"/tournaments/#{tournament.slug}"}
-                class="font-medium text-gray-900 hover:text-blue-600"
-              >
-                {tournament.name}
-              </.link>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-              {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-500">
-              {if tournament.location, do: tournament.location.name}
-            </td>
-            <% standing = Enum.find(tournament.standings, &(&1.player_id == @user_player_id)) %>
-            <td class="px-4 py-3 text-sm text-gray-500">
-              {if standing, do: standing.position}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-500">
-              {if standing && standing.total_points,
-                do: :erlang.float_to_binary(standing.total_points / 1, decimals: 1)}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    """
-  end
-
-  attr :field, :string, required: true
-  attr :label, :string, required: true
-  attr :sort_by, :string, required: true
-  attr :sort_dir, :string, required: true
-  attr :params, :map, required: true
-  attr :prefix, :string, required: true
-
-  defp sort_header(assigns) do
-    next_dir =
-      if assigns.field == assigns.sort_by and assigns.sort_dir == "asc", do: "desc", else: "asc"
-
-    params =
-      Map.merge(assigns.params, %{
-        "#{assigns.prefix}_sort_by" => assigns.field,
-        "#{assigns.prefix}_sort_dir" => next_dir
-      })
-
-    assigns = assign(assigns, :href_params, params)
-
-    ~H"""
-    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-      <.link
-        patch={~p"/my/tournaments?#{@href_params}"}
-        class="group inline-flex items-center gap-1 hover:text-gray-700"
+    <div
+      id="played-tournaments"
+      phx-update="stream"
+      class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+    >
+      <div id="empty-played" class="hidden only:block col-span-full text-center py-8 text-gray-500">
+        No tournament results found for your player profile.
+      </div>
+      <div
+        :for={{id, tournament} <- @streams.played_tournaments}
+        id={id}
+        class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600"
       >
-        {@label}
-        <span :if={@field == @sort_by} class="text-gray-400">
-          <.icon :if={@sort_dir == "asc"} name="hero-chevron-up" class="w-3 h-3" />
-          <.icon :if={@sort_dir == "desc"} name="hero-chevron-down" class="w-3 h-3" />
-        </span>
-        <span
-          :if={@field != @sort_by}
-          class="text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <.icon name="hero-chevron-up-down" class="w-3 h-3" />
-        </span>
-      </.link>
-    </th>
+        <.link navigate={~p"/tournaments/#{tournament.slug}"}>
+          <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t bg-cover" />
+        </.link>
+        <div class="p-4">
+          <.link navigate={~p"/tournaments/#{tournament.slug}"}>
+            <h3 class="text-xl font-semibold mt-1">{tournament.name}</h3>
+          </.link>
+          <p :if={tournament.start_at} class="text-sm font-medium mt-1">
+            {Calendar.strftime(tournament.start_at, "%a, %b %d, %Y")}
+          </p>
+          <p :if={tournament.location} class="text-sm text-gray-500">
+            @ {tournament.location.name}
+          </p>
+          <% standing = Enum.find(tournament.standings, &(&1.player_id == @user_player_id)) %>
+          <div :if={standing} class="mt-3 flex items-center gap-3">
+            <span class="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-1 text-xs font-semibold">
+              #{standing.position}
+            </span>
+            <span :if={standing.total_points} class="text-sm text-gray-600">
+              {:erlang.float_to_binary(standing.total_points / 1, decimals: 1)} pts
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
     """
   end
 
@@ -470,10 +332,6 @@ defmodule OPWeb.My.TournamentLive.Index do
     |> assign(:org_pagination, pagination)
     |> assign(:org_sort_by, sort_by)
     |> assign(:org_sort_dir, sort_dir)
-    |> assign(
-      :org_sort_params,
-      build_sort_params(filter_params, per_page, sort_by, sort_dir, "org")
-    )
     |> assign(:org_empty?, tournaments == [])
     |> stream(:organized_tournaments, tournaments, reset: true)
   end
@@ -513,29 +371,8 @@ defmodule OPWeb.My.TournamentLive.Index do
     |> assign(:played_pagination, pagination)
     |> assign(:played_sort_by, sort_by)
     |> assign(:played_sort_dir, sort_dir)
-    |> assign(
-      :played_sort_params,
-      build_sort_params(filter_params, per_page, sort_by, sort_dir, "played")
-    )
     |> assign(:played_empty?, tournaments == [])
     |> stream(:played_tournaments, tournaments, reset: true)
-  end
-
-  defp build_sort_params(filter_params, per_page, sort_by, sort_dir, prefix) do
-    base =
-      filter_params
-      |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
-      |> Enum.map(fn {k, v} -> {"#{prefix}_#{k}", v} end)
-      |> Map.new()
-
-    base =
-      if per_page != @default_per_page,
-        do: Map.put(base, "#{prefix}_per_page", per_page),
-        else: base
-
-    base = if sort_by != "start_at", do: Map.put(base, "#{prefix}_sort_by", sort_by), else: base
-    base = if sort_dir != "desc", do: Map.put(base, "#{prefix}_sort_dir", sort_dir), else: base
-    base
   end
 
   defp pagination_params(filter_form, per_page, sort_by, sort_dir, prefix) do
