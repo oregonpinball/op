@@ -77,6 +77,18 @@ defmodule OP.PlayersTest do
       assert {:error, %Ecto.Changeset{}} = Players.create_player(nil, %{name: nil})
     end
 
+    test "auto-generates a number" do
+      {:ok, player} = Players.create_player(nil, %{name: "Numbered Player"})
+      assert player.number != nil
+      assert player.number >= 1000 and player.number <= 9999
+    end
+
+    test "two players get different numbers" do
+      {:ok, p1} = Players.create_player(nil, %{name: "Player A"})
+      {:ok, p2} = Players.create_player(nil, %{name: "Player B"})
+      assert p1.number != p2.number
+    end
+
     test "generates a unique slug" do
       {:ok, player1} = Players.create_player(nil, %{name: "Player One"})
       {:ok, player2} = Players.create_player(nil, %{name: "Player Two"})
@@ -94,6 +106,13 @@ defmodule OP.PlayersTest do
     test "returns error changeset with invalid data" do
       player = player_fixture()
       assert {:error, %Ecto.Changeset{}} = Players.update_player(nil, player, %{name: nil})
+    end
+
+    test "preserves number through updates" do
+      player = player_fixture()
+      original_number = player.number
+      {:ok, updated} = Players.update_player(nil, player, %{name: "Updated"})
+      assert updated.number == original_number
     end
   end
 

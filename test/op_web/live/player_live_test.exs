@@ -411,12 +411,14 @@ defmodule OPWeb.PlayerLiveTest do
   describe "Form - edit" do
     setup :register_and_log_in_system_admin
 
-    test "renders edit player form", %{conn: conn} do
+    test "renders edit player form with number field", %{conn: conn} do
       player = player_fixture(nil, %{name: "Edit Me"})
       {:ok, _lv, html} = live(conn, ~p"/admin/players/#{player.slug}/edit")
 
       assert html =~ "Edit Player"
       assert html =~ "Edit Me"
+      assert html =~ "Player Number"
+      assert html =~ to_string(player.number)
     end
 
     test "updates player", %{conn: conn} do

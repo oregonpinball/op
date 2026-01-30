@@ -8,6 +8,7 @@ defmodule OP.Players.Player do
   schema "players" do
     field :external_id, :string
     field :name, :string
+    field :number, :integer
 
     # Publicly-usable URL slug for profile access
     field :slug, :string
@@ -20,9 +21,11 @@ defmodule OP.Players.Player do
   @doc false
   def changeset(player, attrs) do
     player
-    |> cast(attrs, [:name, :external_id])
+    |> cast(attrs, [:name, :external_id, :number])
     |> generate_slug()
-    |> validate_required([:name, :slug])
+    |> generate_number()
+    |> validate_required([:name, :slug, :number])
+    |> unique_constraint(:number)
   end
 
   @doc """
@@ -42,5 +45,13 @@ defmodule OP.Players.Player do
     })
     |> generate_slug()
     |> validate_required([:name, :slug])
+  end
+
+  defp generate_number(changeset) do
+    if get_field(changeset, :number) do
+      changeset
+    else
+      put_change(changeset, :number, Enum.random(1000..9999))
+    end
   end
 end

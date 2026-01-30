@@ -98,6 +98,9 @@ defmodule OPWeb.Admin.PlayerLive.Index do
                   params={@sort_params}
                 />
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Number
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   External ID
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -110,7 +113,7 @@ defmodule OPWeb.Admin.PlayerLive.Index do
             </thead>
             <tbody id="players" phx-update="stream" class="divide-y divide-gray-200">
               <tr id="empty-players" class="hidden only:table-row">
-                <td colspan="4" class="text-center py-8 text-gray-500">
+                <td colspan="5" class="text-center py-8 text-gray-500">
                   <%= if @has_filters? do %>
                     No players match your search criteria. Try adjusting your filters.
                   <% else %>
@@ -125,6 +128,9 @@ defmodule OPWeb.Admin.PlayerLive.Index do
               >
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">
                   {player.name}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500">
+                  {player.number || "-"}
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500">
                   {player.external_id || "-"}
