@@ -14,12 +14,10 @@ defmodule OP.PlayersFixtures do
   end
 
   def player_fixture(scope \\ nil, attrs \\ %{}) do
-    {:ok, player} =
-      attrs
-      |> valid_player_attributes()
-      |> then(&Players.create_player(scope, &1))
-
-    player
+    case attrs |> valid_player_attributes() |> then(&Players.create_player(scope, &1)) do
+      {:ok, player} -> player
+      {:error, %Ecto.Changeset{errors: [number: _]}} -> player_fixture(scope, attrs)
+    end
   end
 
   def player_with_external_id_fixture(scope \\ nil, external_id, attrs \\ %{}) do

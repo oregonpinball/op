@@ -29,7 +29,7 @@ defmodule OPWeb.LocationLiveTest do
 
       html =
         lv
-        |> element("button", "Delete")
+        |> element(~s{button[phx-click="delete"]})
         |> render_click()
 
       refute html =~ location.name
