@@ -255,6 +255,85 @@ defmodule OP.Tournaments do
   end
 
   @doc """
+  Returns a paginated list of tournaments organized by the given user.
+  Accepts the same filter/sort/pagination options as `list_tournaments_paginated/2`.
+  """
+  def list_organized_tournaments_paginated(scope, opts \\ []) do
+    user_id = scope.user.id
+
+    opts
+    |> Keyword.put(:base_query_fn, fn ->
+      Tournament
+      |> where([t], t.organizer_id == ^user_id)
+      |> preload([:organizer, [season: :league], :location, :standings])
+    end)
+    |> do_list_tournaments_paginated()
+  end
+
+  @doc """
+  Returns a paginated list of tournaments in which the user's linked player has standings.
+  Accepts the same filter/sort/pagination options as `list_tournaments_paginated/2`.
+  """
+  def list_played_tournaments_paginated(scope, opts \\ []) do
+    user_id = scope.user.id
+
+    # Subquery to find tournament IDs where the user's player has standings
+    tournament_ids_query =
+      from s in OP.Tournaments.Standing,
+        join: p in OP.Players.Player,
+        on: p.id == s.player_id,
+        where: p.user_id == ^user_id,
+        select: s.tournament_id,
+        distinct: true
+
+    opts
+    |> Keyword.put(:base_query_fn, fn ->
+      Tournament
+      |> where([t], t.id in subquery(tournament_ids_query))
+      |> preload([:organizer, [season: :league], :location, standings: :player])
+    end)
+    |> do_list_tournaments_paginated()
+  end
+
+  defp do_list_tournaments_paginated(opts) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 25)
+    search = Keyword.get(opts, :search)
+    location_id = Keyword.get(opts, :location_id)
+    start_date = Keyword.get(opts, :start_date)
+    end_date = Keyword.get(opts, :end_date)
+    sort_by = Keyword.get(opts, :sort_by, :start_at)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
+    base_query_fn = Keyword.fetch!(opts, :base_query_fn)
+
+    base_query = base_query_fn.() |> apply_sort(sort_by, sort_dir)
+
+    filtered_query =
+      base_query
+      |> filter_by_search(search)
+      |> filter_by_location(location_id)
+      |> filter_by_date_range(start_date, end_date)
+
+    total_count = Repo.aggregate(filtered_query, :count, :id)
+    total_pages = ceil(total_count / per_page)
+
+    tournaments =
+      filtered_query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    pagination_meta = %{
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: max(total_pages, 1)
+    }
+
+    {tournaments, pagination_meta}
+  end
+
+  @doc """
   Returns the list of upcoming tournaments.
 
   ## Examples

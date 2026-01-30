@@ -113,6 +113,9 @@ defmodule OPWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
+      # My tournaments
+      live "/my/tournaments", My.TournamentLive.Index, :index
+
       # Matchplay import
       live "/import", ImportLive, :index
     end
