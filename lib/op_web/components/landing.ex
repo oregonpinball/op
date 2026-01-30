@@ -19,7 +19,7 @@ defmodule OPWeb.Landing do
           <.icon name="hero-plus" class="w-5 h-5" />
           <span>Submit tournament</span>
         </.button>
-        <.button href={~p"/coming-soon"} color="secondary" class="flex items-center space-x-1">
+        <.button href={~p"/my/tournaments"} color="secondary" class="flex items-center space-x-1">
           <.icon name="hero-trophy" class="w-5 h-5" />
           <span>My tournaments</span>
         </.button>
