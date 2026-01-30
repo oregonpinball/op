@@ -13,7 +13,9 @@ defmodule OPWeb.Admin.UserLive.Index do
         <.header>
           Manage Users
           <:subtitle>
-            {if @pagination.total_count > 0, do: "#{@pagination.total_count} users total", else: "No users yet"}
+            {if @pagination.total_count > 0,
+              do: "#{@pagination.total_count} users total",
+              else: "No users yet"}
           </:subtitle>
         </.header>
 
@@ -172,7 +174,9 @@ defmodule OPWeb.Admin.UserLive.Index do
           page={@pagination.page}
           total_pages={@pagination.total_pages}
           path={~p"/admin/users"}
-          params={filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)}
+          params={
+            filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)
+          }
         />
       </div>
     </Layouts.app>
