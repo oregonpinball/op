@@ -153,7 +153,9 @@ defmodule OPWeb.Admin.LocationLive.Index do
           page={@pagination.page}
           total_pages={@pagination.total_pages}
           path={~p"/admin/locations"}
-          params={filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)}
+          params={
+            filter_params_for_pagination(@filter_form, @pagination.per_page, @sort_by, @sort_dir)
+          }
         />
       </div>
     </Layouts.app>
@@ -250,7 +252,9 @@ defmodule OPWeb.Admin.LocationLive.Index do
       |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
       |> Map.new()
 
-    params = if per_page != @default_per_page, do: Map.put(params, "per_page", per_page), else: params
+    params =
+      if per_page != @default_per_page, do: Map.put(params, "per_page", per_page), else: params
+
     params = if sort_by != @default_sort_by, do: Map.put(params, "sort_by", sort_by), else: params
     if sort_dir != @default_sort_dir, do: Map.put(params, "sort_dir", sort_dir), else: params
   end
@@ -267,16 +271,25 @@ defmodule OPWeb.Admin.LocationLive.Index do
       |> Map.new()
       |> Map.put("page", "1")
 
-    params = if per_page != @default_per_page, do: Map.put(params, "per_page", per_page), else: params
+    params =
+      if per_page != @default_per_page, do: Map.put(params, "per_page", per_page), else: params
+
     params = if sort_by != @default_sort_by, do: Map.put(params, "sort_by", sort_by), else: params
-    params = if sort_dir != @default_sort_dir, do: Map.put(params, "sort_dir", sort_dir), else: params
+
+    params =
+      if sort_dir != @default_sort_dir, do: Map.put(params, "sort_dir", sort_dir), else: params
 
     {:noreply, push_patch(socket, to: ~p"/admin/locations?#{params}")}
   end
 
   def handle_event("change_per_page", %{"per_page" => per_page}, socket) do
     params =
-      filter_params_for_pagination(socket.assigns.filter_form, parse_per_page(per_page), socket.assigns.sort_by, socket.assigns.sort_dir)
+      filter_params_for_pagination(
+        socket.assigns.filter_form,
+        parse_per_page(per_page),
+        socket.assigns.sort_by,
+        socket.assigns.sort_dir
+      )
       |> Map.put("page", "1")
       |> Map.put("per_page", per_page)
 
