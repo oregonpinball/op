@@ -24,6 +24,7 @@ defmodule OPWeb.Admin.PlayerLive.Form do
         <div class="mt-6 max-w-2xl">
           <.form for={@form} id="player-form" phx-change="validate" phx-submit="save">
             <.input field={@form[:name]} type="text" label="Name" required />
+            <.input field={@form[:number]} type="number" label="Player Number" />
             <.input field={@form[:external_id]} type="text" label="External ID" />
 
             <div class="mt-6 flex gap-4">
