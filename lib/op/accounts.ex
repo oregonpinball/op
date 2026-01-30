@@ -325,17 +325,24 @@ defmodule OP.Accounts do
     * `:page` - Current page
     * `:per_page` - Items per page
   """
+  @allowed_user_sort_fields ~w(email role confirmed_at)a
+
   def list_users_paginated(opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 20)
     search = Keyword.get(opts, :search)
     role = Keyword.get(opts, :role)
+    sort_by = Keyword.get(opts, :sort_by, :email)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
+
+    sort_by = if sort_by in @allowed_user_sort_fields, do: sort_by, else: :email
+    sort_dir = if sort_dir in [:asc, :desc], do: sort_dir, else: :asc
 
     query =
       User
-      |> order_by([u], asc: u.email)
       |> apply_user_search_filter(search)
       |> apply_user_role_filter(role)
+      |> order_by([u], [{^sort_dir, ^sort_by}])
 
     total_count = Repo.aggregate(query, :count, :id)
 
@@ -346,11 +353,14 @@ defmodule OP.Accounts do
       |> preload([:player])
       |> Repo.all()
 
+    total_pages = if total_count > 0, do: ceil(total_count / per_page), else: 1
+
     %{
       users: users,
       total_count: total_count,
       page: page,
-      per_page: per_page
+      per_page: per_page,
+      total_pages: total_pages
     }
   end
 
