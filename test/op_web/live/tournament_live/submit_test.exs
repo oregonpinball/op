@@ -78,8 +78,27 @@ defmodule OPWeb.TournamentLive.SubmitTest do
       %{conn: log_in_user(conn, user), user: user}
     end
 
+    test "submit button is disabled until code of conduct checkbox is checked", %{conn: conn} do
+      {:ok, lv, html} = live(conn, ~p"/tournaments/submit")
+
+      # Button should be disabled initially
+      assert html =~ "I agree that all"
+      assert html =~ "Code of Conduct"
+      assert html =~ ~s(disabled)
+
+      # Check the checkbox
+      lv |> element(~s(input[name="code_of_conduct_agreed"])) |> render_click()
+
+      # Button should now be enabled
+      html = render(lv)
+      refute html =~ ~s(disabled="disabled")
+    end
+
     test "saves tournament as pending_review", %{conn: conn, user: user} do
       {:ok, lv, _html} = live(conn, ~p"/tournaments/submit")
+
+      # Check code of conduct checkbox
+      lv |> element(~s(input[name="code_of_conduct_agreed"])) |> render_click()
 
       start_at =
         DateTime.utc_now()
