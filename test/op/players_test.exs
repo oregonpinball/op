@@ -171,7 +171,7 @@ defmodule OP.PlayersTest do
       result = Players.list_players_paginated(nil)
 
       assert result.page == 1
-      assert result.page_size == 20
+      assert result.per_page == 20
       assert result.total_count == 25
       assert result.total_pages == 2
       assert length(result.players) == 20
@@ -195,7 +195,7 @@ defmodule OP.PlayersTest do
 
       result = Players.list_players_paginated(nil, page_size: 5)
 
-      assert result.page_size == 5
+      assert result.per_page == 5
       assert result.total_pages == 3
       assert length(result.players) == 5
     end

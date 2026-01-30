@@ -56,9 +56,11 @@ defmodule OP.Players do
   """
   def list_players_paginated(_scope, opts \\ []) do
     page = max(Keyword.get(opts, :page, 1), 1)
-    page_size = Keyword.get(opts, :page_size, @default_page_size)
+    per_page = Keyword.get(opts, :per_page, Keyword.get(opts, :page_size, @default_page_size))
     search = Keyword.get(opts, :search)
     linked = Keyword.get(opts, :linked)
+    sort_by = Keyword.get(opts, :sort_by, :name)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
 
     base_query =
       Player
@@ -66,21 +68,21 @@ defmodule OP.Players do
       |> apply_linked_filter(linked)
 
     total_count = Repo.aggregate(base_query, :count)
-    total_pages = max(ceil(total_count / page_size), 1)
+    total_pages = max(ceil(total_count / per_page), 1)
 
     players =
       base_query
-      |> order_by([p], asc: p.name)
+      |> apply_sort(sort_by, sort_dir)
       |> preload([:user])
-      |> limit(^page_size)
-      |> offset(^((page - 1) * page_size))
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
       |> Repo.all()
 
     %{
       players: players,
       total_count: total_count,
       page: page,
-      page_size: page_size,
+      per_page: per_page,
       total_pages: total_pages
     }
   end
@@ -98,6 +100,9 @@ defmodule OP.Players do
   defp apply_linked_filter(query, "linked"), do: where(query, [p], not is_nil(p.user_id))
   defp apply_linked_filter(query, "unlinked"), do: where(query, [p], is_nil(p.user_id))
   defp apply_linked_filter(query, _), do: query
+
+  defp apply_sort(query, :name, dir), do: order_by(query, [p], [{^dir, p.name}])
+  defp apply_sort(query, _, _), do: order_by(query, [p], asc: p.name)
 
   @doc """
   Gets a single player.
