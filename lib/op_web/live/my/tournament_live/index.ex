@@ -11,13 +11,8 @@ defmodule OPWeb.My.TournamentLive.Index do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="container mx-auto p-4">
-        <.header>
-          My Tournaments
-          <:subtitle>Tournaments you organize and play in</:subtitle>
-        </.header>
-
         <%!-- Organized Section --%>
-        <section class="mt-12">
+        <section class="mt-4">
           <h2 class="text-2xl font-bold text-gray-900">Tournaments Organized</h2>
           <.section_filters
             id="organized"
@@ -49,7 +44,8 @@ defmodule OPWeb.My.TournamentLive.Index do
         </section>
 
         <%!-- Played Section --%>
-        <section class="mt-16">
+        <hr class="mt-16 border-gray-200" />
+        <section class="mt-12">
           <h2 class="text-2xl font-bold text-gray-900">Tournaments Played</h2>
           <.section_filters
             id="played"
