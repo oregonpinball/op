@@ -89,6 +89,15 @@ defmodule OP.PlayersTest do
       assert p1.number != p2.number
     end
 
+    test "rejects duplicate player number" do
+      {:ok, player} = Players.create_player(nil, %{name: "First"})
+
+      {:error, changeset} =
+        Players.create_player(nil, %{name: "Second", number: player.number})
+
+      assert {"has already been taken", _} = changeset.errors[:number]
+    end
+
     test "generates a unique slug" do
       {:ok, player1} = Players.create_player(nil, %{name: "Player One"})
       {:ok, player2} = Players.create_player(nil, %{name: "Player Two"})
