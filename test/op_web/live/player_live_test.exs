@@ -43,7 +43,7 @@ defmodule OPWeb.PlayerLiveTest do
 
       html =
         lv
-        |> element("button", "Scrub")
+        |> element(~s{button[data-confirm]})
         |> render_click()
 
       assert html =~ "Player scrubbed successfully"
@@ -96,7 +96,7 @@ defmodule OPWeb.PlayerLiveTest do
       |> form("#player-filters", %{"search" => "john"})
       |> render_change()
 
-      assert_patch(lv, ~p"/admin/players?search=john")
+      assert_patch(lv, ~p"/admin/players?page=1&search=john")
     end
 
     test "loads with search from URL params", %{conn: conn} do
@@ -176,7 +176,7 @@ defmodule OPWeb.PlayerLiveTest do
       |> form("#player-filters", %{"linked" => "linked"})
       |> render_change()
 
-      assert_patch(lv, ~p"/admin/players?linked=linked")
+      assert_patch(lv, ~p"/admin/players?linked=linked&page=1")
     end
 
     test "loads with filter from URL params", %{conn: conn} do
@@ -216,13 +216,13 @@ defmodule OPWeb.PlayerLiveTest do
     setup :register_and_log_in_system_admin
 
     test "shows pagination when more than one page", %{conn: conn} do
-      for i <- 1..25 do
+      for i <- 1..30 do
         player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
       end
 
       {:ok, _lv, html} = live(conn, ~p"/admin/players")
 
-      assert html =~ "25 players total"
+      assert html =~ "30 players total"
       # Should have pagination nav
       assert html =~ "aria-label=\"Pagination\""
       # Should show page 2 link
@@ -238,29 +238,29 @@ defmodule OPWeb.PlayerLiveTest do
     end
 
     test "navigates to next page", %{conn: conn} do
-      for i <- 1..25 do
+      for i <- 1..30 do
         player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
       end
 
       {:ok, _lv, html} = live(conn, ~p"/admin/players")
 
-      # Page 1 shows first 20 players (alphabetically)
+      # Page 1 shows first 25 players (alphabetically)
       assert html =~ "Player 01"
-      assert html =~ "Player 20"
-      refute html =~ "Player 21"
+      assert html =~ "Player 25"
+      refute html =~ "Player 26"
 
       # Navigate to page 2
       {:ok, _lv, html} = live(conn, ~p"/admin/players?page=2")
 
       refute html =~ "Player 01"
-      assert html =~ "Player 21"
-      assert html =~ "Player 25"
+      assert html =~ "Player 26"
+      assert html =~ "Player 30"
     end
 
     test "preserves filters when paginating", %{conn: conn} do
       user = user_fixture()
 
-      for i <- 1..25 do
+      for i <- 1..30 do
         player = player_fixture(nil, %{name: "Linked #{String.pad_leading("#{i}", 2, "0")}"})
         {:ok, _} = Players.link_user(nil, player, user.id)
       end
@@ -272,12 +272,12 @@ defmodule OPWeb.PlayerLiveTest do
       {:ok, _lv, html} = live(conn, ~p"/admin/players?linked=linked&page=2")
 
       # Should only show linked players on page 2
-      assert html =~ "Linked 21"
+      assert html =~ "Linked 26"
       refute html =~ "Unlinked"
     end
 
     test "resets to page 1 when filter changes", %{conn: conn} do
-      for i <- 1..25 do
+      for i <- 1..30 do
         player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
       end
 
@@ -287,19 +287,19 @@ defmodule OPWeb.PlayerLiveTest do
       |> form("#player-filters", %{"search" => "player"})
       |> render_change()
 
-      # Filter change should reset to page 1 (no page param in URL)
-      assert_patch(lv, ~p"/admin/players?search=player")
+      # Filter change should reset to page 1
+      assert_patch(lv, ~p"/admin/players?page=1&search=player")
     end
 
     test "loads correct page from URL params", %{conn: conn} do
-      for i <- 1..25 do
+      for i <- 1..30 do
         player_fixture(nil, %{name: "Player #{String.pad_leading("#{i}", 2, "0")}"})
       end
 
       {:ok, _lv, html} = live(conn, ~p"/admin/players?page=2")
 
       refute html =~ "Player 01"
-      assert html =~ "Player 21"
+      assert html =~ "Player 26"
     end
 
     test "handles invalid page number gracefully", %{conn: conn} do
@@ -411,12 +411,14 @@ defmodule OPWeb.PlayerLiveTest do
   describe "Form - edit" do
     setup :register_and_log_in_system_admin
 
-    test "renders edit player form", %{conn: conn} do
+    test "renders edit player form with number field", %{conn: conn} do
       player = player_fixture(nil, %{name: "Edit Me"})
       {:ok, _lv, html} = live(conn, ~p"/admin/players/#{player.slug}/edit")
 
       assert html =~ "Edit Player"
       assert html =~ "Edit Me"
+      assert html =~ "Player Number"
+      assert html =~ to_string(player.number)
     end
 
     test "updates player", %{conn: conn} do
