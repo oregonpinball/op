@@ -78,31 +78,63 @@ defmodule OPWeb.Admin.LocationLive.Index do
           </form>
         </div>
 
-        <div class="mt-4">
-          <.table id="locations" rows={@streams.locations}>
-            <:col :let={{_id, location}} label="Name">{location.name}</:col>
-            <:col :let={{_id, location}} label="City">{location.city}</:col>
-            <:col :let={{_id, location}} label="State">{location.state}</:col>
-            <:action :let={{_id, location}}>
-              <.link navigate={~p"/admin/locations/#{location.slug}/edit"}>
-                <.button size="sm" variant="invisible">Edit</.button>
-              </.link>
-            </:action>
-            <:action :let={{_id, location}}>
-              <.button
-                size="sm"
-                color="error"
-                variant="invisible"
-                phx-click={JS.push("delete", value: %{id: location.id})}
-                data-confirm="Are you sure you want to delete this location?"
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  City
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  State
+                </th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="locations" phx-update="stream" class="divide-y divide-gray-200">
+              <tr id="empty-locations" class="hidden only:table-row">
+                <td colspan="4" class="text-center py-8 text-gray-500">
+                  No locations found. Try adjusting your search criteria.
+                </td>
+              </tr>
+              <tr
+                :for={{id, location} <- @streams.locations}
+                id={id}
+                class="hover:bg-gray-50"
               >
-                Delete
-              </.button>
-            </:action>
-          </.table>
-          <div :if={@locations_empty?} class="text-center text-base-content/70 py-8">
-            No locations found. Try adjusting your search criteria.
-          </div>
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                  {location.name}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500">
+                  {location.city}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-500">
+                  {location.state}
+                </td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                  <.link navigate={~p"/admin/locations/#{location.slug}/edit"}>
+                    <.button variant="invisible" size="sm">
+                      <.icon name="hero-pencil-square" class="w-4 h-4" />
+                    </.button>
+                  </.link>
+                  <.button
+                    variant="invisible"
+                    size="sm"
+                    phx-click="delete"
+                    phx-value-id={location.id}
+                    data-confirm="Are you sure you want to delete this location?"
+                  >
+                    <.icon name="hero-trash" class="w-4 h-4" />
+                  </.button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <.pagination
