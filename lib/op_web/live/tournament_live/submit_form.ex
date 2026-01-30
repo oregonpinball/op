@@ -41,12 +41,13 @@ defmodule OPWeb.TournamentLive.SubmitForm do
             options={@season_options}
             prompt="Select a season"
           />
-          <.input
-            field={@form[:location_id]}
-            type="select"
-            label="Location"
-            options={@location_options}
-            prompt="Select a location"
+          <.location_search
+            form={@form}
+            location_search_query={@location_search_query}
+            location_search_results={@location_search_results}
+            show_location_results={@show_location_results}
+            selected_location={@selected_location}
+            myself={@myself}
           />
         </div>
 
@@ -188,6 +189,76 @@ defmodule OPWeb.TournamentLive.SubmitForm do
     """
   end
 
+  attr :form, :any, required: true
+  attr :location_search_query, :string, required: true
+  attr :location_search_results, :list, required: true
+  attr :show_location_results, :boolean, required: true
+  attr :selected_location, :any, required: true
+  attr :myself, :any, required: true
+
+  defp location_search(assigns) do
+    ~H"""
+    <div class="relative">
+      <label class="block text-sm font-semibold leading-6 text-zinc-800 mb-1">Location</label>
+      <input
+        type="hidden"
+        name={@form[:location_id].name}
+        value={(@selected_location && @selected_location.id) || ""}
+      />
+
+      <div :if={@selected_location} class="flex items-center gap-2">
+        <span class="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg text-sm">
+          {@selected_location.name}
+        </span>
+        <button
+          type="button"
+          phx-click="clear_location"
+          phx-target={@myself}
+          class="text-zinc-400 hover:text-zinc-600"
+        >
+          <.icon name="hero-x-mark" class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div :if={!@selected_location}>
+        <input
+          type="text"
+          value={@location_search_query}
+          placeholder="Search for a location..."
+          phx-keyup="search_location"
+          phx-target={@myself}
+          phx-debounce="200"
+          autocomplete="off"
+          class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+
+        <div
+          :if={@show_location_results}
+          class="absolute z-10 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+        >
+          <button
+            :for={location <- @location_search_results}
+            type="button"
+            phx-click="select_location"
+            phx-value-location-id={location.id}
+            phx-target={@myself}
+            class="w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none"
+          >
+            {location.name}
+          </button>
+        </div>
+
+        <div
+          :if={@location_search_query != "" and @location_search_results == []}
+          class="absolute z-10 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg p-3 text-sm text-zinc-500"
+        >
+          No locations found
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   attr :standing_form, :any, required: true
   attr :player_searches, :map, required: true
   attr :player_results, :map, required: true
@@ -282,6 +353,12 @@ defmodule OPWeb.TournamentLive.SubmitForm do
       end)
       |> Map.new()
 
+    selected_location =
+      if tournament.location_id do
+        tournament.location ||
+          Locations.get_location!(assigns.current_scope, tournament.location_id)
+      end
+
     {:ok,
      socket
      |> assign(assigns)
@@ -289,6 +366,10 @@ defmodule OPWeb.TournamentLive.SubmitForm do
      |> assign(:player_searches, %{})
      |> assign(:player_results, %{})
      |> assign(:selected_players, selected_players)
+     |> assign(:location_search_query, "")
+     |> assign(:location_search_results, [])
+     |> assign(:show_location_results, false)
+     |> assign(:selected_location, selected_location)
      |> assign_form(Tournaments.change_tournament(assigns.current_scope, tournament))
      |> assign_options(assigns.current_scope)}
   end
@@ -299,10 +380,8 @@ defmodule OPWeb.TournamentLive.SubmitForm do
 
   defp assign_options(socket, current_scope) do
     seasons = Leagues.list_seasons(current_scope)
-    locations = Locations.list_locations(current_scope)
 
     season_options = Enum.map(seasons, &{&1.name, &1.id})
-    location_options = Enum.map(locations, &{&1.name, &1.id})
 
     qualifying_format_options = [
       {"None", :none},
@@ -335,7 +414,6 @@ defmodule OPWeb.TournamentLive.SubmitForm do
 
     socket
     |> assign(:season_options, season_options)
-    |> assign(:location_options, location_options)
     |> assign(:qualifying_format_options, qualifying_format_options)
     |> assign(:finals_format_options, finals_format_options)
   end
@@ -343,6 +421,52 @@ defmodule OPWeb.TournamentLive.SubmitForm do
   @impl true
   def handle_event("toggle_code_of_conduct", _params, socket) do
     {:noreply, assign(socket, :code_of_conduct_agreed, !socket.assigns.code_of_conduct_agreed)}
+  end
+
+  def handle_event("search_location", %{"value" => query}, socket) do
+    results =
+      if String.length(query) >= 1 do
+        Locations.search_locations(socket.assigns.current_scope, query)
+      else
+        []
+      end
+
+    {:noreply,
+     socket
+     |> assign(:location_search_query, query)
+     |> assign(:location_search_results, results)
+     |> assign(:show_location_results, query != "" and results != [])}
+  end
+
+  def handle_event("select_location", %{"location-id" => location_id}, socket) do
+    location_id = String.to_integer(location_id)
+    location = Locations.get_location!(socket.assigns.current_scope, location_id)
+
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:location_id, location_id)
+
+    {:noreply,
+     socket
+     |> assign(:selected_location, location)
+     |> assign(:location_search_query, "")
+     |> assign(:location_search_results, [])
+     |> assign(:show_location_results, false)
+     |> assign_form(changeset)}
+  end
+
+  def handle_event("clear_location", _params, socket) do
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:location_id, nil)
+
+    {:noreply,
+     socket
+     |> assign(:selected_location, nil)
+     |> assign(:location_search_query, "")
+     |> assign(:location_search_results, [])
+     |> assign(:show_location_results, false)
+     |> assign_form(changeset)}
   end
 
   def handle_event("validate", %{"tournament" => tournament_params}, socket) do

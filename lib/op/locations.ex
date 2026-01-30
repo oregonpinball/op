@@ -206,6 +206,27 @@ defmodule OP.Locations do
   end
 
   @doc """
+  Searches locations by name (case-insensitive partial match).
+
+  ## Examples
+
+      iex> search_locations(current_scope, "arcade")
+      [%Location{name: "Fun Arcade"}, ...]
+
+  """
+  def search_locations(_scope, query) when is_binary(query) and byte_size(query) > 0 do
+    search_term = "%#{query}%"
+
+    Location
+    |> where([l], like(fragment("lower(?)", l.name), fragment("lower(?)", ^search_term)))
+    |> order_by([l], asc: l.name)
+    |> limit(10)
+    |> Repo.all()
+  end
+
+  def search_locations(_scope, _query), do: []
+
+  @doc """
   Finds a location by matching external_id or name (case-insensitive).
   Prioritizes external_id match.
 
