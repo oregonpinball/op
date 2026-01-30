@@ -25,7 +25,7 @@ defmodule OPWeb.My.TournamentLiveTest do
     end
   end
 
-  describe "Organized section" do
+  describe "Organized tab" do
     setup %{conn: conn} do
       user = user_fixture()
       scope = Scope.for_user(user)
@@ -70,7 +70,7 @@ defmodule OPWeb.My.TournamentLiveTest do
     end
   end
 
-  describe "Played section" do
+  describe "Played tab" do
     setup %{conn: conn} do
       user = user_fixture()
       scope = Scope.for_user(user)
@@ -83,7 +83,7 @@ defmodule OPWeb.My.TournamentLiveTest do
       tournament = tournament_fixture(nil, %{name: "Played Tournament"})
       standing_fixture(tournament, player, %{position: 3})
 
-      {:ok, _lv, html} = live(conn, ~p"/my/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/my/tournaments?tab=played")
 
       assert html =~ "Played Tournament"
     end
@@ -93,13 +93,13 @@ defmodule OPWeb.My.TournamentLiveTest do
       tournament = tournament_fixture(nil, %{name: "Not Played"})
       standing_fixture(tournament, other_player, %{position: 1})
 
-      {:ok, _lv, html} = live(conn, ~p"/my/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/my/tournaments?tab=played")
 
       refute html =~ "Not Played"
     end
 
     test "shows empty state when user has no played tournaments", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/my/tournaments")
+      {:ok, _lv, html} = live(conn, ~p"/my/tournaments?tab=played")
 
       assert html =~ "No played tournaments found"
     end
@@ -110,7 +110,7 @@ defmodule OPWeb.My.TournamentLiveTest do
       standing_fixture(t1, player, %{position: 1})
       standing_fixture(t2, player, %{position: 2})
 
-      {:ok, lv, _html} = live(conn, ~p"/my/tournaments")
+      {:ok, lv, _html} = live(conn, ~p"/my/tournaments?tab=played")
 
       lv
       |> form("#played-filters", %{"filters" => %{"search" => "Gamma"}})
@@ -127,8 +127,8 @@ defmodule OPWeb.My.TournamentLiveTest do
       %{conn: log_in_user(conn, user), user: user}
     end
 
-    test "played section shows empty when user has no linked player", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/my/tournaments")
+    test "played tab shows empty when user has no linked player", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/my/tournaments?tab=played")
 
       assert html =~ "No played tournaments found"
     end

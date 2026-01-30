@@ -11,9 +11,40 @@ defmodule OPWeb.My.TournamentLive.Index do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="container mx-auto p-4">
-        <%!-- Organized Section --%>
-        <section class="mt-4">
-          <h2 class="text-2xl font-bold text-gray-900">Tournaments Organized</h2>
+        <%!-- Tabs --%>
+        <div class="border-b border-gray-200">
+          <nav class="flex gap-6" aria-label="Tabs">
+            <button
+              phx-click="switch_tab"
+              phx-value-tab="organized"
+              class={[
+                "py-3 px-1 border-b-2 text-sm font-semibold transition-colors",
+                if(@active_tab == "organized",
+                  do: "border-emerald-600 text-emerald-700",
+                  else: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                )
+              ]}
+            >
+              Organized
+            </button>
+            <button
+              phx-click="switch_tab"
+              phx-value-tab="played"
+              class={[
+                "py-3 px-1 border-b-2 text-sm font-semibold transition-colors",
+                if(@active_tab == "played",
+                  do: "border-emerald-600 text-emerald-700",
+                  else: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                )
+              ]}
+            >
+              Played
+            </button>
+          </nav>
+        </div>
+
+        <%!-- Organized Tab --%>
+        <section :if={@active_tab == "organized"} class="mt-6">
           <.section_filters
             id="organized"
             filter_form={@org_filter_form}
@@ -39,14 +70,15 @@ defmodule OPWeb.My.TournamentLive.Index do
                 @org_sort_dir,
                 "org"
               )
+              |> then(fn p ->
+                if @active_tab != "organized", do: Map.put(p, "tab", @active_tab), else: p
+              end)
             }
           />
         </section>
 
-        <%!-- Played Section --%>
-        <hr class="mt-16 border-gray-200" />
-        <section class="mt-12">
-          <h2 class="text-2xl font-bold text-gray-900">Tournaments Played</h2>
+        <%!-- Played Tab --%>
+        <section :if={@active_tab == "played"} class="mt-6">
           <.section_filters
             id="played"
             filter_form={@played_filter_form}
@@ -72,6 +104,9 @@ defmodule OPWeb.My.TournamentLive.Index do
                 @played_sort_dir,
                 "played"
               )
+              |> then(fn p ->
+                if @active_tab != "organized", do: Map.put(p, "tab", @active_tab), else: p
+              end)
             }
           />
         </section>
@@ -282,9 +317,12 @@ defmodule OPWeb.My.TournamentLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
+    active_tab = params["tab"] || "organized"
+
     socket =
       socket
       |> assign(:page_title, "My Tournaments")
+      |> assign(:active_tab, active_tab)
       |> apply_organized_filters(params)
       |> apply_played_filters(params)
 
@@ -431,6 +469,11 @@ defmodule OPWeb.My.TournamentLive.Index do
   defp collect_all_params(socket) do
     params = %{}
 
+    params =
+      if socket.assigns.active_tab != "organized",
+        do: Map.put(params, "tab", socket.assigns.active_tab),
+        else: params
+
     # Organized section params
     org_form = socket.assigns.org_filter_form
     params = maybe_add(params, "org_search", org_form[:search].value)
@@ -484,6 +527,14 @@ defmodule OPWeb.My.TournamentLive.Index do
 
   # Organized section events
   @impl true
+  def handle_event("switch_tab", %{"tab" => tab}, socket) do
+    params =
+      collect_all_params(socket)
+      |> Map.put("tab", tab)
+
+    {:noreply, push_patch(socket, to: ~p"/my/tournaments?#{params}")}
+  end
+
   def handle_event("filter_org", %{"filters" => filter_params}, socket) do
     params =
       collect_all_params(socket)
