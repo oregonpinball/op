@@ -135,6 +135,60 @@ defmodule OP.Locations do
   end
 
   @doc """
+  Returns a paginated list of locations with optional search.
+
+  ## Options
+
+    * `:page` - Current page number (default: 1)
+    * `:per_page` - Items per page (default: 25)
+    * `:search` - Location name search string
+
+  ## Returns
+
+    A tuple `{locations, pagination_meta}` where pagination_meta contains:
+    * `:page` - Current page
+    * `:per_page` - Items per page
+    * `:total_count` - Total number of matching locations
+    * `:total_pages` - Total number of pages
+
+  """
+  def list_locations_paginated(_scope, opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 25)
+    search = Keyword.get(opts, :search)
+
+    base_query = from(l in Location, order_by: [asc: l.name])
+
+    filtered_query = filter_locations_by_search(base_query, search)
+
+    total_count = Repo.aggregate(filtered_query, :count, :id)
+    total_pages = ceil(total_count / per_page)
+
+    locations =
+      filtered_query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    pagination_meta = %{
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: max(total_pages, 1)
+    }
+
+    {locations, pagination_meta}
+  end
+
+  defp filter_locations_by_search(query, nil), do: query
+  defp filter_locations_by_search(query, ""), do: query
+
+  defp filter_locations_by_search(query, search) do
+    search_term = "%#{String.downcase(search)}%"
+    where(query, [l], like(fragment("lower(?)", l.name), ^search_term))
+  end
+
+  @doc """
   Finds a location by matching external_id or name (case-insensitive).
   Prioritizes external_id match.
 
