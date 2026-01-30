@@ -157,7 +157,7 @@ defmodule OPWeb.Layouts do
                   <.button
                     size="sm"
                     color="invisible"
-                    navigate={~p"/coming-soon"}
+                    navigate={~p"/my/tournaments"}
                     class="truncate flex items-center space-x-1"
                   >
                     <.icon name="hero-trophy" class="size-4" />
