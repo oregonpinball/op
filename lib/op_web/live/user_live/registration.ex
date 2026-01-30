@@ -33,36 +33,37 @@ defmodule OPWeb.UserLive.Registration do
               phx-mounted={JS.focus()}
             />
 
-            <div class="py-2">
-              <label class="flex items-center gap-2 text-sm">
+            <div class="my-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+              <label class="flex items-start gap-3 text-sm">
                 <input
                   type="checkbox"
                   name="agreed"
                   value="true"
                   checked={@agreed}
                   phx-click="toggle_agreed"
-                  class="rounded border-zinc-300"
+                  class="mt-1 rounded border-zinc-300"
                 />
-                I agree to the <.link
-                  href="/f/rules/code-of-conduct"
-                  target="_blank"
-                  class="text-blue-600 underline"
-                >
-                  Code of Conduct
-                </.link>, <.link
-                  href="/f/rules/terms-of-service"
-                  target="_blank"
-                  class="text-blue-600 underline"
-                >
-                  Terms of Service
-                </.link>, and
-                <.link
-                  href="/f/rules/privacy-policy"
-                  target="_blank"
-                  class="text-blue-600 underline"
-                >
-                  Privacy Policy
-                </.link>
+                <span>
+                  I agree to the <.link
+                    href="/f/rules/code-of-conduct"
+                    target="_blank"
+                    class="text-blue-600 underline"
+                  >
+                    Code of Conduct
+                  </.link>, <.link
+                    href="/f/rules/terms-of-service"
+                    target="_blank"
+                    class="text-blue-600 underline"
+                  >
+                    Terms of Service
+                  </.link>, and <.link
+                    href="/f/rules/privacy-policy"
+                    target="_blank"
+                    class="text-blue-600 underline"
+                  >
+                    Privacy Policy
+                  </.link>.
+                </span>
               </label>
             </div>
 
