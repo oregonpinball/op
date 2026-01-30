@@ -139,6 +139,24 @@ defmodule OPWeb.TournamentLive.SubmitForm do
           </div>
         </div>
 
+        <div class="border-t border-zinc-200 pt-4 mt-4">
+          <label class="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="code_of_conduct_agreed"
+              value="true"
+              checked={@code_of_conduct_agreed}
+              phx-click="toggle_code_of_conduct"
+              phx-target={@myself}
+              class="rounded border-zinc-300"
+            /> I agree that all
+            <.link href="/f/rules/code-of-conduct" target="_blank" class="text-blue-600 underline">
+              Code of Conduct
+            </.link>
+            policies were followed
+          </label>
+        </div>
+
         <div class="flex justify-end gap-4 pt-4">
           <.link navigate={~p"/tournaments"} class="inline-flex items-center">
             <.button type="button" variant="invisible">
@@ -160,6 +178,7 @@ defmodule OPWeb.TournamentLive.SubmitForm do
             value="submit"
             variant="solid"
             phx-disable-with="Submitting..."
+            disabled={!@code_of_conduct_agreed}
           >
             Submit for Sanctioning
           </.button>
@@ -266,6 +285,7 @@ defmodule OPWeb.TournamentLive.SubmitForm do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign_new(:code_of_conduct_agreed, fn -> false end)
      |> assign(:player_searches, %{})
      |> assign(:player_results, %{})
      |> assign(:selected_players, selected_players)
@@ -321,6 +341,10 @@ defmodule OPWeb.TournamentLive.SubmitForm do
   end
 
   @impl true
+  def handle_event("toggle_code_of_conduct", _params, socket) do
+    {:noreply, assign(socket, :code_of_conduct_agreed, !socket.assigns.code_of_conduct_agreed)}
+  end
+
   def handle_event("validate", %{"tournament" => tournament_params}, socket) do
     changeset =
       Tournaments.change_tournament(
