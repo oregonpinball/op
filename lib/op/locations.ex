@@ -142,6 +142,8 @@ defmodule OP.Locations do
     * `:page` - Current page number (default: 1)
     * `:per_page` - Items per page (default: 25)
     * `:search` - Location name search string
+    * `:sort_by` - Field to sort by (default: `:name`). Allowed: `:name`, `:city`, `:state`
+    * `:sort_dir` - Sort direction (default: `:asc`). Allowed: `:asc`, `:desc`
 
   ## Returns
 
@@ -156,8 +158,12 @@ defmodule OP.Locations do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 25)
     search = Keyword.get(opts, :search)
+    sort_by = Keyword.get(opts, :sort_by, :name)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
 
-    base_query = from(l in Location, order_by: [asc: l.name])
+    base_query =
+      Location
+      |> apply_location_sort(sort_by, sort_dir)
 
     filtered_query = filter_locations_by_search(base_query, search)
 
@@ -178,6 +184,17 @@ defmodule OP.Locations do
     }
 
     {locations, pagination_meta}
+  end
+
+  @sortable_fields ~w(name city state)a
+
+  defp apply_location_sort(query, field, dir)
+       when field in @sortable_fields and dir in [:asc, :desc] do
+    order_by(query, [l], [{^dir, field(l, ^field)}])
+  end
+
+  defp apply_location_sort(query, _field, _dir) do
+    order_by(query, [l], asc: l.name)
   end
 
   defp filter_locations_by_search(query, nil), do: query
