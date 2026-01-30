@@ -33,8 +33,25 @@ defmodule OPWeb.UserLive.Registration do
               phx-mounted={JS.focus()}
             />
 
+            <div class="py-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="agreed"
+                  value="true"
+                  checked={@agreed}
+                  phx-click="toggle_agreed"
+                  class="rounded border-zinc-300"
+                /> I agree to the Code of Conduct, Terms of Service, and Privacy Policy
+              </label>
+            </div>
+
             <div class="flex justify-end">
-              <.button phx-disable-with="Creating account..." color="primary">
+              <.button
+                phx-disable-with="Creating account..."
+                color="primary"
+                disabled={!@agreed}
+              >
                 Create an account
               </.button>
             </div>
@@ -54,7 +71,8 @@ defmodule OPWeb.UserLive.Registration do
   def mount(_params, _session, socket) do
     changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
 
-    {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
+    {:ok, socket |> assign(:agreed, false) |> assign_form(changeset),
+     temporary_assigns: [form: nil]}
   end
 
   @impl true
@@ -78,6 +96,10 @@ defmodule OPWeb.UserLive.Registration do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
+  end
+
+  def handle_event("toggle_agreed", _params, socket) do
+    {:noreply, assign(socket, :agreed, !socket.assigns.agreed)}
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do

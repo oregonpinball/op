@@ -36,8 +36,18 @@ defmodule OPWeb.UserLive.RegistrationTest do
   end
 
   describe "register user" do
+    test "submit button is disabled when agreement checkbox is unchecked", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/register")
+
+      assert html =~ "disabled"
+      assert html =~ "I agree to the Code of Conduct, Terms of Service, and Privacy Policy"
+    end
+
     test "creates account but does not log in", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      # Check the agreement checkbox
+      lv |> element("input[name=agreed]") |> render_click()
 
       email = unique_user_email()
       form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
