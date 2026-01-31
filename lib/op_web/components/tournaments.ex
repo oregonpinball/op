@@ -4,6 +4,69 @@ defmodule OPWeb.Tournaments do
 
   alias OP.Tournaments.Tournament
 
+  attr :calendar_date, Date, required: true
+  attr :tournaments_by_date, :map, required: true
+  attr :params, :map, required: true
+
+  def calendar_month(assigns) do
+    first = assigns.calendar_date
+    days_in_month = Date.days_in_month(first)
+    # 1 = Monday .. 7 = Sunday in Elixir; convert to Sun=0 based offset
+    first_dow = Date.day_of_week(first)
+    leading_blanks = rem(first_dow, 7)
+
+    days = Enum.to_list(1..days_in_month)
+    today = Date.utc_today()
+
+    assigns =
+      assigns
+      |> assign(:leading_blanks, leading_blanks)
+      |> assign(:days, days)
+      |> assign(:today, today)
+
+    ~H"""
+    <div class="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
+      <div
+        :for={dow <- ~w(Sun Mon Tue Wed Thu Fri Sat)}
+        class="bg-gray-50 p-2 text-center text-sm font-semibold text-gray-700"
+      >
+        {dow}
+      </div>
+
+      <div :for={_ <- 1..max(@leading_blanks, 0)//1} class="bg-white p-2 min-h-[80px]" />
+
+      <div
+        :for={day <- @days}
+        class={[
+          "bg-white p-2 min-h-[80px]",
+          Date.new!(@calendar_date.year, @calendar_date.month, day) == @today &&
+            "ring-2 ring-inset ring-emerald-500"
+        ]}
+      >
+        <div class="text-sm font-medium text-gray-500">{day}</div>
+        <div
+          :for={
+            t <-
+              Map.get(
+                @tournaments_by_date,
+                Date.new!(@calendar_date.year, @calendar_date.month, day),
+                []
+              )
+          }
+          class="mt-0.5"
+        >
+          <.link
+            navigate={~p"/tournaments/#{t.slug}"}
+            class="block text-xs truncate text-emerald-700 hover:text-emerald-900 hover:underline font-medium"
+          >
+            {t.name}
+          </.link>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   attr :tournament, Tournament, required: true
 
   def card(assigns) do

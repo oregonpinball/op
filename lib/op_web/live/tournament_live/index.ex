@@ -10,21 +10,21 @@ defmodule OPWeb.TournamentLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <.sheet id="filters-advanced" class="max-w-96" phx-update="ignore">
+    <.sheet id="filters-advanced" class="max-w-96">
       <h1 class="text-3xl font-semibold">Advanced filters</h1>
 
       <div class="mt-4 bg-white rounded border p-4">
         <.form
-          for={@filter_form}
+          for={@filter_form_adv}
           id="tournament-filters-adv"
-          phx-change="filter"
-          phx-submit="filter"
+          phx-change="filter_adv"
+          phx-submit="filter_adv"
           class="space-y-4"
         >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="md:col-span-2">
               <.input
-                field={@filter_form[:search]}
+                field={@filter_form_adv[:search]}
                 type="search"
                 label="Search tournaments"
                 placeholder="Search by name..."
@@ -33,40 +33,40 @@ defmodule OPWeb.TournamentLive.Index do
             </div>
 
             <.input
-              field={@filter_form[:league_id]}
+              field={@filter_form_adv[:league_id]}
               type="select"
               label="League"
               options={@league_options}
               prompt="All leagues"
             />
             <.input
-              field={@filter_form[:season_id]}
+              field={@filter_form_adv[:season_id]}
               type="select"
               label="Season"
               options={@season_options}
               prompt="All seasons"
             />
             <.input
-              field={@filter_form[:location_id]}
+              field={@filter_form_adv[:location_id]}
               type="select"
               label="Location"
               options={@location_options}
               prompt="All locations"
             />
             <.input
-              field={@filter_form[:status]}
+              field={@filter_form_adv[:status]}
               type="select"
               label="Status"
               options={@status_options}
               prompt="All"
             />
             <.input
-              field={@filter_form[:start_date]}
+              field={@filter_form_adv[:start_date]}
               type="date"
               label="From date"
             />
             <.input
-              field={@filter_form[:end_date]}
+              field={@filter_form_adv[:end_date]}
               type="date"
               label="To date"
             />
@@ -151,17 +151,50 @@ defmodule OPWeb.TournamentLive.Index do
 
           <div class="mt-4 bg-white rounded md:bg-transparent p-2 flex items-center justify-between">
             <div class="grow">
-              <%= if @tournaments_empty? do %>
-                No tournaments found
+              <%= if @view_mode == "list" do %>
+                <%= if @tournaments_empty? do %>
+                  No tournaments found
+                <% else %>
+                  Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
+                    @pagination.page * @pagination.per_page,
+                    @pagination.total_count
+                  )} of {@pagination.total_count} tournaments
+                <% end %>
               <% else %>
-                Showing {(@pagination.page - 1) * @pagination.per_page + 1} to {min(
-                  @pagination.page * @pagination.per_page,
-                  @pagination.total_count
-                )} of {@pagination.total_count} tournaments
+                {Calendar.strftime(@calendar_date, "%B %Y")}
               <% end %>
             </div>
 
             <div class="flex items-center space-x-2">
+              <div class="flex items-center border rounded-lg overflow-hidden">
+                <.link
+                  patch={
+                    ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "list"})}"
+                  }
+                  class={[
+                    "p-2 flex items-center",
+                    @view_mode == "list" && "bg-emerald-100 text-emerald-700",
+                    @view_mode != "list" && "text-gray-500 hover:bg-gray-100"
+                  ]}
+                  aria-label="List view"
+                >
+                  <.icon name="hero-squares-2x2" class="w-4 h-4" />
+                </.link>
+                <.link
+                  patch={
+                    ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "calendar"})}"
+                  }
+                  class={[
+                    "p-2 flex items-center",
+                    @view_mode == "calendar" && "bg-emerald-100 text-emerald-700",
+                    @view_mode != "calendar" && "text-gray-500 hover:bg-gray-100"
+                  ]}
+                  aria-label="Calendar view"
+                >
+                  <.icon name="hero-calendar-days" class="w-4 h-4" />
+                </.link>
+              </div>
+
               <.button
                 phx-click={toggle("#filters-advanced")}
                 type="button"
@@ -183,7 +216,7 @@ defmodule OPWeb.TournamentLive.Index do
             </div>
           </div>
 
-          <div id="tournaments" phx-update="stream" class="mt-4 space-y-4">
+          <div :if={@view_mode == "list"} id="tournaments" phx-update="stream" class="mt-4 space-y-4">
             <div id="empty-tournaments" class="hidden only:block text-center py-8 text-gray-500">
               No tournaments match your filters. Try adjusting your search criteria.
             </div>
@@ -200,11 +233,46 @@ defmodule OPWeb.TournamentLive.Index do
           </div>
 
           <.pagination
+            :if={@view_mode == "list"}
             page={@pagination.page}
             total_pages={@pagination.total_pages}
             path={~p"/tournaments"}
             params={filter_params_for_pagination(@filter_form)}
           />
+
+          <div :if={@view_mode == "calendar"} class="mt-4">
+            <div class="flex items-center justify-between mb-4">
+              <.link
+                patch={
+                  ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "calendar", "month" => Calendar.strftime(Date.add(@calendar_date, -1), "%Y-%m")})}"
+                }
+                class="p-2 rounded hover:bg-gray-100"
+                aria-label="Previous month"
+              >
+                <.icon name="hero-chevron-left" class="w-5 h-5" />
+              </.link>
+
+              <h3 class="text-xl font-semibold">
+                {Calendar.strftime(@calendar_date, "%B %Y")}
+              </h3>
+
+              <.link
+                patch={
+                  ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "calendar", "month" => Calendar.strftime(Date.new!(@calendar_date.year, @calendar_date.month, Date.days_in_month(@calendar_date)) |> Date.add(1), "%Y-%m")})}"
+                }
+                class="p-2 rounded hover:bg-gray-100"
+                aria-label="Next month"
+              >
+                <.icon name="hero-chevron-right" class="w-5 h-5" />
+              </.link>
+            </div>
+
+            <OPWeb.Tournaments.calendar_month
+              calendar_date={@calendar_date}
+              tournaments_by_date={@tournaments_by_date}
+              params={filter_params_for_pagination(@filter_form)}
+            />
+          </div>
         </div>
       </div>
     </Layouts.app>
@@ -240,8 +308,106 @@ defmodule OPWeb.TournamentLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    socket = apply_filters(socket, params)
+    view_mode = if params["view"] == "calendar", do: "calendar", else: "list"
+    socket = assign(socket, :view_mode, view_mode)
+
+    socket =
+      case view_mode do
+        "calendar" -> apply_calendar(socket, params)
+        "list" -> apply_filters(socket, params)
+      end
+
     {:noreply, socket}
+  end
+
+  defp apply_calendar(socket, params) do
+    calendar_date = parse_month(params["month"], socket.assigns.current_scope)
+
+    search = params["search"] || ""
+    location_id = params["location_id"] || ""
+    season_id = params["season_id"] || ""
+    league_id = params["league_id"] || ""
+    status = params["status"] || ""
+
+    start_date = Date.to_iso8601(calendar_date)
+
+    end_date =
+      Date.to_iso8601(
+        Date.new!(calendar_date.year, calendar_date.month, Date.days_in_month(calendar_date))
+      )
+
+    filter_params = %{
+      "search" => search,
+      "location_id" => location_id,
+      "season_id" => season_id,
+      "league_id" => league_id,
+      "status" => status,
+      "start_date" => "",
+      "end_date" => ""
+    }
+
+    {tournaments, _pagination} =
+      Tournaments.list_tournaments_paginated(
+        socket.assigns.current_scope,
+        page: 1,
+        per_page: 1000,
+        search: non_empty(search),
+        location_id: non_empty(location_id),
+        season_id: non_empty(season_id),
+        league_id: non_empty(league_id),
+        status: non_empty(status),
+        start_date: start_date,
+        end_date: end_date
+      )
+
+    tournaments_by_date = Enum.group_by(tournaments, &DateTime.to_date(&1.start_at))
+
+    socket
+    |> assign(:page_title, "Tournaments")
+    |> assign(:filter_form, to_form(filter_params, as: :filters))
+    |> assign(:filter_form_adv, to_form(filter_params, as: :filters_adv))
+    |> assign(:calendar_date, calendar_date)
+    |> assign(:tournaments_by_date, tournaments_by_date)
+    |> assign(:pagination, %{
+      page: 1,
+      per_page: 1000,
+      total_pages: 1,
+      total_count: length(tournaments)
+    })
+    |> assign(:tournaments_empty?, tournaments == [])
+    |> stream(:tournaments, tournaments, reset: true)
+  end
+
+  defp default_calendar_date do
+    today = Date.utc_today()
+    Date.new!(today.year, today.month, 1)
+  end
+
+  defp parse_month(nil, scope) do
+    case Tournaments.get_latest_tournament_date(scope) do
+      nil ->
+        today = Date.utc_today()
+        Date.new!(today.year, today.month, 1)
+
+      date ->
+        Date.new!(date.year, date.month, 1)
+    end
+  end
+
+  defp parse_month(month_str, _scope) when is_binary(month_str) do
+    case String.split(month_str, "-") do
+      [year_str, month_str] ->
+        with {year, ""} <- Integer.parse(year_str),
+             {month, ""} <- Integer.parse(month_str),
+             {:ok, date} <- Date.new(year, month, 1) do
+          date
+        else
+          _ -> default_calendar_date()
+        end
+
+      _ ->
+        default_calendar_date()
+    end
   end
 
   defp apply_filters(socket, params) do
@@ -281,8 +447,11 @@ defmodule OPWeb.TournamentLive.Index do
     socket
     |> assign(:page_title, "Tournaments")
     |> assign(:filter_form, to_form(filter_params, as: :filters))
+    |> assign(:filter_form_adv, to_form(filter_params, as: :filters_adv))
     |> assign(:pagination, pagination)
     |> assign(:tournaments_empty?, tournaments == [])
+    |> assign(:calendar_date, default_calendar_date())
+    |> assign(:tournaments_by_date, %{})
     |> stream(:tournaments, tournaments, reset: true)
   end
 
@@ -320,10 +489,27 @@ defmodule OPWeb.TournamentLive.Index do
       |> Map.new()
       |> Map.put("page", "1")
 
-    {:noreply, push_patch(socket, to: ~p"/tournaments?#{params}")}
+    if socket.assigns.view_mode == "calendar" do
+      params =
+        params
+        |> Map.put("view", "calendar")
+        |> Map.put("month", Calendar.strftime(socket.assigns.calendar_date, "%Y-%m"))
+
+      {:noreply, push_patch(socket, to: ~p"/tournaments?#{params}")}
+    else
+      {:noreply, push_patch(socket, to: ~p"/tournaments?#{params}")}
+    end
+  end
+
+  def handle_event("filter_adv", %{"filters_adv" => filter_params}, socket) do
+    handle_event("filter", %{"filters" => filter_params}, socket)
   end
 
   def handle_event("clear_filters", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/tournaments")}
+    if socket.assigns.view_mode == "calendar" do
+      {:noreply, push_patch(socket, to: ~p"/tournaments?#{%{"view" => "calendar"}}")}
+    else
+      {:noreply, push_patch(socket, to: ~p"/tournaments")}
+    end
   end
 end
