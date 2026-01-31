@@ -63,6 +63,19 @@ defmodule OP.Tournaments do
       {[%Tournament{}, ...], %{page: 1, per_page: 25, total_count: 50, total_pages: 2}}
 
   """
+  def get_latest_tournament_date(_scope) do
+    Tournament
+    |> where([t], not is_nil(t.start_at))
+    |> order_by([t], desc: t.start_at)
+    |> limit(1)
+    |> select([t], t.start_at)
+    |> Repo.one()
+    |> case do
+      nil -> nil
+      dt -> DateTime.to_date(dt)
+    end
+  end
+
   def list_tournaments_paginated(_scope, opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 25)
