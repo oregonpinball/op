@@ -56,6 +56,8 @@ defmodule OP.Tournaments.Tournament do
       ],
       default: :none
 
+    field :banner_image, :string
+
     field :status, Ecto.Enum,
       values: [:draft, :pending_review, :sanctioned, :cancelled, :rejected],
       default: :draft
@@ -90,6 +92,7 @@ defmodule OP.Tournaments.Tournament do
       :season_id,
       :location_id,
       :status,
+      :banner_image,
       :slug,
       :created_by_id,
       :updated_by_id

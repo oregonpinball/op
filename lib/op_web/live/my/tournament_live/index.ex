@@ -220,7 +220,10 @@ defmodule OPWeb.My.TournamentLive.Index do
         class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600"
       >
         <.link navigate={~p"/tournaments/#{tournament.slug}"}>
-          <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t bg-cover" />
+          <div
+            class="h-30 rounded-t bg-cover"
+            style={"background-image: url('#{OPWeb.Tournaments.banner_url(tournament)}')"}
+          />
         </.link>
         <div class="p-4">
           <.link navigate={~p"/tournaments/#{tournament.slug}"}>
@@ -265,7 +268,10 @@ defmodule OPWeb.My.TournamentLive.Index do
         class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600"
       >
         <.link navigate={~p"/tournaments/#{tournament.slug}"}>
-          <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t bg-cover" />
+          <div
+            class="h-30 rounded-t bg-cover"
+            style={"background-image: url('#{OPWeb.Tournaments.banner_url(tournament)}')"}
+          />
         </.link>
         <div class="p-4">
           <.link navigate={~p"/tournaments/#{tournament.slug}"}>
