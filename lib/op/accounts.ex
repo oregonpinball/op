@@ -384,6 +384,41 @@ defmodule OP.Accounts do
   end
 
   @doc """
+  Creates a user as an admin with email, password, and role.
+
+  The user is auto-confirmed and can log in immediately.
+
+  ## Examples
+
+      iex> admin_create_user(%{email: "user@example.com", password: "password123", role: :player})
+      {:ok, %User{}}
+
+      iex> admin_create_user(%{email: "bad"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def admin_create_user(attrs) do
+    %User{}
+    |> User.admin_creation_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for admin user creation (without hashing password).
+
+  Used for live form validation.
+
+  ## Examples
+
+      iex> change_admin_user_creation(%{})
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_admin_user_creation(attrs \\ %{}) do
+    User.admin_creation_changeset(%User{}, attrs, hash_password: false)
+  end
+
+  @doc """
   Gets a single user with associated player if exists.
 
   Raises `Ecto.NoResultsError` if the User does not exist.

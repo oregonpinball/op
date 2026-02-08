@@ -17,6 +17,13 @@ defmodule OPWeb.Admin.UserLive.Index do
               do: "#{@pagination.total_count} users total",
               else: "No users yet"}
           </:subtitle>
+          <:actions>
+            <.link navigate={~p"/admin/users/new"}>
+              <.button color="primary">
+                <.icon name="hero-plus" class="w-4 h-4 mr-1" /> New User
+              </.button>
+            </.link>
+          </:actions>
         </.header>
 
         <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
