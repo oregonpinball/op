@@ -80,14 +80,16 @@ defmodule OPWeb.UserLive.LoginTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: false
+        magic_link_login_enabled: false,
+        tournaments_only: false
       )
 
       on_exit(fn ->
         Application.put_env(:op, :feature_flags,
           registration_enabled: true,
           tournament_submission_enabled: true,
-          magic_link_login_enabled: true
+          magic_link_login_enabled: true,
+          tournaments_only: false
         )
       end)
 

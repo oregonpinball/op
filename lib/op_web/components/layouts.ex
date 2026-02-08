@@ -42,7 +42,7 @@ defmodule OPWeb.Layouts do
   def app(assigns) do
     nav_classes = if assigns.is_landing?, do: "md:-mb-24", else: "bg-green-950"
     registration_enabled? = OP.FeatureFlags.registration_enabled?()
-    tournaments_only? = OP.FeatureFlags.tournaments_only?()
+    tournaments_only? = OP.FeatureFlags.tournaments_only?() and is_nil(assigns.current_scope)
 
     assigns =
       assigns
@@ -302,8 +302,10 @@ defmodule OPWeb.Layouts do
     """
   end
 
+  attr :current_scope, :map, default: nil
+
   def footer(assigns) do
-    tournaments_only? = OP.FeatureFlags.tournaments_only?()
+    tournaments_only? = OP.FeatureFlags.tournaments_only?() and is_nil(assigns.current_scope)
     assigns = Map.put(assigns, :tournaments_only?, tournaments_only?)
 
     ~H"""
