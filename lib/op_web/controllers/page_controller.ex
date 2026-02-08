@@ -2,7 +2,7 @@ defmodule OPWeb.PageController do
   use OPWeb, :controller
 
   def home(conn, _params) do
-    if OP.FeatureFlags.tournaments_only?() do
+    if OP.FeatureFlags.tournaments_only?() and is_nil(conn.assigns.current_scope) do
       conn
       |> redirect(to: ~p"/tournaments")
       |> halt()

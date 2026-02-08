@@ -95,7 +95,7 @@ defmodule OPWeb.Landing do
       </div>
     </div>
 
-    <Layouts.footer />
+    <Layouts.footer current_scope={@current_scope} />
     """
   end
 
