@@ -17,7 +17,12 @@ defmodule OPWeb.PageController do
     # TODO :Scope back to upcoming
     tournaments = OP.Tournaments.list_tournaments_with_preloads(conn.assigns.current_scope)
 
-    render(conn, :home, leagues: leagues, seasons: seasons, tournaments: tournaments)
+    render(conn, :home,
+      leagues: leagues,
+      seasons: seasons,
+      tournaments: tournaments,
+      tournament_submission_enabled?: OP.FeatureFlags.tournament_submission_enabled?()
+    )
   end
 
   def coming_soon(conn, _params) do

@@ -125,6 +125,46 @@ defmodule OPWeb.TournamentLive.SubmitTest do
     end
   end
 
+  describe "tournament submission feature flag" do
+    test "redirects to /tournaments with flash when flag is disabled", %{conn: conn} do
+      user = admin_user_fixture()
+      conn = log_in_user(conn, user)
+
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: false
+      )
+
+      assert {:error, {:redirect, %{to: "/tournaments", flash: %{"error" => message}}}} =
+               live(conn, ~p"/tournaments/submit")
+
+      assert message == "Tournament submission is not currently available."
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true
+      )
+    end
+
+    test "allows access when flag is enabled", %{conn: conn} do
+      user = admin_user_fixture()
+      conn = log_in_user(conn, user)
+
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true
+      )
+
+      {:ok, _lv, html} = live(conn, ~p"/tournaments/submit")
+      assert html =~ "Submit Tournament"
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true
+      )
+    end
+  end
+
   describe "Edit draft" do
     setup %{conn: conn} do
       user = td_user_fixture()

@@ -6,6 +6,7 @@ defmodule OPWeb.Landing do
 
   attr :seasons, :list, default: [], doc: "list of seasons with rankings"
   attr :tournaments, :list, default: [], doc: "list of upcoming tournaments"
+  attr :tournament_submission_enabled?, :boolean, default: false
 
   def authenticated(assigns) do
     ~H"""
@@ -15,7 +16,12 @@ defmodule OPWeb.Landing do
         Welcome back, {@current_scope.user.email}
       </h1>
       <div class="mt-4 flex items-center justify-center space-x-2">
-        <.button href={~p"/tournaments/submit"} color="primary" class="flex items-center space-x-1">
+        <.button
+          :if={@tournament_submission_enabled?}
+          href={~p"/tournaments/submit"}
+          color="primary"
+          class="flex items-center space-x-1"
+        >
           <.icon name="hero-plus" class="w-5 h-5" />
           <span>Submit tournament</span>
         </.button>

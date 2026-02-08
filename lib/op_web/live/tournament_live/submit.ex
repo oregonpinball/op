@@ -24,7 +24,14 @@ defmodule OPWeb.TournamentLive.Submit do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    if OP.FeatureFlags.tournament_submission_enabled?() do
+      {:ok, socket}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "Tournament submission is not currently available.")
+       |> redirect(to: ~p"/tournaments")}
+    end
   end
 
   @impl true
