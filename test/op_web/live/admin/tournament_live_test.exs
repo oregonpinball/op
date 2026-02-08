@@ -429,6 +429,85 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
   end
 
+  describe "Organizer Search" do
+    setup %{conn: conn} do
+      user = admin_user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "organizer search field is visible on new tournament form", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/new")
+
+      assert html =~ "Organizer"
+      assert html =~ "Search by email..."
+    end
+
+    test "pre-populates organizer on edit when one exists", %{conn: conn} do
+      organizer = user_fixture(%{email: "organizer@example.com"})
+
+      tournament =
+        tournament_fixture(nil, %{name: "Organized Tournament", organizer_id: organizer.id})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      html = render(lv)
+      assert html =~ "organizer@example.com"
+    end
+
+    test "searching by email shows matching results", %{conn: conn} do
+      _target_user = user_fixture(%{email: "findme@example.com"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      lv
+      |> element("#organizer-search-input")
+      |> render_keyup(%{"value" => "findme"})
+
+      html = render(lv)
+      assert html =~ "findme@example.com"
+    end
+
+    test "selecting an organizer displays email with clear button", %{conn: conn} do
+      target_user = user_fixture(%{email: "selected@example.com"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      lv
+      |> element("#organizer-search-input")
+      |> render_keyup(%{"value" => "selected"})
+
+      lv
+      |> element(~s(button[phx-click="select_organizer"][phx-value-user-id="#{target_user.id}"]))
+      |> render_click()
+
+      html = render(lv)
+      assert html =~ "selected@example.com"
+      assert html =~ "hero-x-mark"
+    end
+
+    test "clearing selected organizer shows search input again", %{conn: conn} do
+      target_user = user_fixture(%{email: "clearme@example.com"})
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      lv
+      |> element("#organizer-search-input")
+      |> render_keyup(%{"value" => "clearme"})
+
+      lv
+      |> element(~s(button[phx-click="select_organizer"][phx-value-user-id="#{target_user.id}"]))
+      |> render_click()
+
+      lv
+      |> element(~s(button[phx-click="clear_organizer"]))
+      |> render_click()
+
+      html = render(lv)
+      assert html =~ "Search by email..."
+      refute html =~ "clearme@example.com"
+    end
+  end
+
   describe "Matchplay URL fields" do
     setup %{conn: conn} do
       user = admin_user_fixture()

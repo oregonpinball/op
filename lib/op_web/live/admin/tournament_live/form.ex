@@ -1,6 +1,7 @@
 defmodule OPWeb.Admin.TournamentLive.Form do
   use OPWeb, :live_component
 
+  alias OP.Accounts
   alias OP.Tournaments
   alias OP.Tournaments.Tournament
   alias OP.Leagues
@@ -147,6 +148,14 @@ defmodule OPWeb.Admin.TournamentLive.Form do
           type="select"
           label="Status"
           options={@status_options}
+        />
+
+        <.organizer_search
+          form={@form}
+          organizer_search={@organizer_search}
+          organizer_results={@organizer_results}
+          selected_organizer={@selected_organizer}
+          myself={@myself}
         />
 
         <div class="border-t border-zinc-200 pt-6 mt-6">
@@ -339,6 +348,81 @@ defmodule OPWeb.Admin.TournamentLive.Form do
     """
   end
 
+  attr :form, :any, required: true
+  attr :organizer_search, :string, required: true
+  attr :organizer_results, :list, required: true
+  attr :selected_organizer, :any, required: true
+  attr :myself, :any, required: true
+
+  defp organizer_search(assigns) do
+    show_results = assigns.organizer_search != "" and assigns.organizer_results != []
+
+    assigns = assign(assigns, :show_results, show_results)
+
+    ~H"""
+    <div class="relative">
+      <label class="block text-sm font-medium text-zinc-700 mb-1">Organizer</label>
+      <input
+        type="hidden"
+        name={@form[:organizer_id].name}
+        value={(@selected_organizer && @selected_organizer.id) || ""}
+      />
+
+      <div :if={@selected_organizer} class="flex items-center gap-2">
+        <span class="flex-1 px-3 py-2 bg-white border border-zinc-300 rounded-lg text-sm">
+          {@selected_organizer.email}
+        </span>
+        <button
+          type="button"
+          phx-click="clear_organizer"
+          phx-target={@myself}
+          class="text-zinc-400 hover:text-zinc-600"
+        >
+          <.icon name="hero-x-mark" class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div :if={!@selected_organizer}>
+        <input
+          type="text"
+          id="organizer-search-input"
+          value={@organizer_search}
+          placeholder="Search by email..."
+          phx-keyup="search_organizer"
+          phx-target={@myself}
+          phx-debounce="200"
+          autocomplete="off"
+          class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+
+        <div
+          :if={@show_results}
+          id="organizer-search-results"
+          class="absolute z-10 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+        >
+          <button
+            :for={user <- @organizer_results}
+            type="button"
+            phx-click="select_organizer"
+            phx-value-user-id={user.id}
+            phx-target={@myself}
+            class="w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none"
+          >
+            {user.email}
+          </button>
+        </div>
+
+        <div
+          :if={@organizer_search != "" and @organizer_results == []}
+          class="absolute z-10 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg p-3 text-sm text-zinc-500"
+        >
+          No users found
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   @impl true
   def update(%{tournament: tournament} = assigns, socket) do
     # Build selected_players map from existing standings
@@ -350,6 +434,14 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         {standing.player_id, player}
       end)
       |> Map.new()
+
+    # Pre-populate selected organizer from tournament association
+    selected_organizer =
+      if Ecto.assoc_loaded?(tournament.organizer) do
+        tournament.organizer
+      else
+        nil
+      end
 
     # Populate virtual matchplay URL fields from stored external IDs
     tournament =
@@ -380,6 +472,9 @@ defmodule OPWeb.Admin.TournamentLive.Form do
      |> assign(:player_searches, %{})
      |> assign(:player_results, %{})
      |> assign(:selected_players, selected_players)
+     |> assign(:organizer_search, "")
+     |> assign(:organizer_results, [])
+     |> assign(:selected_organizer, selected_organizer)
      |> assign(:original_banner, tournament.banner_image)
      |> assign(:banner_removed, false)
      |> assign_form(Tournaments.change_tournament(assigns.current_scope, tournament))
@@ -568,6 +663,49 @@ defmodule OPWeb.Admin.TournamentLive.Form do
     changeset = Ecto.Changeset.put_assoc(changeset, :standings, updated_standings)
 
     {:noreply, assign_form(socket, changeset)}
+  end
+
+  def handle_event("search_organizer", %{"value" => query}, socket) do
+    organizer_results =
+      if String.length(query) >= 1 do
+        Accounts.search_users(query)
+      else
+        []
+      end
+
+    {:noreply,
+     socket
+     |> assign(:organizer_search, query)
+     |> assign(:organizer_results, organizer_results)}
+  end
+
+  def handle_event("select_organizer", %{"user-id" => user_id}, socket) do
+    user_id = String.to_integer(user_id)
+    user = Accounts.get_user!(user_id)
+
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:organizer_id, user_id)
+
+    {:noreply,
+     socket
+     |> assign(:selected_organizer, user)
+     |> assign(:organizer_search, "")
+     |> assign(:organizer_results, [])
+     |> assign_form(changeset)}
+  end
+
+  def handle_event("clear_organizer", _params, socket) do
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:organizer_id, nil)
+
+    {:noreply,
+     socket
+     |> assign(:selected_organizer, nil)
+     |> assign(:organizer_search, "")
+     |> assign(:organizer_results, [])
+     |> assign_form(changeset)}
   end
 
   defp save_tournament(socket, :edit, tournament_params) do
