@@ -27,6 +27,9 @@ if config_env() != :test do
   config :op, :matchplay_api_token, System.get_env("MATCHPLAY_API_TOKEN")
 end
 
+# Feature flags — controlled via environment variables, default to off
+config :op, :feature_flags, registration_enabled: System.get_env("REGISTRATION_ENABLED") == "true"
+
 if config_env() == :prod do
   database_path =
     System.get_env("DATABASE_PATH") ||

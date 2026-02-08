@@ -79,6 +79,28 @@ defmodule OPWeb.UserLive.RegistrationTest do
     end
   end
 
+  describe "registration feature flag" do
+    test "redirects to / with flash when registration is disabled", %{conn: conn} do
+      Application.put_env(:op, :feature_flags, registration_enabled: false)
+
+      assert {:error, {:redirect, %{to: "/", flash: %{"error" => message}}}} =
+               live(conn, ~p"/users/register")
+
+      assert message == "Registration is not currently available."
+    after
+      Application.put_env(:op, :feature_flags, registration_enabled: true)
+    end
+
+    test "allows access when registration is enabled", %{conn: conn} do
+      Application.put_env(:op, :feature_flags, registration_enabled: true)
+
+      {:ok, _lv, html} = live(conn, ~p"/users/register")
+      assert html =~ "Register"
+    after
+      Application.put_env(:op, :feature_flags, registration_enabled: true)
+    end
+  end
+
   describe "registration navigation" do
     test "redirects to login page when the Log in button is clicked", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")

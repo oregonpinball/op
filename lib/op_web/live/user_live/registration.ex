@@ -90,10 +90,17 @@ defmodule OPWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    if OP.FeatureFlags.registration_enabled?() do
+      changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
 
-    {:ok, socket |> assign(:agreed, false) |> assign_form(changeset),
-     temporary_assigns: [form: nil]}
+      {:ok, socket |> assign(:agreed, false) |> assign_form(changeset),
+       temporary_assigns: [form: nil]}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "Registration is not currently available.")
+       |> redirect(to: ~p"/")}
+    end
   end
 
   @impl true
