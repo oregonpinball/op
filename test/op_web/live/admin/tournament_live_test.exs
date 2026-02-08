@@ -429,6 +429,160 @@ defmodule OPWeb.Admin.TournamentLiveTest do
     end
   end
 
+  describe "Matchplay URL fields" do
+    setup %{conn: conn} do
+      user = admin_user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "fields render on new tournament form", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/new")
+
+      assert html =~ "Qualifying Matchplay URL"
+      assert html =~ "Finals Matchplay URL"
+      assert html =~ "Enter a Matchplay tournament URL or numeric ID"
+    end
+
+    test "fields render on edit tournament form", %{conn: conn} do
+      tournament = tournament_fixture(%{name: "Test Tournament"})
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      assert html =~ "Qualifying Matchplay URL"
+      assert html =~ "Finals Matchplay URL"
+    end
+
+    test "existing external_id displays as full URL in edit form", %{conn: conn} do
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Matchplay Tournament",
+          external_id: "matchplay:12345"
+        })
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      assert html =~ "https://app.matchplay.events/tournaments/12345"
+    end
+
+    test "existing finals_external_id displays as full URL in edit form", %{conn: conn} do
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Finals Tournament",
+          finals_external_id: "matchplay:67890"
+        })
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      assert html =~ "https://app.matchplay.events/tournaments/67890"
+    end
+
+    test "saving a URL sets external_id correctly", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      start_at =
+        DateTime.utc_now()
+        |> DateTime.add(1, :day)
+        |> DateTime.truncate(:second)
+        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "name" => "URL Tournament",
+          "start_at" => start_at,
+          "qualifying_matchplay_url" => "https://app.matchplay.events/tournaments/11111"
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      tournament =
+        OP.Tournaments.list_tournaments(nil) |> Enum.find(&(&1.name == "URL Tournament"))
+
+      assert tournament.external_id == "matchplay:11111"
+      assert tournament.external_url == "https://app.matchplay.events/tournaments/11111"
+    end
+
+    test "saving a numeric ID sets external_id correctly", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      start_at =
+        DateTime.utc_now()
+        |> DateTime.add(1, :day)
+        |> DateTime.truncate(:second)
+        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "name" => "Numeric ID Tournament",
+          "start_at" => start_at,
+          "qualifying_matchplay_url" => "22222"
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      tournament =
+        OP.Tournaments.list_tournaments(nil) |> Enum.find(&(&1.name == "Numeric ID Tournament"))
+
+      assert tournament.external_id == "matchplay:22222"
+    end
+
+    test "saving finals URL sets finals_external_id correctly", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/new")
+
+      start_at =
+        DateTime.utc_now()
+        |> DateTime.add(1, :day)
+        |> DateTime.truncate(:second)
+        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "name" => "Finals URL Tournament",
+          "start_at" => start_at,
+          "finals_matchplay_url" => "https://app.matchplay.events/tournaments/33333"
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      tournament =
+        OP.Tournaments.list_tournaments(nil) |> Enum.find(&(&1.name == "Finals URL Tournament"))
+
+      assert tournament.finals_external_id == "matchplay:33333"
+    end
+
+    test "clearing URL clears external_id", %{conn: conn} do
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Clear Test",
+          external_id: "matchplay:44444",
+          external_url: "https://app.matchplay.events/tournaments/44444"
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}/edit")
+
+      lv
+      |> form("#tournament-form", %{
+        "tournament" => %{
+          "qualifying_matchplay_url" => ""
+        }
+      })
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/tournaments")
+
+      updated = OP.Tournaments.get_tournament!(nil, tournament.id)
+      assert updated.external_id == nil
+      assert updated.external_url == nil
+    end
+  end
+
   describe "Show Tournament" do
     setup %{conn: conn} do
       user = admin_user_fixture()

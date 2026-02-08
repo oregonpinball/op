@@ -2,6 +2,7 @@ defmodule OPWeb.Admin.TournamentLive.Form do
   use OPWeb, :live_component
 
   alias OP.Tournaments
+  alias OP.Tournaments.Tournament
   alias OP.Leagues
   alias OP.Locations
   alias OP.Players
@@ -147,6 +148,34 @@ defmodule OPWeb.Admin.TournamentLive.Form do
           label="Status"
           options={@status_options}
         />
+
+        <div class="border-t border-zinc-200 pt-6 mt-6">
+          <h3 class="text-lg font-semibold text-zinc-900 mb-4">Matchplay Links</h3>
+          <div class="space-y-4">
+            <div>
+              <.input
+                field={@form[:qualifying_matchplay_url]}
+                type="text"
+                label="Qualifying Matchplay URL"
+                placeholder="https://app.matchplay.events/tournaments/12345"
+              />
+              <p class="text-sm text-zinc-500 mt-1">
+                Enter a Matchplay tournament URL or numeric ID
+              </p>
+            </div>
+            <div>
+              <.input
+                field={@form[:finals_matchplay_url]}
+                type="text"
+                label="Finals Matchplay URL"
+                placeholder="https://app.matchplay.events/tournaments/67890"
+              />
+              <p class="text-sm text-zinc-500 mt-1">
+                Enter a Matchplay tournament URL or numeric ID
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div class="border-t border-zinc-200 pt-6 mt-6">
           <div class="flex items-center justify-between mb-4">
@@ -321,6 +350,18 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         {standing.player_id, player}
       end)
       |> Map.new()
+
+    # Populate virtual matchplay URL fields from stored external IDs
+    tournament =
+      tournament
+      |> Map.put(
+        :qualifying_matchplay_url,
+        Tournament.matchplay_url_from_external_id(tournament.external_id)
+      )
+      |> Map.put(
+        :finals_matchplay_url,
+        Tournament.matchplay_url_from_external_id(tournament.finals_external_id)
+      )
 
     socket =
       if Map.has_key?(socket.assigns, :uploads) do
