@@ -1,17 +1,17 @@
-# fly.toml app configuration file generated for staging-op on 2026-01-12T06:12:46Z
+# fly.toml app configuration file generated for op-prod on 2026-02-08T05:06:06Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'staging-op'
-primary_region = 'sjc'
+app = 'op-prod'
+primary_region = 'lax'
 kill_signal = 'SIGTERM'
 
 [build]
 
 [env]
-  DATABASE_PATH = '/mnt/name/op.db'
-  PHX_HOST = 'staging-op.fly.dev'
+  DATABASE_PATH = '/mnt/name/name.db'
+  PHX_HOST = 'op-prod.fly.dev'
   PORT = '8080'
 
 [[mounts]]
@@ -36,5 +36,6 @@ kill_signal = 'SIGTERM'
 
 [[vm]]
   memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 1024
+  memory_mb = 256
