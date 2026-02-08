@@ -8,6 +8,10 @@ defmodule OPWeb.UserSessionController do
     create(conn, params, "User confirmed successfully.")
   end
 
+  def create(conn, %{"_action" => "invitation_accepted"} = params) do
+    create(conn, params, "Welcome! Your account is ready.")
+  end
+
   def create(conn, params) do
     create(conn, params, "Welcome back!")
   end

@@ -10,6 +10,7 @@ defmodule OP.Accounts.UserToken do
   # since someone with access to the email may take over the account.
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
+  @invitation_validity_in_days 7
   @session_validity_in_days 14
 
   schema "users_tokens" do
@@ -142,6 +143,44 @@ defmodule OP.Accounts.UserToken do
         query =
           from token in by_token_and_context_query(hashed_token, context),
             where: token.inserted_at > ago(@change_email_validity_in_days, "day")
+
+        {:ok, query}
+
+      :error ->
+        :error
+    end
+  end
+
+  @doc """
+  Builds a hashed token for user invitation.
+
+  The non-hashed token is returned for inclusion in the invitation URL,
+  while the hashed version is stored in the database.
+  """
+  def build_invitation_token(user) do
+    build_hashed_token(user, "invitation", user.email)
+  end
+
+  @doc """
+  Checks if the invitation token is valid and returns its underlying lookup query.
+
+  If found, the query returns a tuple of the form `{user, token}`.
+
+  The token is valid if it matches its hashed counterpart in the database,
+  has not expired (after @invitation_validity_in_days), and the sent_to
+  matches the user's current email.
+  """
+  def verify_invitation_token_query(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+        query =
+          from token in by_token_and_context_query(hashed_token, "invitation"),
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(@invitation_validity_in_days, "day"),
+            where: token.sent_to == user.email,
+            select: {user, token}
 
         {:ok, query}
 

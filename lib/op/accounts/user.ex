@@ -187,6 +187,25 @@ defmodule OP.Accounts.User do
   end
 
   @doc """
+  A user changeset for creating an invited user.
+
+  Validates email and role only. The user is created without a password
+  or confirmation -- they will set their password via the invitation link.
+  """
+  def invitation_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :role])
+    |> validate_required([:email, :role])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, OP.Repo)
+    |> unique_constraint(:email)
+    |> validate_inclusion(:role, [:system_admin, :td, :player])
+  end
+
+  @doc """
   A user changeset for changing the role.
 
   Prevents system admins from demoting themselves.
