@@ -53,6 +53,12 @@ defmodule OPWeb.Admin.AdminLive.Dashboard do
             href={~p"/admin/fir"}
             icon="hero-document"
           />
+          <.admin_card
+            title="Feature Flags"
+            description="View feature flag status and configuration"
+            href={~p"/admin/feature-flags"}
+            icon="hero-flag"
+          />
         </div>
       </div>
     </Layouts.app>

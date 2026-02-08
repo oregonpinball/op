@@ -136,6 +136,7 @@ defmodule OPWeb.Router do
     live_session :require_system_admin,
       on_mount: [{OPWeb.UserAuth, :require_system_admin}] do
       live "/dashboard", AdminLive.Dashboard, :index
+      live "/feature-flags", FeatureFlagLive.Index, :index
 
       live "/tournaments", TournamentLive.Index, :index
       live "/tournaments/new", TournamentLive.Index, :new
