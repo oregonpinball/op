@@ -28,4 +28,10 @@ defmodule OP.FeatureFlags do
   """
   @spec tournament_submission_enabled?() :: boolean()
   def tournament_submission_enabled?, do: enabled?(:tournament_submission_enabled)
+
+  @doc """
+  Returns whether tournaments-only mode is enabled.
+  """
+  @spec tournaments_only?() :: boolean()
+  def tournaments_only?, do: enabled?(:tournaments_only)
 end

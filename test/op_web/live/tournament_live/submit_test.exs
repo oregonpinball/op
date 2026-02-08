@@ -142,7 +142,8 @@ defmodule OPWeb.TournamentLive.SubmitTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -160,7 +161,8 @@ defmodule OPWeb.TournamentLive.SubmitTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        tournaments_only: false
       )
     end
   end
