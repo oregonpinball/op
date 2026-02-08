@@ -98,7 +98,7 @@ defmodule OPWeb.TournamentLive.Index do
           <div class="flex items-center justify-between">
             <h1 class="text-7xl font-bold">Events</h1>
             <.button
-              :if={is_admin?(@current_scope)}
+              :if={is_admin?(@current_scope) and @tournament_submission_enabled?}
               href={~p"/tournaments/submit"}
               color="primary"
               class="whitespace-nowrap"
@@ -303,6 +303,7 @@ defmodule OPWeb.TournamentLive.Index do
      |> assign(:league_options, league_options)
      |> assign(:season_options, season_options)
      |> assign(:status_options, status_options)
+     |> assign(:tournament_submission_enabled?, OP.FeatureFlags.tournament_submission_enabled?())
      |> stream(:tournaments, [])}
   end
 

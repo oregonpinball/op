@@ -22,4 +22,10 @@ defmodule OP.FeatureFlags do
   """
   @spec registration_enabled?() :: boolean()
   def registration_enabled?, do: enabled?(:registration_enabled)
+
+  @doc """
+  Returns whether tournament submission is enabled.
+  """
+  @spec tournament_submission_enabled?() :: boolean()
+  def tournament_submission_enabled?, do: enabled?(:tournament_submission_enabled)
 end
