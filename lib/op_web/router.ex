@@ -87,6 +87,7 @@ defmodule OPWeb.Router do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/users/invitation/:token", UserLive.InvitationAcceptance, :accept
     end
 
     # Storybook
@@ -161,6 +162,7 @@ defmodule OPWeb.Router do
 
       live "/users", UserLive.Index, :index
       live "/users/new", UserLive.Form, :new
+      live "/users/invite", UserLive.Invite, :invite
       live "/users/:id/edit", UserLive.Form, :edit
     end
   end

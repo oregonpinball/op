@@ -517,6 +517,89 @@ defmodule OP.Accounts do
     |> Repo.one()
   end
 
+  ## User invitations
+
+  @doc """
+  Invites a user by creating an unconfirmed account and generating an invitation token.
+
+  The user is created with email and role only (no password, no confirmation).
+  Returns `{:ok, {user, encoded_token}}` or `{:error, changeset}`.
+  """
+  def invite_user(attrs) do
+    Repo.transact(fn ->
+      with {:ok, user} <-
+             %User{}
+             |> User.invitation_changeset(attrs)
+             |> Repo.insert() do
+        {encoded_token, user_token} = UserToken.build_invitation_token(user)
+        Repo.insert!(user_token)
+        {:ok, {user, encoded_token}}
+      end
+    end)
+  end
+
+  @doc """
+  Returns a changeset for validating invitation form input (email + role).
+
+  Used for live form validation without side effects.
+  """
+  def change_invitation(attrs \\ %{}) do
+    User.invitation_changeset(%User{}, attrs)
+  end
+
+  @doc """
+  Gets the user by invitation token.
+
+  Returns the user if the token is valid and not expired, nil otherwise.
+  """
+  def get_user_by_invitation_token(token) do
+    with {:ok, query} <- UserToken.verify_invitation_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Accepts an invitation by setting the user's password and confirming them.
+
+  Deletes all existing tokens for the user after acceptance.
+  Returns `{:ok, {user, expired_tokens}}`, `{:error, changeset}`, or `{:error, :invalid_token}`.
+  """
+  def accept_invitation(token, password_attrs) do
+    case get_user_by_invitation_token(token) do
+      nil ->
+        {:error, :invalid_token}
+
+      user ->
+        user
+        |> User.password_changeset(password_attrs)
+        |> Ecto.Changeset.put_change(:confirmed_at, DateTime.utc_now(:second))
+        |> update_user_and_delete_all_tokens()
+    end
+  end
+
+  @doc """
+  Returns a changeset for invitation acceptance form validation (password fields).
+
+  Does not hash the password, used for live validation only.
+  """
+  def change_invitation_acceptance(user, attrs \\ %{}) do
+    User.password_changeset(user, attrs, hash_password: false)
+  end
+
+  @doc """
+  Generates a login token for a user to enable auto-login via phx-trigger-action.
+
+  Returns the encoded token string.
+  """
+  def create_login_token_for_user(user) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "login")
+    Repo.insert!(user_token)
+    encoded_token
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

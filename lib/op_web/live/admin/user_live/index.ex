@@ -18,6 +18,11 @@ defmodule OPWeb.Admin.UserLive.Index do
               else: "No users yet"}
           </:subtitle>
           <:actions>
+            <.link navigate={~p"/admin/users/invite"}>
+              <.button color="primary" variant="invisible">
+                <.icon name="hero-envelope" class="w-4 h-4 mr-1" /> Invite User
+              </.button>
+            </.link>
             <.link navigate={~p"/admin/users/new"}>
               <.button color="primary">
                 <.icon name="hero-plus" class="w-4 h-4 mr-1" /> New User
