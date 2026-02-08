@@ -56,7 +56,7 @@ defmodule OPWeb.Layouts do
           color="invisible"
           class="text-2xl font-bold! hover:text-slate-900 transition-all"
         >
-          Oregon Pinball
+          LOOP
         </.button>
 
         <.button
@@ -105,7 +105,7 @@ defmodule OPWeb.Layouts do
                 color="invisible"
                 class="truncate text-2xl font-bold! hover:text-slate-900 transition-all"
               >
-                <span class="">Oregon Pinball</span>
+                <span class="">LOOP</span>
               </.button>
 
               <.button
