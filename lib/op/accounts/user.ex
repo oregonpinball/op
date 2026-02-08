@@ -152,6 +152,41 @@ defmodule OP.Accounts.User do
   end
 
   @doc """
+  A user changeset for admin-created users.
+
+  Creates a user with email, password, and role. The user is auto-confirmed
+  so they can log in immediately.
+
+  ## Options
+
+    * `:hash_password` - Hashes the password so it can be stored securely
+      in the database. Set to `false` for live validation. Defaults to `true`.
+  """
+  def admin_creation_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :password, :role])
+    |> validate_required([:email, :password, :role])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, OP.Repo)
+    |> unique_constraint(:email)
+    |> validate_inclusion(:role, [:system_admin, :td, :player])
+    |> validate_length(:password, min: 8, max: 72)
+    |> maybe_hash_password(opts)
+    |> maybe_set_confirmed_at(opts)
+  end
+
+  defp maybe_set_confirmed_at(changeset, opts) do
+    if Keyword.get(opts, :hash_password, true) && changeset.valid? do
+      put_change(changeset, :confirmed_at, DateTime.utc_now(:second))
+    else
+      changeset
+    end
+  end
+
+  @doc """
   A user changeset for changing the role.
 
   Prevents system admins from demoting themselves.

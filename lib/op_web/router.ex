@@ -160,6 +160,7 @@ defmodule OPWeb.Router do
       live "/locations/:slug/edit", LocationLive.Form, :edit
 
       live "/users", UserLive.Index, :index
+      live "/users/new", UserLive.Form, :new
       live "/users/:id/edit", UserLive.Form, :edit
     end
   end
