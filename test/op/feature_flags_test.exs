@@ -89,7 +89,7 @@ defmodule OP.FeatureFlagsTest do
     test "returns all flags with required keys" do
       flags = FeatureFlags.flags()
 
-      assert length(flags) == 2
+      assert length(flags) == 4
 
       Enum.each(flags, fn flag ->
         assert Map.has_key?(flag, :key)
