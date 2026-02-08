@@ -2,6 +2,7 @@ defmodule OPWeb.UserLive.Login do
   use OPWeb, :live_view
 
   alias OP.Accounts
+  alias OP.FeatureFlags
 
   @impl true
   def render(assigns) do
@@ -26,7 +27,7 @@ defmodule OPWeb.UserLive.Login do
 
             <div class="grid grid-cols-1 gap-8 mt-4">
               <%!-- Passwordless Email Login Column --%>
-              <div class="space-y-4 bg-white/95 p-4 border rounded">
+              <div :if={@magic_link_login_enabled?} class="space-y-4 bg-white/95 p-4 border rounded">
                 <div class="border-b pb-3">
                   <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
                     <.icon name="hero-sparkles" class="size-5 inline-block" /> Simple Login
@@ -113,12 +114,25 @@ defmodule OPWeb.UserLive.Login do
 
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false)}
+    {:ok,
+     assign(socket,
+       form: form,
+       trigger_submit: false,
+       magic_link_login_enabled?: FeatureFlags.magic_link_login_enabled?()
+     )}
   end
 
   @impl true
   def handle_event("submit_password", _params, socket) do
     {:noreply, assign(socket, :trigger_submit, true)}
+  end
+
+  def handle_event(
+        "submit_magic",
+        _params,
+        %{assigns: %{magic_link_login_enabled?: false}} = socket
+      ) do
+    {:noreply, socket}
   end
 
   def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do

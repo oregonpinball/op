@@ -30,6 +30,12 @@ defmodule OP.FeatureFlags do
   def tournament_submission_enabled?, do: enabled?(:tournament_submission_enabled)
 
   @doc """
+  Returns whether magic link login is enabled.
+  """
+  @spec magic_link_login_enabled?() :: boolean()
+  def magic_link_login_enabled?, do: enabled?(:magic_link_login_enabled)
+
+  @doc """
   Returns whether tournaments-only mode is enabled.
   """
   @spec tournaments_only?() :: boolean()

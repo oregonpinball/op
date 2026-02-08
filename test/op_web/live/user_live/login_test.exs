@@ -75,6 +75,38 @@ defmodule OPWeb.UserLive.LoginTest do
     end
   end
 
+  describe "login page with magic link disabled" do
+    setup do
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: false
+      )
+
+      on_exit(fn ->
+        Application.put_env(:op, :feature_flags,
+          registration_enabled: true,
+          tournament_submission_enabled: true,
+          magic_link_login_enabled: true
+        )
+      end)
+
+      :ok
+    end
+
+    test "does not render magic link form", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+      refute has_element?(lv, "#login_form_magic")
+      assert has_element?(lv, "#login_form_password")
+    end
+
+    test "submit_magic event is a no-op", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+      render_hook(lv, :submit_magic, %{"user" => %{"email" => "test@example.com"}})
+      refute_redirected(lv, ~p"/users/log-in")
+    end
+  end
+
   describe "re-authentication (sudo mode)" do
     setup %{conn: conn} do
       user = user_fixture()
@@ -82,11 +114,12 @@ defmodule OPWeb.UserLive.LoginTest do
     end
 
     test "shows login page with email filled in", %{conn: conn, user: user} do
-      {:ok, _lv, html} = live(conn, ~p"/users/log-in")
+      {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+      html = render(lv)
 
       assert html =~ "You need to reauthenticate"
       refute html =~ "Register"
-      assert html =~ "Log in with email"
+      assert has_element?(lv, "#login_form_magic")
 
       assert html =~
                ~s(<input type="email" name="user[email]" id="login_form_magic_email" value="#{user.email}")
