@@ -3,6 +3,7 @@ defmodule OPWeb.Admin.TournamentLiveTest do
 
   import Phoenix.LiveViewTest
   import OP.AccountsFixtures
+  import OP.MatchplayFixtures
   import OP.TournamentsFixtures
   import OP.PlayersFixtures
 
@@ -321,6 +322,110 @@ defmodule OPWeb.Admin.TournamentLiveTest do
       |> render_click()
 
       refute render(lv) =~ tournament.name
+    end
+  end
+
+  describe "Re-sync from Matchplay" do
+    setup do
+      Req.Test.set_req_test_to_shared(OP.Matchplay.Client)
+      :ok
+    end
+
+    setup %{conn: conn} do
+      user = admin_user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    defp stub_matchplay_api(tournament_data, standings_data) do
+      Req.Test.stub(OP.Matchplay.Client, fn plug_conn ->
+        path = plug_conn.request_path
+
+        cond do
+          String.ends_with?(path, "/standings") ->
+            Req.Test.json(plug_conn, standings_data)
+
+          String.contains?(path, "/tournaments/") ->
+            Req.Test.json(plug_conn, %{"data" => tournament_data})
+
+          true ->
+            Req.Test.json(plug_conn, %{})
+        end
+      end)
+    end
+
+    defp stub_matchplay_error(status_code) do
+      Req.Test.stub(OP.Matchplay.Client, fn plug_conn ->
+        Plug.Conn.send_resp(plug_conn, status_code, "")
+      end)
+    end
+
+    test "shows button for matchplay tournaments", %{conn: conn} do
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Matchplay Tournament",
+          external_id: "matchplay:12345"
+        })
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+      assert html =~ "Re-sync from Matchplay"
+    end
+
+    test "does not show button for non-matchplay tournaments", %{conn: conn} do
+      tournament = tournament_fixture(nil, %{name: "Regular Tournament"})
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+      refute html =~ "Re-sync from Matchplay"
+    end
+
+    test "successful resync shows flash message", %{conn: conn} do
+      player = player_with_external_id_fixture(nil, "matchplay:1001", %{name: "Alice Smith"})
+
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Matchplay Tournament",
+          external_id: "matchplay:12345"
+        })
+
+      _standing = standing_fixture(tournament, player, %{position: 1})
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "players" => [tournament_player(101, "Alice Smith", 1001)]
+        }),
+        standings_response([{101, 1}])
+      )
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+
+      lv
+      |> element("button", "Re-sync from Matchplay")
+      |> render_click()
+
+      :timer.sleep(200)
+      html = render(lv)
+      assert html =~ "Re-synced"
+      assert html =~ "standings"
+    end
+
+    test "failed resync shows error flash", %{conn: conn} do
+      tournament =
+        tournament_fixture(nil, %{
+          name: "Matchplay Tournament",
+          external_id: "matchplay:99999"
+        })
+
+      stub_matchplay_error(404)
+
+      {:ok, lv, _html} = live(conn, ~p"/admin/tournaments/#{tournament}")
+
+      lv
+      |> element("button", "Re-sync from Matchplay")
+      |> render_click()
+
+      :timer.sleep(200)
+      html = render(lv)
+      assert html =~ "Re-sync failed"
     end
   end
 

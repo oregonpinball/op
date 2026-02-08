@@ -2,6 +2,7 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   use OPWeb, :live_view
 
   alias OP.Tournaments
+  alias OP.Tournaments.Import
 
   @impl true
   def render(assigns) do
@@ -12,6 +13,20 @@ defmodule OPWeb.Admin.TournamentLive.Show do
           {@tournament.name}
           <:subtitle>Tournament details</:subtitle>
           <:actions>
+            <button
+              :if={matchplay_tournament?(@tournament)}
+              phx-click="resync_from_matchplay"
+              data-confirm="Re-sync standings from Matchplay? This will replace all current standings."
+              disabled={@resyncing}
+              class={[
+                "phx-submit-loading:opacity-75 rounded-lg bg-blue-600 hover:bg-blue-700 py-2 px-3",
+                "text-sm font-semibold leading-6 text-white active:text-white/80",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
+              ]}
+            >
+              <span :if={@resyncing} class="inline-block animate-spin mr-1">&#8635;</span>
+              {if @resyncing, do: "Re-syncing...", else: "Re-sync from Matchplay"}
+            </button>
             <.link patch={~p"/admin/tournaments/#{@tournament}/edit"}>
               <.button variant="solid">Edit Tournament</.button>
             </.link>
@@ -181,7 +196,11 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     tournament = Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, id)
-    {:ok, assign(socket, :tournament, tournament)}
+
+    {:ok,
+     socket
+     |> assign(:tournament, tournament)
+     |> assign(:resyncing, false)}
   end
 
   @impl true
@@ -193,12 +212,68 @@ defmodule OPWeb.Admin.TournamentLive.Show do
   defp page_title(:edit), do: "Edit Tournament"
 
   @impl true
+  def handle_event("resync_from_matchplay", _params, socket) do
+    scope = socket.assigns.current_scope
+    tournament = socket.assigns.tournament
+
+    socket =
+      socket
+      |> assign(:resyncing, true)
+      |> start_async(:resync, fn ->
+        Import.resync_from_matchplay(scope, tournament)
+      end)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_async(:resync, {:ok, {:ok, result}}, socket) do
+    tournament =
+      Tournaments.get_tournament_with_preloads!(
+        socket.assigns.current_scope,
+        socket.assigns.tournament.id
+      )
+
+    {:noreply,
+     socket
+     |> assign(:tournament, tournament)
+     |> assign(:resyncing, false)
+     |> put_flash(
+       :info,
+       "Re-synced #{result.standings_count} standings and created #{result.players_created} new players."
+     )}
+  end
+
+  def handle_async(:resync, {:ok, {:error, error}}, socket) do
+    {:noreply,
+     socket
+     |> assign(:resyncing, false)
+     |> put_flash(:error, "Re-sync failed: #{format_resync_error(error)}")}
+  end
+
+  def handle_async(:resync, {:exit, reason}, socket) do
+    {:noreply,
+     socket
+     |> assign(:resyncing, false)
+     |> put_flash(:error, "Re-sync failed: #{inspect(reason)}")}
+  end
+
+  @impl true
   def handle_info({OPWeb.Admin.TournamentLive.Form, {:saved, tournament}}, socket) do
     tournament =
       Tournaments.get_tournament_with_preloads!(socket.assigns.current_scope, tournament.id)
 
     {:noreply, assign(socket, :tournament, tournament)}
   end
+
+  defp matchplay_tournament?(tournament) do
+    is_binary(tournament.external_id) and
+      String.starts_with?(tournament.external_id, "matchplay:")
+  end
+
+  defp format_resync_error(:api_token_required), do: "Matchplay API token not configured"
+  defp format_resync_error(%{message: message}), do: message
+  defp format_resync_error(error), do: inspect(error)
 
   defp standings_with_weight(tournament) do
     first_place_total =

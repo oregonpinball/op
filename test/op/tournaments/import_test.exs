@@ -602,6 +602,191 @@ defmodule OP.Tournaments.ImportTest do
     end
   end
 
+  describe "resync_from_matchplay/3" do
+    setup do
+      Req.Test.set_req_test_from_context(__MODULE__)
+      scope = user_scope_fixture()
+      %{scope: scope}
+    end
+
+    defp stub_matchplay_api(tournament_data, standings_data) do
+      Req.Test.stub(OP.Matchplay.Client, fn plug_conn ->
+        path = plug_conn.request_path
+
+        cond do
+          String.ends_with?(path, "/standings") ->
+            Req.Test.json(plug_conn, standings_data)
+
+          String.contains?(path, "/tournaments/") ->
+            Req.Test.json(plug_conn, %{"data" => tournament_data})
+
+          true ->
+            Req.Test.json(plug_conn, %{})
+        end
+      end)
+    end
+
+    test "re-syncs standings for single tournament", %{scope: scope} do
+      player = player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Alice Smith"})
+      tournament = tournament_with_external_id_fixture(scope, "matchplay:12345")
+      _old_standing = standing_fixture(tournament, player, %{position: 1})
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "players" => [tournament_player(101, "Alice Smith", 1001)]
+        }),
+        standings_response([{101, 1}])
+      )
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      assert result.standings_count == 1
+      assert result.players_created == 0
+      assert result.is_new == false
+
+      # Verify old standings were replaced
+      standings =
+        from(s in Standing, where: s.tournament_id == ^tournament.id)
+        |> Repo.all()
+
+      assert length(standings) == 1
+    end
+
+    test "preserves existing tournament attributes", %{scope: scope} do
+      player = player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Alice Smith"})
+
+      tournament =
+        tournament_with_external_id_fixture(scope, "matchplay:12345", %{
+          name: "My Custom Name",
+          description: "My custom description"
+        })
+
+      _standing = standing_fixture(tournament, player, %{position: 1})
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "name" => "API Name That Should Be Overridden",
+          "players" => [tournament_player(101, "Alice Smith", 1001)]
+        }),
+        standings_response([{101, 1}])
+      )
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      assert result.tournament.name == "My Custom Name"
+      assert result.tournament.description == "My custom description"
+    end
+
+    test "creates new players for unmatched API players", %{scope: scope} do
+      tournament = tournament_with_external_id_fixture(scope, "matchplay:12345")
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "players" => [tournament_player(201, "Brand New Player", nil)]
+        }),
+        standings_response([{201, 1}])
+      )
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      assert result.players_created == 1
+      assert result.standings_count == 1
+    end
+
+    test "auto-matches existing players by external_id", %{scope: scope} do
+      _player = player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Alice Smith"})
+      tournament = tournament_with_external_id_fixture(scope, "matchplay:12345")
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "players" => [tournament_player(101, "Alice Smith", 1001)]
+        }),
+        standings_response([{101, 1}])
+      )
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      assert result.players_created == 0
+      assert result.players_updated == 1
+    end
+
+    test "handles combined tournament resync", %{scope: scope} do
+      player = player_with_external_id_fixture(scope, "matchplay:1001", %{name: "Alice Smith"})
+
+      tournament =
+        tournament_with_external_id_fixture(scope, "matchplay:11111", %{
+          finals_external_id: "matchplay:22222"
+        })
+
+      _standing = standing_fixture(tournament, player, %{position: 1})
+
+      # Stub both qualifying and finals endpoints
+      Req.Test.stub(OP.Matchplay.Client, fn plug_conn ->
+        path = plug_conn.request_path
+
+        cond do
+          String.contains?(path, "/tournaments/11111/standings") ->
+            Req.Test.json(plug_conn, standings_response([{101, 1}]))
+
+          String.contains?(path, "/tournaments/22222/standings") ->
+            Req.Test.json(plug_conn, standings_response([{201, 1}]))
+
+          String.contains?(path, "/tournaments/11111") ->
+            Req.Test.json(plug_conn, %{
+              "data" =>
+                tournament_response(%{
+                  "tournamentId" => 11111,
+                  "players" => [tournament_player(101, "Alice Smith", 1001)]
+                })
+            })
+
+          String.contains?(path, "/tournaments/22222") ->
+            Req.Test.json(plug_conn, %{
+              "data" =>
+                tournament_response(%{
+                  "tournamentId" => 22222,
+                  "players" => [tournament_player(201, "Alice Smith", 1001)]
+                })
+            })
+
+          true ->
+            Req.Test.json(plug_conn, %{})
+        end
+      end)
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      assert result.standings_count == 1
+      assert result.is_new == false
+    end
+
+    test "returns error when API token not configured", %{scope: scope} do
+      tournament = tournament_with_external_id_fixture(scope, "matchplay:12345")
+
+      assert {:error, :api_token_required} =
+               Import.resync_from_matchplay(scope, tournament, api_token: nil)
+    end
+
+    test "fills in nil local fields from API data", %{scope: scope} do
+      tournament =
+        tournament_with_external_id_fixture(scope, "matchplay:12345", %{
+          name: "My Name"
+        })
+
+      stub_matchplay_api(
+        tournament_response(%{
+          "tournamentId" => 12345,
+          "name" => "API Name",
+          "players" => [tournament_player(201, "Player One", nil)]
+        }),
+        standings_response([{201, 1}])
+      )
+
+      assert {:ok, result} = Import.resync_from_matchplay(scope, tournament)
+      # Name should be preserved as the local override
+      assert result.tournament.name == "My Name"
+    end
+  end
+
   describe "merge_standings algorithm" do
     # These tests verify the merge algorithm through execute_import
     # by checking the resulting standings positions
