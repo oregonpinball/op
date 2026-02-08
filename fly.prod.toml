@@ -11,7 +11,7 @@ kill_signal = 'SIGTERM'
 
 [env]
   DATABASE_PATH = '/mnt/op_prod_data/op.db'
-  PHX_HOST = 'prod-op.fly.dev'
+  PHX_HOST = 'app.oregonpinball.org'
   PORT = '8080'
 
 [[mounts]]
