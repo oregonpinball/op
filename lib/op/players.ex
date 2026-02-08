@@ -185,9 +185,34 @@ defmodule OP.Players do
 
   """
   def create_player(_scope, attrs \\ %{}) do
-    %Player{}
-    |> Player.changeset(attrs)
-    |> Repo.insert()
+    create_player_with_retries(attrs, has_explicit_number?(attrs), 5)
+  end
+
+  defp has_explicit_number?(attrs) do
+    Map.has_key?(attrs, :number) or Map.has_key?(attrs, "number")
+  end
+
+  defp create_player_with_retries(_attrs, _explicit_number?, 0), do: {:error, :number_conflict}
+
+  defp create_player_with_retries(attrs, explicit_number?, retries) do
+    case %Player{} |> Player.changeset(attrs) |> Repo.insert() do
+      {:ok, player} ->
+        {:ok, player}
+
+      {:error, %Ecto.Changeset{errors: errors} = changeset} ->
+        if !explicit_number? && number_conflict?(errors) do
+          create_player_with_retries(attrs, false, retries - 1)
+        else
+          {:error, changeset}
+        end
+    end
+  end
+
+  defp number_conflict?(errors) do
+    case Keyword.fetch(errors, :number) do
+      {:ok, {_, meta}} -> meta[:constraint] == :unique
+      :error -> false
+    end
   end
 
   @doc """
