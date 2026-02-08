@@ -11,7 +11,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -22,7 +23,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -33,7 +35,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -44,7 +47,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
   end
@@ -54,7 +58,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
 
       assert FeatureFlags.registration_enabled?() == true
@@ -62,7 +67,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -73,7 +79,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
   end
@@ -86,7 +93,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -97,7 +105,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
   end
@@ -110,7 +119,8 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
 
@@ -121,7 +131,34 @@ defmodule OP.FeatureFlagsTest do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
         tournament_submission_enabled: true,
-        magic_link_login_enabled: true
+        magic_link_login_enabled: true,
+        tournaments_only: false
+      )
+    end
+  end
+
+  describe "tournaments_only?/0" do
+    test "returns true when tournaments_only is enabled" do
+      Application.put_env(:op, :feature_flags, tournaments_only: true)
+      assert FeatureFlags.tournaments_only?() == true
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true,
+        tournaments_only: false
+      )
+    end
+
+    test "returns false when tournaments_only is disabled" do
+      Application.put_env(:op, :feature_flags, tournaments_only: false)
+      assert FeatureFlags.tournaments_only?() == false
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true,
+        tournaments_only: false
       )
     end
   end

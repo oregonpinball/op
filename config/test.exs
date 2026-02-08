@@ -46,4 +46,5 @@ config :op, :matchplay_api_token, "test-api-token"
 config :op, :feature_flags,
   registration_enabled: true,
   tournament_submission_enabled: true,
-  magic_link_login_enabled: true
+  magic_link_login_enabled: true,
+  tournaments_only: false

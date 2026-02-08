@@ -28,10 +28,14 @@ if config_env() != :test do
 end
 
 # Feature flags — controlled via environment variables, default to off
-config :op, :feature_flags,
-  registration_enabled: System.get_env("REGISTRATION_ENABLED") == "true",
-  tournament_submission_enabled: System.get_env("TOURNAMENT_SUBMISSION_ENABLED") == "true",
-  magic_link_login_enabled: System.get_env("MAGIC_LINK_LOGIN_ENABLED") == "true"
+# Don't override in test environment (test.exs sets test-specific values)
+if config_env() != :test do
+  config :op, :feature_flags,
+    registration_enabled: System.get_env("REGISTRATION_ENABLED") == "true",
+    tournament_submission_enabled: System.get_env("TOURNAMENT_SUBMISSION_ENABLED") == "true",
+    magic_link_login_enabled: System.get_env("MAGIC_LINK_LOGIN_ENABLED") == "true",
+    tournaments_only: System.get_env("TOURNAMENTS_ONLY") == "true"
+end
 
 if config_env() == :prod do
   database_path =

@@ -88,7 +88,11 @@ defmodule OPWeb.UserLive.RegistrationTest do
 
       assert message == "Registration is not currently available."
     after
-      Application.put_env(:op, :feature_flags, registration_enabled: true)
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        tournaments_only: false
+      )
     end
 
     test "allows access when registration is enabled", %{conn: conn} do
@@ -97,7 +101,11 @@ defmodule OPWeb.UserLive.RegistrationTest do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
       assert html =~ "Register"
     after
-      Application.put_env(:op, :feature_flags, registration_enabled: true)
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        tournaments_only: false
+      )
     end
   end
 

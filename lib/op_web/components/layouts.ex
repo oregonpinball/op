@@ -42,52 +42,64 @@ defmodule OPWeb.Layouts do
   def app(assigns) do
     nav_classes = if assigns.is_landing?, do: "md:-mb-24", else: "bg-green-950"
     registration_enabled? = OP.FeatureFlags.registration_enabled?()
+    tournaments_only? = OP.FeatureFlags.tournaments_only?()
 
     assigns =
       assigns
       |> Map.put(:nav_classes, nav_classes)
       |> Map.put(:registration_enabled?, registration_enabled?)
+      |> Map.put(:tournaments_only?, tournaments_only?)
 
     ~H"""
     <.sheet id="mobile-nav">
-      <%= if is_nil(@current_scope) do %>
+      <%= if @tournaments_only? do %>
         <.button
-          navigate={~p"/"}
+          navigate={~p"/tournaments"}
           color="invisible"
           class="text-2xl font-bold! hover:text-slate-900 transition-all"
         >
           LOOP
         </.button>
-
-        <.button
-          navigate={~p"/f/about/us"}
-          color="invisible"
-          class="hover:text-slate-900 transition-all"
-        >
-          About
-        </.button>
-        <.button
-          navigate={~p"/tournaments"}
-          color="invisible"
-          class="hover:text-slate-900 transition-all"
-        >
-          Our events
-        </.button>
-        <.button
-          navigate={~p"/f/how-tos/play-in-an-event"}
-          color="invisible"
-          class="hover:text-slate-900 transition-all"
-        >
-          Play in an event
-        </.button>
-        <.button
-          navigate={~p"/f/how-tos/host-a-certified-event"}
-          color="invisible"
-          class="hover:text-slate-900 transition-all"
-        >
-          Host an event
-        </.button>
       <% else %>
+        <%= if is_nil(@current_scope) do %>
+          <.button
+            navigate={~p"/"}
+            color="invisible"
+            class="text-2xl font-bold! hover:text-slate-900 transition-all"
+          >
+            LOOP
+          </.button>
+
+          <.button
+            navigate={~p"/f/about/us"}
+            color="invisible"
+            class="hover:text-slate-900 transition-all"
+          >
+            About
+          </.button>
+          <.button
+            navigate={~p"/tournaments"}
+            color="invisible"
+            class="hover:text-slate-900 transition-all"
+          >
+            Our events
+          </.button>
+          <.button
+            navigate={~p"/f/how-tos/play-in-an-event"}
+            color="invisible"
+            class="hover:text-slate-900 transition-all"
+          >
+            Play in an event
+          </.button>
+          <.button
+            navigate={~p"/f/how-tos/host-a-certified-event"}
+            color="invisible"
+            class="hover:text-slate-900 transition-all"
+          >
+            Host an event
+          </.button>
+        <% else %>
+        <% end %>
       <% end %>
     </.sheet>
 
@@ -101,104 +113,116 @@ defmodule OPWeb.Layouts do
           <div class="hidden md:block">
             <div class="text-white flex items-center space-x-1">
               <.button
-                navigate={~p"/"}
+                navigate={if @tournaments_only?, do: ~p"/tournaments", else: ~p"/"}
                 color="invisible"
                 class="truncate text-2xl font-bold! hover:text-slate-900 transition-all"
               >
                 <span class="">LOOP</span>
               </.button>
 
-              <.button
-                navigate={~p"/tournaments"}
-                color="invisible"
-                class="truncate hover:text-slate-900 transition-all"
-              >
-                <span class="truncate">
-                  <span class="hidden lg:block">Join an event</span>
-                  <span class="block lg:hidden">Join</span>
-                </span>
-              </.button>
-              <.button
-                navigate={~p"/f/how-tos/host-a-certified-event"}
-                color="invisible"
-                class="truncate hover:text-slate-900 transition-all"
-              >
-                <span class="hidden lg:block">Host an event</span>
-                <span class="block lg:hidden">Host</span>
-              </.button>
-              <.button
-                navigate={~p"/f/rules/code-of-conduct"}
-                color="invisible"
-                class="truncate hover:text-slate-900 transition-all"
-              >
-                <span class="truncate">Code of Conduct</span>
-              </.button>
-              <.button
-                navigate={~p"/f/about/us"}
-                color="invisible"
-                class="truncate hover:text-slate-900 transition-all"
-              >
-                <span class="truncate">About</span>
-              </.button>
+              <%= unless @tournaments_only? do %>
+                <.button
+                  navigate={~p"/tournaments"}
+                  color="invisible"
+                  class="truncate hover:text-slate-900 transition-all"
+                >
+                  <span class="truncate">
+                    <span class="hidden lg:block">Join an event</span>
+                    <span class="block lg:hidden">Join</span>
+                  </span>
+                </.button>
+                <.button
+                  navigate={~p"/f/how-tos/host-a-certified-event"}
+                  color="invisible"
+                  class="truncate hover:text-slate-900 transition-all"
+                >
+                  <span class="hidden lg:block">Host an event</span>
+                  <span class="block lg:hidden">Host</span>
+                </.button>
+                <.button
+                  navigate={~p"/f/rules/code-of-conduct"}
+                  color="invisible"
+                  class="truncate hover:text-slate-900 transition-all"
+                >
+                  <span class="truncate">Code of Conduct</span>
+                </.button>
+                <.button
+                  navigate={~p"/f/about/us"}
+                  color="invisible"
+                  class="truncate hover:text-slate-900 transition-all"
+                >
+                  <span class="truncate">About</span>
+                </.button>
 
-              <%= if is_nil(@current_scope) do %>
-                <.button
-                  :if={@registration_enabled?}
-                  navigate={~p"/users/register"}
-                  color="invisible"
-                  size="sm"
-                  class="ml-auto hover:text-slate-900 transition-all"
-                >
-                  <span class="truncate">Register</span>
-                </.button>
-                <.button
-                  navigate={~p"/users/log-in"}
-                  color="invisible"
-                  class={"#{unless @registration_enabled?, do: "ml-auto"} hover:text-slate-900 transition-all"}
-                >
-                  <span class="truncate">Log in</span>
-                </.button>
-              <% else %>
-                <div class="ml-auto flex items-center space-x-2">
+                <%= if is_nil(@current_scope) do %>
                   <.button
-                    size="sm"
+                    :if={@registration_enabled?}
+                    navigate={~p"/users/register"}
                     color="invisible"
-                    navigate={~p"/my/tournaments"}
-                    class="truncate flex items-center space-x-1"
+                    size="sm"
+                    class="ml-auto hover:text-slate-900 transition-all"
                   >
-                    <.icon name="hero-trophy" class="size-4" />
-                    <span class="truncate">My tournaments</span>
+                    <span class="truncate">Register</span>
                   </.button>
-                  <.dropdown_menu id="nav-dropdown" class="text-slate-900">
-                    <.dropdown_menu_trigger>
-                      <.button>
-                        <div class="rounded-full size-6 bg-white flex">
-                          <.icon name="hero-user-circle" class="size-6" />
+                  <.button
+                    navigate={~p"/users/log-in"}
+                    color="invisible"
+                    class={"#{unless @registration_enabled?, do: "ml-auto"} hover:text-slate-900 transition-all"}
+                  >
+                    <span class="truncate">Log in</span>
+                  </.button>
+                <% else %>
+                  <div class="ml-auto flex items-center space-x-2">
+                    <.button
+                      size="sm"
+                      color="invisible"
+                      navigate={~p"/my/tournaments"}
+                      class="truncate flex items-center space-x-1"
+                    >
+                      <.icon name="hero-trophy" class="size-4" />
+                      <span class="truncate">My tournaments</span>
+                    </.button>
+                    <.dropdown_menu id="nav-dropdown" class="text-slate-900">
+                      <.dropdown_menu_trigger>
+                        <.button>
+                          <div class="rounded-full size-6 bg-white flex">
+                            <.icon name="hero-user-circle" class="size-6" />
+                          </div>
+                          <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
+                        </.button>
+                      </.dropdown_menu_trigger>
+                      <.dropdown_menu_content class="w-56" align="end">
+                        <div class="flex flex-col p-2">
+                          <div class="font-medium">My account</div>
+                          <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
+                          <.nav_buttons_shared current_scope={@current_scope} />
                         </div>
-                        <.icon name="hero-chevron-down" class="size-4 place-self-end ml-1" />
-                      </.button>
-                    </.dropdown_menu_trigger>
-                    <.dropdown_menu_content class="w-56" align="end">
-                      <div class="flex flex-col p-2">
-                        <div class="font-medium">My account</div>
-                        <hr class="h-0.5 border-0 bg-slate-200 rounded m-1" />
-                        <.nav_buttons_shared current_scope={@current_scope} />
-                      </div>
-                    </.dropdown_menu_content>
-                  </.dropdown_menu>
-                </div>
+                      </.dropdown_menu_content>
+                    </.dropdown_menu>
+                  </div>
+                <% end %>
               <% end %>
             </div>
           </div>
 
           <div class="block md:hidden">
-            <.button
-              phx-click={toggle("#mobile-nav")}
-              color="invisible"
-              class="absolute top-1 right-2 rounded-full bg-white border-2 border-green-950! p-1!"
-            >
-              <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
-            </.button>
+            <%= if @tournaments_only? do %>
+              <.button
+                navigate={~p"/tournaments"}
+                color="invisible"
+                class="absolute top-1 left-2 text-2xl font-bold! text-white hover:text-slate-900 transition-all"
+              >
+                LOOP
+              </.button>
+            <% else %>
+              <.button
+                phx-click={toggle("#mobile-nav")}
+                color="invisible"
+                class="absolute top-1 right-2 rounded-full bg-white border-2 border-green-950! p-1!"
+              >
+                <.icon name="hero-bars-3" class="size-6 text-black hover:cursor-pointer" />
+              </.button>
+            <% end %>
           </div>
         </div>
       </nav>
@@ -279,104 +303,113 @@ defmodule OPWeb.Layouts do
   end
 
   def footer(assigns) do
+    tournaments_only? = OP.FeatureFlags.tournaments_only?()
+    assigns = Map.put(assigns, :tournaments_only?, tournaments_only?)
+
     ~H"""
     <div class="bg-[#011108] bg-linear-to-b from-[#052e16] to-[#011108] border-t-4 border-green-700 text-white">
       <div class="container mx-auto p-4">
-        <div class="grid grid-cols-1 md:grid-cols-4">
-          <div>
-            <p class="font-bold text-lg">What is Oregon Pinball?</p>
-            <ul>
-              <li>
-                <.button
-                  navigate={~p"/f/about/us"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  About us
-                </.button>
-              </li>
-              <li>
-                <.button
-                  navigate={~p"/f/about/board"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Our board
-                </.button>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p class="font-bold text-lg">Play</p>
-            <ul>
-              <li>
-                <.button
-                  navigate={~p"/tournaments"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  View events
-                </.button>
-              </li>
-              <li>
-                <.button
-                  navigate={~p"/f/rules/code-of-conduct"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Code of Conduct
-                </.button>
-              </li>
-              <li>
-                <.button
-                  navigate={~p"/f/rules/playing"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Rules
-                </.button>
-              </li>
-            </ul>
-          </div>
-
-          <ul class="">
-            <p class="font-bold text-lg">Host</p>
-            <ul>
-              <li>
-                <.button
-                  navigate={~p"/f/how-tos/host-a-certified-event"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Submit an event
-                </.button>
-              </li>
-              <li>
-                <.button
-                  navigate={~p"/f/rules/code-of-conduct"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Code of Conduct
-                </.button>
-              </li>
-              <li>
-                <.button
-                  navigate={~p"/f/rules/hosting"}
-                  color="invisible"
-                  class="hover:text-slate-900 transition-all"
-                >
-                  Rules
-                </.button>
-              </li>
-            </ul>
-          </ul>
-
-          <div class="flex md:justify-end md:items-end">
+        <%= if @tournaments_only? do %>
+          <div class="flex justify-center">
             <p class="">© 2026 Oregon Pinball</p>
           </div>
-        </div>
+        <% else %>
+          <div class="grid grid-cols-1 md:grid-cols-4">
+            <div>
+              <p class="font-bold text-lg">What is Oregon Pinball?</p>
+              <ul>
+                <li>
+                  <.button
+                    navigate={~p"/f/about/us"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    About us
+                  </.button>
+                </li>
+                <li>
+                  <.button
+                    navigate={~p"/f/about/board"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Our board
+                  </.button>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <p class="font-bold text-lg">Play</p>
+              <ul>
+                <li>
+                  <.button
+                    navigate={~p"/tournaments"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    View events
+                  </.button>
+                </li>
+                <li>
+                  <.button
+                    navigate={~p"/f/rules/code-of-conduct"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Code of Conduct
+                  </.button>
+                </li>
+                <li>
+                  <.button
+                    navigate={~p"/f/rules/playing"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Rules
+                  </.button>
+                </li>
+              </ul>
+            </div>
+
+            <ul class="">
+              <p class="font-bold text-lg">Host</p>
+              <ul>
+                <li>
+                  <.button
+                    navigate={~p"/f/how-tos/host-a-certified-event"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Submit an event
+                  </.button>
+                </li>
+                <li>
+                  <.button
+                    navigate={~p"/f/rules/code-of-conduct"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Code of Conduct
+                  </.button>
+                </li>
+                <li>
+                  <.button
+                    navigate={~p"/f/rules/hosting"}
+                    color="invisible"
+                    class="hover:text-slate-900 transition-all"
+                  >
+                    Rules
+                  </.button>
+                </li>
+              </ul>
+            </ul>
+
+            <div class="flex md:justify-end md:items-end">
+              <p class="">© 2026 Oregon Pinball</p>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
     """
