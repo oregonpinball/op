@@ -180,7 +180,7 @@ defmodule OPWeb.Admin.TournamentLive.Index do
                     "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
                     status_badge_class(tournament.status)
                   ]}>
-                    {tournament.status}
+                    {status_label(tournament.status)}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500">
@@ -273,11 +273,18 @@ defmodule OPWeb.Admin.TournamentLive.Index do
   end
 
   defp status_badge_class(:draft), do: "bg-gray-100 text-gray-800"
-  defp status_badge_class(:scheduled), do: "bg-blue-100 text-blue-800"
-  defp status_badge_class(:in_progress), do: "bg-yellow-100 text-yellow-800"
-  defp status_badge_class(:completed), do: "bg-green-100 text-green-800"
+  defp status_badge_class(:pending_review), do: "bg-yellow-100 text-yellow-800"
+  defp status_badge_class(:sanctioned), do: "bg-green-100 text-green-800"
   defp status_badge_class(:cancelled), do: "bg-red-100 text-red-800"
+  defp status_badge_class(:rejected), do: "bg-orange-100 text-orange-800"
   defp status_badge_class(_), do: "bg-gray-100 text-gray-800"
+
+  defp status_label(:draft), do: "Draft"
+  defp status_label(:pending_review), do: "Pending Review"
+  defp status_label(:sanctioned), do: "Sanctioned"
+  defp status_label(:cancelled), do: "Cancelled"
+  defp status_label(:rejected), do: "Rejected"
+  defp status_label(status), do: status
 
   @impl true
   def mount(_params, _session, socket) do

@@ -57,7 +57,7 @@ defmodule OP.Tournaments.Tournament do
       default: :none
 
     field :status, Ecto.Enum,
-      values: [:draft, :pending_review, :sanctioned],
+      values: [:draft, :pending_review, :sanctioned, :cancelled, :rejected],
       default: :draft
 
     field :meaningful_games, :float

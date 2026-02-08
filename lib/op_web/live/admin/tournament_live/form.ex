@@ -307,7 +307,9 @@ defmodule OPWeb.Admin.TournamentLive.Form do
     status_options = [
       {"Draft", :draft},
       {"Pending Review", :pending_review},
-      {"Sanctioned", :sanctioned}
+      {"Sanctioned", :sanctioned},
+      {"Cancelled", :cancelled},
+      {"Rejected", :rejected}
     ]
 
     socket
