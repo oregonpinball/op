@@ -1,5 +1,5 @@
 defmodule OP.FeatureFlagsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias OP.FeatureFlags
 
