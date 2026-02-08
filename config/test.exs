@@ -43,4 +43,7 @@ config :op, :req_options, plug: {Req.Test, OP.Matchplay.Client}
 config :op, :matchplay_api_token, "test-api-token"
 
 # Enable feature flags for tests
-config :op, :feature_flags, registration_enabled: true, tournament_submission_enabled: true
+config :op, :feature_flags,
+  registration_enabled: true,
+  tournament_submission_enabled: true,
+  tournaments_only: false

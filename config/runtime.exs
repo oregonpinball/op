@@ -30,7 +30,8 @@ end
 # Feature flags — controlled via environment variables, default to off
 config :op, :feature_flags,
   registration_enabled: System.get_env("REGISTRATION_ENABLED") == "true",
-  tournament_submission_enabled: System.get_env("TOURNAMENT_SUBMISSION_ENABLED") == "true"
+  tournament_submission_enabled: System.get_env("TOURNAMENT_SUBMISSION_ENABLED") == "true",
+  tournaments_only: System.get_env("TOURNAMENTS_ONLY") == "true"
 
 if config_env() == :prod do
   database_path =

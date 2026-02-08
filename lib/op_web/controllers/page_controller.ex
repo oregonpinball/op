@@ -2,6 +2,16 @@ defmodule OPWeb.PageController do
   use OPWeb, :controller
 
   def home(conn, _params) do
+    if OP.FeatureFlags.tournaments_only?() do
+      conn
+      |> redirect(to: ~p"/tournaments")
+      |> halt()
+    else
+      do_home(conn)
+    end
+  end
+
+  defp do_home(conn) do
     leagues = OP.Leagues.list_leagues_with_preloads(conn.assigns.current_scope)
 
     seasons =
