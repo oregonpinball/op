@@ -292,6 +292,55 @@ defmodule OP.Locations do
   end
 
   @doc """
+  Upserts a location from Pinball Map API data.
+
+  Looks up an existing location by `pinball_map_id`. If found, updates it.
+  If not found, creates a new one.
+
+  Returns `{:ok, location, :created | :updated}` or `{:error, changeset}`.
+  """
+  def upsert_from_pinball_map(_scope, api_data) when is_map(api_data) do
+    pinball_map_id = api_data["id"]
+
+    attrs = %{
+      pinball_map_id: pinball_map_id,
+      name: api_data["name"],
+      address: api_data["street"],
+      city: api_data["city"],
+      state: api_data["state"],
+      postal_code: api_data["zip"],
+      country: api_data["country"],
+      latitude: parse_coordinate(api_data["lat"]),
+      longitude: parse_coordinate(api_data["lon"])
+    }
+
+    case Repo.get_by(Location, pinball_map_id: pinball_map_id) do
+      %Location{} = location ->
+        case location |> Location.changeset(attrs) |> Repo.update() do
+          {:ok, location} -> {:ok, location, :updated}
+          {:error, changeset} -> {:error, changeset}
+        end
+
+      nil ->
+        case %Location{} |> Location.changeset(attrs) |> Repo.insert() do
+          {:ok, location} -> {:ok, location, :created}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
+
+  defp parse_coordinate(nil), do: nil
+  defp parse_coordinate(value) when is_float(value), do: value
+  defp parse_coordinate(value) when is_integer(value), do: value / 1
+
+  defp parse_coordinate(value) when is_binary(value) do
+    case Float.parse(value) do
+      {float, _} -> float
+      :error -> nil
+    end
+  end
+
+  @doc """
   Finds an existing location by external_id or name, or creates a new one from Matchplay data.
 
   ## Examples
