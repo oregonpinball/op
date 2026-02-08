@@ -10,7 +10,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
 
@@ -20,7 +21,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
 
@@ -30,7 +32,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
 
@@ -40,7 +43,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
   end
@@ -49,14 +53,16 @@ defmodule OP.FeatureFlagsTest do
     test "returns true when registration is enabled" do
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
 
       assert FeatureFlags.registration_enabled?() == true
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
 
@@ -66,7 +72,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
   end
@@ -78,7 +85,8 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
 
@@ -88,7 +96,32 @@ defmodule OP.FeatureFlagsTest do
     after
       Application.put_env(:op, :feature_flags,
         registration_enabled: true,
-        tournament_submission_enabled: true
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
+      )
+    end
+  end
+
+  describe "magic_link_login_enabled?/0" do
+    test "returns true when magic link login is enabled" do
+      Application.put_env(:op, :feature_flags, magic_link_login_enabled: true)
+      assert FeatureFlags.magic_link_login_enabled?() == true
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
+      )
+    end
+
+    test "returns false when magic link login is disabled" do
+      Application.put_env(:op, :feature_flags, magic_link_login_enabled: false)
+      assert FeatureFlags.magic_link_login_enabled?() == false
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true
       )
     end
   end
