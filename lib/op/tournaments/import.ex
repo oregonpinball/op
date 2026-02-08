@@ -282,6 +282,88 @@ defmodule OP.Tournaments.Import do
     end)
   end
 
+  @doc """
+  Re-syncs standings from Matchplay for an already-imported tournament.
+
+  Fetches fresh data from the API, auto-resolves player mappings, and replaces
+  standings while preserving existing local tournament attributes.
+
+  ## Options
+    * `:api_token` - Override the configured API token
+  """
+  @spec resync_from_matchplay(term(), Tournaments.Tournament.t(), keyword()) ::
+          {:ok, import_result()} | {:error, term()}
+  def resync_from_matchplay(scope, tournament, opts \\ []) do
+    matchplay_id = parse_matchplay_id(tournament.external_id)
+
+    has_finals = not is_nil(tournament.finals_external_id)
+
+    preview_result =
+      if has_finals do
+        finals_id = parse_matchplay_id(tournament.finals_external_id)
+        fetch_combined_preview(matchplay_id, finals_id, opts)
+      else
+        fetch_tournament_preview(matchplay_id, opts)
+      end
+
+    with {:ok, preview} <- preview_result do
+      player_mappings = auto_resolve_player_mappings(preview.player_mappings)
+
+      overrides =
+        normalize_overrides(%{
+          name: tournament.name,
+          description: tournament.description,
+          start_at: tournament.start_at,
+          location_id: tournament.location_id,
+          season_id: tournament.season_id,
+          meaningful_games: tournament.meaningful_games
+        })
+
+      import_opts =
+        if has_finals do
+          [finals_tournament: preview.finals_tournament] ++ opts
+        else
+          opts
+        end
+
+      execute_import(
+        scope,
+        preview.tournament,
+        player_mappings,
+        overrides,
+        import_opts
+      )
+    end
+  end
+
+  defp parse_matchplay_id("matchplay:" <> id), do: id
+
+  defp auto_resolve_player_mappings(player_mappings) do
+    Enum.map(player_mappings, fn mapping ->
+      case mapping.match_type do
+        :auto ->
+          mapping
+
+        :suggested ->
+          case mapping.suggested_players do
+            [single_player] ->
+              %{
+                mapping
+                | match_type: :manual,
+                  local_player_id: single_player.id,
+                  local_player: single_player
+              }
+
+            _ ->
+              %{mapping | match_type: :create_new}
+          end
+
+        _other ->
+          %{mapping | match_type: :create_new}
+      end
+    end)
+  end
+
   # Private functions
 
   defp build_players_map(players) do
