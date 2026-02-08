@@ -1,11 +1,13 @@
 defmodule OP.TournamentsTest do
   use OP.DataCase
 
+  import Ecto.Changeset
   import OP.AccountsFixtures
   import OP.TournamentsFixtures
 
   alias OP.Accounts.Scope
   alias OP.Tournaments
+  alias OP.Tournaments.Tournament
 
   describe "create_tournament/2" do
     test "sets created_by_id and updated_by_id from scope" do
@@ -80,6 +82,119 @@ defmodule OP.TournamentsTest do
 
       {tournaments, _pagination} = Tournaments.list_organized_tournaments_paginated(scope)
       assert tournaments == []
+    end
+  end
+
+  describe "Tournament changeset - matchplay URLs" do
+    test "converts qualifying URL to external_id and external_url" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          qualifying_matchplay_url: "https://app.matchplay.events/tournaments/12345"
+        })
+
+      assert get_change(changeset, :external_id) == "matchplay:12345"
+
+      assert get_change(changeset, :external_url) ==
+               "https://app.matchplay.events/tournaments/12345"
+    end
+
+    test "converts qualifying numeric ID to external_id" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          qualifying_matchplay_url: "99999"
+        })
+
+      assert get_change(changeset, :external_id) == "matchplay:99999"
+
+      assert get_change(changeset, :external_url) ==
+               "https://app.matchplay.events/tournaments/99999"
+    end
+
+    test "converts finals URL to finals_external_id" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          finals_matchplay_url: "https://app.matchplay.events/tournaments/67890"
+        })
+
+      assert get_change(changeset, :finals_external_id) == "matchplay:67890"
+    end
+
+    test "clearing qualifying URL clears external_id and external_url" do
+      changeset =
+        Tournament.changeset(
+          %Tournament{
+            external_id: "matchplay:12345",
+            external_url: "https://app.matchplay.events/tournaments/12345"
+          },
+          %{qualifying_matchplay_url: ""}
+        )
+
+      assert get_change(changeset, :external_id) == nil
+      assert get_change(changeset, :external_url) == nil
+    end
+
+    test "clearing finals URL clears finals_external_id" do
+      changeset =
+        Tournament.changeset(
+          %Tournament{finals_external_id: "matchplay:67890"},
+          %{finals_matchplay_url: ""}
+        )
+
+      assert get_change(changeset, :finals_external_id) == nil
+    end
+
+    test "invalid qualifying input adds changeset error" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          qualifying_matchplay_url: "not-a-valid-input"
+        })
+
+      assert {:qualifying_matchplay_url, {"must be a valid Matchplay URL or numeric ID", []}} in changeset.errors
+    end
+
+    test "invalid finals input adds changeset error" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          finals_matchplay_url: "garbage"
+        })
+
+      assert {:finals_matchplay_url, {"must be a valid Matchplay URL or numeric ID", []}} in changeset.errors
+    end
+
+    test "handles URL with trailing path segments" do
+      changeset =
+        Tournament.changeset(%Tournament{}, %{
+          name: "Test",
+          start_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          qualifying_matchplay_url: "https://app.matchplay.events/tournaments/55550/standings"
+        })
+
+      assert get_change(changeset, :external_id) == "matchplay:55550"
+    end
+  end
+
+  describe "matchplay_url_from_external_id/1" do
+    test "reconstructs URL from matchplay external_id" do
+      assert Tournament.matchplay_url_from_external_id("matchplay:12345") ==
+               "https://app.matchplay.events/tournaments/12345"
+    end
+
+    test "returns nil for nil input" do
+      assert Tournament.matchplay_url_from_external_id(nil) == nil
+    end
+
+    test "returns nil for non-matchplay external_id" do
+      assert Tournament.matchplay_url_from_external_id("other:12345") == nil
     end
   end
 
