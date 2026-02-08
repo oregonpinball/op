@@ -5,7 +5,7 @@ defmodule OPWeb.FirLive.Manager do
   alias OP.Fir
   alias OP.Fir.{Section, Page}
 
-  import OPWeb.Fir, only: [editor: 1]
+  import OPWeb.Fir, only: [description_editor: 1, content_editor: 1]
 
   attr :nodes, :list, required: true
   attr :level, :integer, default: 0
@@ -171,28 +171,14 @@ defmodule OPWeb.FirLive.Manager do
                       <div class="flex justify-end"></div>
                     </.form>
 
-                    <div class="mt-6">
-                      <.alert color="info">
-                        <p>This section autosaves</p>
-                      </.alert>
-                      <label class="text-2xl font-semibold">Description</label>
-                      <p>
-                        Restrict this to a sentence or two, this is what shows up when they view the parent section.
-                      </p>
-                      <.editor
-                        key="html_description"
-                        slug={@selected_content.content.slug}
-                        html={@selected_content.content.html_description}
-                      />
-
-                      <label class="text-2xl font-semibold">Content</label>
-
-                      <.editor
-                        key="html"
-                        slug={@selected_content.content.slug}
-                        html={@selected_content.content.html}
-                      />
-                    </div>
+                    <.description_editor
+                      slug={@selected_content.content.slug}
+                      html={@selected_content.content.html_description}
+                    />
+                    <.content_editor
+                      slug={@selected_content.content.slug}
+                      html={@selected_content.content.html}
+                    />
                   </div>
                 <% end %>
                 <%= if @selected_content.type == :section do %>
@@ -258,14 +244,10 @@ defmodule OPWeb.FirLive.Manager do
                           prompt="Select a state"
                         />
                       </div>
-                      <div class="mt-4">
-                        <label class="font-semibold text-2xl">Description</label>
-                        <.editor
-                          key="html_description"
-                          slug={@selected_content.content.slug}
-                          html={@selected_content.content.html_description}
-                        />
-                      </div>
+                      <.description_editor
+                        slug={@selected_content.content.slug}
+                        html={@selected_content.content.html_description}
+                      />
                       <div class="flex justify-end"></div>
                     </.form>
                   </div>
@@ -499,6 +481,28 @@ defmodule OPWeb.FirLive.Manager do
 
             {:noreply,
              assign(socket, pages: pages, selected_content: %{type: :page, content: updated_page})}
+
+          {:error, _changeset} ->
+            {:noreply, socket}
+        end
+
+      %{type: :section, content: section} ->
+        key = String.to_existing_atom(key)
+        attrs = Map.put(%{}, key, html)
+        changeset = Section.changeset(section, attrs)
+
+        case Repo.update(changeset) do
+          {:ok, updated_section} ->
+            sections =
+              Enum.map(socket.assigns.sections, fn s ->
+                if s.id == updated_section.id, do: updated_section, else: s
+              end)
+
+            {:noreply,
+             assign(socket,
+               sections: sections,
+               selected_content: %{type: :section, content: updated_section}
+             )}
 
           {:error, _changeset} ->
             {:noreply, socket}

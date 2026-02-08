@@ -68,6 +68,56 @@ defmodule OPWeb.Fir do
 
   attr :slug, :string, required: true
   attr :html, :string, required: true
+  attr :class, :string, default: nil
+  slot :inner_block
+
+  def description_editor(assigns) do
+    ~H"""
+    <div class={["border border-slate-200 bg-slate-50 rounded-lg p-4 mt-4", @class]}>
+      <div class="flex items-center gap-2 mb-1">
+        <.icon name="hero-chat-bubble-left-ellipsis" class="size-5 text-slate-500" />
+        <h3 class="text-lg font-semibold text-slate-800">Description</h3>
+        <.badge color="info" size="sm">Autosave</.badge>
+      </div>
+      <p class="text-sm text-slate-500 mb-3">
+        Keep this to one or two sentences. This appears when viewing the parent section.
+      </p>
+      <%= if @inner_block != [] do %>
+        {render_slot(@inner_block)}
+      <% else %>
+        <.editor key="html_description" slug={@slug} html={@html} />
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :slug, :string, required: true
+  attr :html, :string, required: true
+  attr :class, :string, default: nil
+  slot :inner_block
+
+  def content_editor(assigns) do
+    ~H"""
+    <div class={["border border-slate-200 bg-slate-50 rounded-lg p-4 mt-4", @class]}>
+      <div class="flex items-center gap-2 mb-1">
+        <.icon name="hero-document-text" class="size-5 text-slate-500" />
+        <h3 class="text-lg font-semibold text-slate-800">Content</h3>
+        <.badge color="info" size="sm">Autosave</.badge>
+      </div>
+      <p class="text-sm text-slate-500 mb-3">
+        The full page content displayed to visitors.
+      </p>
+      <%= if @inner_block != [] do %>
+        {render_slot(@inner_block)}
+      <% else %>
+        <.editor key="html" slug={@slug} html={@html} />
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :slug, :string, required: true
+  attr :html, :string, required: true
   attr :key, :string, required: true
 
   def editor(assigns) do
