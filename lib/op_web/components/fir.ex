@@ -125,7 +125,7 @@ defmodule OPWeb.Fir do
     <div
       id={"fir-editor-wrapper-#{@slug}-#{@key}"}
       phx-update="ignore"
-      class="prose"
+      class="prose max-w-none"
     >
       <textarea
         id={"fir-editor-#{@slug}-#{@key}"}
