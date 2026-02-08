@@ -26,3 +26,27 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+/* Tiptap editor content area */
+.tiptap,
+.ProseMirror {
+  padding: 1rem 1.25rem;
+  min-height: 12rem;
+  outline: none;
+}
+
+.tiptap :first-child {
+  margin-top: 0;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.react-page-editor .tiptap {
+  max-width: none;
+}
