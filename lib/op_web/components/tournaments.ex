@@ -67,13 +67,19 @@ defmodule OPWeb.Tournaments do
     """
   end
 
+  def banner_url(%Tournament{banner_image: nil}), do: "/images/wedgehead.webp"
+  def banner_url(%Tournament{banner_image: img}), do: "/uploads/tournaments/#{img}"
+
   attr :tournament, Tournament, required: true
 
   def card(assigns) do
     ~H"""
     <div class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600">
       <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
-        <div class="bg-[url('/images/wedgehead.webp')] h-30 rounded-t bg-cover" />
+        <div
+          class="h-30 rounded-t bg-cover"
+          style={"background-image: url('#{banner_url(@tournament)}')"}
+        />
       </.link>
       <div class="p-4">
         <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
