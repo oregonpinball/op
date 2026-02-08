@@ -42,5 +42,8 @@ npm-debug.log
 # ElixirLS (VSCode Extension)
 /.elixir_ls/
 
+# Uploaded files
+/priv/static/uploads/
+
 # Claude Code instructions
 CLAUDE.md

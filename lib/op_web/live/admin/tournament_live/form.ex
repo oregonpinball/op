@@ -27,6 +27,74 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         <.input field={@form[:name]} type="text" label="Name" required />
         <.input field={@form[:description]} type="textarea" label="Description" />
 
+        <div class="space-y-3">
+          <label class="block text-sm font-semibold leading-6 text-zinc-800">Banner Image</label>
+
+          <div
+            :if={@tournament.banner_image && !@banner_removed && @uploads.banner_image.entries == []}
+            class="relative group"
+          >
+            <img
+              src={OPWeb.Tournaments.banner_url(@tournament)}
+              class="h-40 w-full object-cover rounded-lg border border-zinc-200"
+            />
+            <button
+              type="button"
+              phx-click="remove_banner"
+              phx-target={@myself}
+              class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+            >
+              <.icon name="hero-x-mark" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div
+            :for={entry <- @uploads.banner_image.entries}
+            class="relative"
+          >
+            <.live_img_preview
+              entry={entry}
+              class="h-40 w-full object-cover rounded-lg border border-zinc-200"
+            />
+            <button
+              type="button"
+              phx-click="cancel_upload"
+              phx-value-ref={entry.ref}
+              phx-target={@myself}
+              class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700"
+            >
+              <.icon name="hero-x-mark" class="w-4 h-4" />
+            </button>
+            <p
+              :for={err <- upload_errors(@uploads.banner_image, entry)}
+              class="text-red-600 text-sm mt-1"
+            >
+              {upload_error_to_string(err)}
+            </p>
+          </div>
+
+          <div :if={
+            @uploads.banner_image.entries == [] && (!@tournament.banner_image || @banner_removed)
+          }>
+            <label
+              for={"#{@uploads.banner_image.ref}"}
+              class="flex items-center justify-center h-40 w-full border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/50 transition-colors"
+            >
+              <div class="text-center">
+                <.icon name="hero-photo" class="mx-auto h-8 w-8 text-zinc-400" />
+                <p class="mt-1 text-sm text-zinc-500">Click to upload a banner image</p>
+                <p class="text-xs text-zinc-400">JPG, PNG, or WebP up to 8MB</p>
+              </div>
+            </label>
+          </div>
+
+          <.live_file_input upload={@uploads.banner_image} class="hidden" />
+
+          <p :for={err <- upload_errors(@uploads.banner_image)} class="text-red-600 text-sm">
+            {upload_error_to_string(err)}
+          </p>
+        </div>
+
         <.input
           field={@form[:start_at]}
           type="datetime-local"
@@ -295,12 +363,25 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         Tournament.matchplay_url_from_external_id(tournament.finals_external_id)
       )
 
+    socket =
+      if Map.has_key?(socket.assigns, :uploads) do
+        socket
+      else
+        allow_upload(socket, :banner_image,
+          accept: ~w(.jpg .jpeg .png .webp),
+          max_entries: 1,
+          max_file_size: 8_000_000
+        )
+      end
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:player_searches, %{})
      |> assign(:player_results, %{})
      |> assign(:selected_players, selected_players)
+     |> assign(:original_banner, tournament.banner_image)
+     |> assign(:banner_removed, false)
      |> assign_form(Tournaments.change_tournament(assigns.current_scope, tournament))
      |> assign_options(assigns.current_scope)}
   end
@@ -372,6 +453,17 @@ defmodule OPWeb.Admin.TournamentLive.Form do
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :banner_image, ref)}
+  end
+
+  def handle_event("remove_banner", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:banner_removed, true)
+     |> assign(tournament: %{socket.assigns.tournament | banner_image: nil})}
   end
 
   def handle_event("save", %{"tournament" => tournament_params}, socket) do
@@ -480,6 +572,15 @@ defmodule OPWeb.Admin.TournamentLive.Form do
 
   defp save_tournament(socket, :edit, tournament_params) do
     old_standings_count = length(socket.assigns.tournament.standings || [])
+    old_banner = socket.assigns.original_banner
+    banner_removed? = socket.assigns.banner_removed
+
+    tournament_params =
+      if banner_removed? && socket.uploads.banner_image.entries == [] do
+        Map.put(tournament_params, "banner_image", nil)
+      else
+        tournament_params
+      end
 
     case Tournaments.update_tournament(
            socket.assigns.current_scope,
@@ -487,6 +588,14 @@ defmodule OPWeb.Admin.TournamentLive.Form do
            tournament_params
          ) do
       {:ok, tournament} ->
+        # Handle file upload
+        tournament = consume_banner_upload(socket, tournament, old_banner)
+
+        # Delete old file if banner was removed
+        if banner_removed? && socket.uploads.banner_image.entries == [] do
+          delete_banner_file(old_banner)
+        end
+
         # Recalculate points if standings count changed (added/removed)
         new_standings_count = length(tournament.standings || [])
 
@@ -518,6 +627,9 @@ defmodule OPWeb.Admin.TournamentLive.Form do
   defp save_tournament(socket, :new, tournament_params) do
     case Tournaments.create_tournament(socket.assigns.current_scope, tournament_params) do
       {:ok, tournament} ->
+        # Handle file upload
+        tournament = consume_banner_upload(socket, tournament, nil)
+
         notify_parent({:saved, tournament})
 
         {:noreply,
@@ -529,6 +641,51 @@ defmodule OPWeb.Admin.TournamentLive.Form do
         {:noreply, assign_form(socket, changeset)}
     end
   end
+
+  defp consume_banner_upload(socket, tournament, old_banner) do
+    uploaded_files =
+      consume_uploaded_entries(socket, :banner_image, fn %{path: path}, entry ->
+        upload_dir = Path.join([:code.priv_dir(:op), "static", "uploads", "tournaments"])
+        File.mkdir_p!(upload_dir)
+
+        ext = Path.extname(entry.client_name)
+        filename = "#{tournament.id}_#{System.system_time(:second)}#{ext}"
+        dest = Path.join(upload_dir, filename)
+
+        File.cp!(path, dest)
+        {:ok, filename}
+      end)
+
+    case uploaded_files do
+      [filename] ->
+        # Delete old file if replacing
+        delete_banner_file(old_banner)
+
+        {:ok, updated} =
+          Tournaments.update_tournament(
+            socket.assigns.current_scope,
+            tournament,
+            %{"banner_image" => filename}
+          )
+
+        updated
+
+      [] ->
+        tournament
+    end
+  end
+
+  defp delete_banner_file(nil), do: :ok
+
+  defp delete_banner_file(filename) do
+    path = Path.join([:code.priv_dir(:op), "static", "uploads", "tournaments", filename])
+    File.rm(path)
+  end
+
+  defp upload_error_to_string(:too_large), do: "File is too large (max 8MB)"
+  defp upload_error_to_string(:not_accepted), do: "Invalid file type (use JPG, PNG, or WebP)"
+  defp upload_error_to_string(:too_many_files), do: "Only one banner image allowed"
+  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

@@ -7,7 +7,10 @@ defmodule OPWeb.TournamentLive.Show do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="bg-linear-to-b from-black to-slate-700 bg-[url('/images/wedgehead.webp')] bg-cover">
+      <div
+        class="bg-linear-to-b from-black to-slate-700 bg-cover"
+        style={"background-image: url('#{OPWeb.Tournaments.banner_url(@tournament)}')"}
+      >
         <div class="container mx-auto pt-4 px-4">
           <div class="col-span-1 md:col-span-6 bg-white/95 p-4 rounded-t">
             <div class="">
@@ -31,6 +34,7 @@ defmodule OPWeb.TournamentLive.Show do
                     </.badge>
                   <% end %>
                   <.link
+                    :if={Ecto.assoc_loaded?(@tournament.season) && !is_nil(@tournament.season)}
                     navigate={~p"/seasons/#{@tournament.season.slug}"}
                     class="min-w-0 max-w-[200px]"
                   >
