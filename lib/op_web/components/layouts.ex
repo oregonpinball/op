@@ -41,7 +41,12 @@ defmodule OPWeb.Layouts do
 
   def app(assigns) do
     nav_classes = if assigns.is_landing?, do: "md:-mb-24", else: "bg-green-950"
-    assigns = Map.put(assigns, :nav_classes, nav_classes)
+    registration_enabled? = OP.FeatureFlags.registration_enabled?()
+
+    assigns =
+      assigns
+      |> Map.put(:nav_classes, nav_classes)
+      |> Map.put(:registration_enabled?, registration_enabled?)
 
     ~H"""
     <.sheet id="mobile-nav">
@@ -138,6 +143,7 @@ defmodule OPWeb.Layouts do
 
               <%= if is_nil(@current_scope) do %>
                 <.button
+                  :if={@registration_enabled?}
                   navigate={~p"/users/register"}
                   color="invisible"
                   size="sm"
@@ -148,7 +154,7 @@ defmodule OPWeb.Layouts do
                 <.button
                   navigate={~p"/users/log-in"}
                   color="invisible"
-                  class="hover:text-slate-900 transition-all"
+                  class={"#{unless @registration_enabled?, do: "ml-auto"} hover:text-slate-900 transition-all"}
                 >
                   <span class="truncate">Log in</span>
                 </.button>
