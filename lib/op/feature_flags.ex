@@ -17,6 +17,17 @@ defmodule OP.FeatureFlags do
       key: :tournament_submission_enabled,
       label: "Tournament Submission",
       description: "Allows tournament directors to submit new tournaments for review."
+    },
+    %{
+      key: :magic_link_login_enabled,
+      label: "Magic Link Login",
+      description: "Allows users to log in via a magic link sent to their email."
+    },
+    %{
+      key: :tournaments_only,
+      label: "Tournaments Only",
+      description:
+        "Restricts the site to only show tournament-related content for logged-out users."
     }
   ]
 
