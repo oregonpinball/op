@@ -23,6 +23,8 @@ defmodule OP.Locations.Location do
     field :latitude, :float
     field :longitude, :float
 
+    field :pinball_map_id, :integer
+
     timestamps(type: :utc_datetime)
   end
 
@@ -40,11 +42,13 @@ defmodule OP.Locations.Location do
       :country,
       :postal_code,
       :latitude,
-      :longitude
+      :longitude,
+      :pinball_map_id
     ])
     |> generate_slug()
     |> validate_required([:name])
     |> unique_constraint(:external_id)
+    |> unique_constraint(:pinball_map_id)
     |> unique_constraint(:slug)
   end
 end

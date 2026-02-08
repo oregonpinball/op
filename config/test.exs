@@ -38,6 +38,7 @@ config :phoenix_live_view,
 
 # Configure Req.Test for mocking HTTP requests in tests
 config :op, :req_options, plug: {Req.Test, OP.Matchplay.Client}
+config :op, :pinball_map_req_options, plug: {Req.Test, OP.PinballMap.Client}
 
 # Configure a test API token for Matchplay tests
 config :op, :matchplay_api_token, "test-api-token"

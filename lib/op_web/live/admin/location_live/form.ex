@@ -42,6 +42,11 @@ defmodule OPWeb.Admin.LocationLive.Form do
             </div>
 
             <.input field={@form[:external_id]} type="text" label="External ID" />
+            <.input
+              field={@form[:pinball_map_id]}
+              type="number"
+              label="Pinball Map ID"
+            />
 
             <div class="mt-6 flex gap-4">
               <.button type="submit" color="primary" phx-disable-with="Saving...">
