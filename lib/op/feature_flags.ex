@@ -7,6 +7,29 @@ defmodule OP.FeatureFlags do
   All flags default to off (false) when unset.
   """
 
+  @flags [
+    %{
+      key: :registration_enabled,
+      label: "Registration",
+      description: "Allows new users to register accounts via the public registration page."
+    },
+    %{
+      key: :tournament_submission_enabled,
+      label: "Tournament Submission",
+      description: "Allows tournament directors to submit new tournaments for review."
+    }
+  ]
+
+  @doc """
+  Returns all feature flags with their current enabled state.
+  """
+  @spec flags() :: [
+          %{key: atom(), label: String.t(), description: String.t(), enabled: boolean()}
+        ]
+  def flags do
+    Enum.map(@flags, fn flag -> Map.put(flag, :enabled, enabled?(flag.key)) end)
+  end
+
   @doc """
   Returns whether the given feature flag is enabled.
   """

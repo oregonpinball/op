@@ -71,6 +71,44 @@ defmodule OP.FeatureFlagsTest do
     end
   end
 
+  describe "flags/0" do
+    test "returns all flags with required keys" do
+      flags = FeatureFlags.flags()
+
+      assert length(flags) == 2
+
+      Enum.each(flags, fn flag ->
+        assert Map.has_key?(flag, :key)
+        assert Map.has_key?(flag, :label)
+        assert Map.has_key?(flag, :description)
+        assert Map.has_key?(flag, :enabled)
+        assert is_atom(flag.key)
+        assert is_binary(flag.label)
+        assert is_binary(flag.description)
+        assert is_boolean(flag.enabled)
+      end)
+    end
+
+    test "reflects current config state" do
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: false
+      )
+
+      flags = FeatureFlags.flags()
+      reg = Enum.find(flags, &(&1.key == :registration_enabled))
+      sub = Enum.find(flags, &(&1.key == :tournament_submission_enabled))
+
+      assert reg.enabled == true
+      assert sub.enabled == false
+    after
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true
+      )
+    end
+  end
+
   describe "tournament_submission_enabled?/0" do
     test "returns true when tournament submission is enabled" do
       Application.put_env(:op, :feature_flags, tournament_submission_enabled: true)

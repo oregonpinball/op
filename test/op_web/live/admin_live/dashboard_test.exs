@@ -19,6 +19,13 @@ defmodule OPWeb.AdminLive.DashboardTest do
       assert html =~ ~p"/admin/locations"
     end
 
+    test "shows feature flags link", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/admin/dashboard")
+
+      assert html =~ "Feature Flags"
+      assert html =~ ~p"/admin/feature-flags"
+    end
+
     test "navigates to locations", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/admin/dashboard")
 
