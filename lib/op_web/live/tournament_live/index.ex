@@ -58,7 +58,6 @@ defmodule OPWeb.TournamentLive.Index do
               type="select"
               label="Status"
               options={@status_options}
-              prompt="All"
             />
             <.input
               field={@filter_form_adv[:start_date]}
@@ -141,7 +140,6 @@ defmodule OPWeb.TournamentLive.Index do
                       type="select"
                       label="When?"
                       options={@status_options}
-                      prompt="All (past or upcoming)"
                     />
                   </div>
                 </div>
@@ -295,7 +293,11 @@ defmodule OPWeb.TournamentLive.Index do
         {"#{league_name}#{season.name}", season.id}
       end)
 
-    status_options = [{"Upcoming", "upcoming"}, {"Past", "past"}]
+    status_options = [
+      {"All (past or upcoming)", "all"},
+      {"Upcoming", "upcoming"},
+      {"Past", "past"}
+    ]
 
     {:ok,
      socket
@@ -328,7 +330,8 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || ""
+    status = params["status"] || "upcoming"
+    sort_dir = if status == "upcoming", do: :asc, else: :desc
 
     start_date = Date.to_iso8601(calendar_date)
 
@@ -357,6 +360,7 @@ defmodule OPWeb.TournamentLive.Index do
         season_id: non_empty(season_id),
         league_id: non_empty(league_id),
         status: non_empty(status),
+        sort_dir: sort_dir,
         start_date: start_date,
         end_date: end_date
       )
@@ -417,9 +421,10 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || ""
+    status = params["status"] || "upcoming"
     start_date = params["start_date"] || ""
     end_date = params["end_date"] || ""
+    sort_dir = if status == "upcoming", do: :asc, else: :desc
 
     filter_params = %{
       "search" => search,
@@ -441,6 +446,7 @@ defmodule OPWeb.TournamentLive.Index do
         season_id: non_empty(season_id),
         league_id: non_empty(league_id),
         status: non_empty(status),
+        sort_dir: sort_dir,
         start_date: non_empty(start_date),
         end_date: non_empty(end_date)
       )
