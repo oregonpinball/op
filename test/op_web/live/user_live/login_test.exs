@@ -111,6 +111,13 @@ defmodule OPWeb.UserLive.LoginTest do
 
   describe "re-authentication (sudo mode)" do
     setup %{conn: conn} do
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true,
+        tournaments_only: false
+      )
+
       user = user_fixture()
       %{user: user, conn: log_in_user(conn, user)}
     end
