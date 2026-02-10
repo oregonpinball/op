@@ -6,7 +6,8 @@ defmodule OPWeb.TournamentLive.IndexTest do
 
   describe "list view (default)" do
     test "renders card grid by default", %{conn: conn} do
-      tournament_fixture(nil, %{name: "Test Tourney"})
+      future_start = DateTime.add(DateTime.utc_now(), 7, :day)
+      tournament_fixture(nil, %{name: "Test Tourney", start_at: future_start})
 
       {:ok, _lv, html} = live(conn, ~p"/tournaments")
       assert html =~ "Test Tourney"
@@ -31,7 +32,7 @@ defmodule OPWeb.TournamentLive.IndexTest do
       start_at = DateTime.new!(~D[2025-06-15], ~T[18:00:00], "Etc/UTC")
       tournament_fixture(nil, %{name: "June Tourney", start_at: start_at})
 
-      {:ok, _lv, html} = live(conn, ~p"/tournaments?view=calendar&month=2025-06")
+      {:ok, _lv, html} = live(conn, ~p"/tournaments?view=calendar&month=2025-06&status=all")
       assert html =~ "June Tourney"
       assert html =~ "June 2025"
     end
@@ -87,7 +88,7 @@ defmodule OPWeb.TournamentLive.IndexTest do
       tournament_fixture(nil, %{name: "Findable Tourney", start_at: start_at})
       tournament_fixture(nil, %{name: "Other Event", start_at: start_at})
 
-      {:ok, lv, _html} = live(conn, ~p"/tournaments?view=calendar&month=2025-06")
+      {:ok, lv, _html} = live(conn, ~p"/tournaments?view=calendar&month=2025-06&status=all")
 
       lv
       |> form("#tournament-filters", filters: %{search: "Findable"})
