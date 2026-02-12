@@ -71,19 +71,32 @@ defmodule OPWeb.Tournaments do
   def banner_url(%Tournament{banner_image: img}), do: "/uploads/tournaments/#{img}"
 
   attr :tournament, Tournament, required: true
+  attr :bg_class, :string, default: ""
 
   def card(assigns) do
+    bg_class = if is_nil(assigns.tournament.banner_image) do
+      "bg-gradient-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
+    else
+      "bg-[url('#{banner_url(assigns.tournament)}')]"
+    end
+
+    assigns = Map.put(assigns, :bg_class, bg_class)
+
     ~H"""
-    <div class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600">
+    <div class="group rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600">
       <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
         <div
-          class="h-30 rounded-t bg-cover"
-          style={"background-image: url('#{banner_url(@tournament)}')"}
-        />
+          class={[@bg_class, "h-24 rounded-t bg-cover flex items-center justify-center text-xl font-medium p-2"]}
+        >
+          <span :if={Ecto.assoc_loaded?(@tournament.location) && !is_nil(@tournament.location)} class="truncate">
+            {@tournament.location.name}
+          </span>
+
+        </div>
       </.link>
       <div class="p-4">
         <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
-          <h1 class="text-2xl font-semibold rounded mt-1">{@tournament.name}</h1>
+          <h1 class="text-2xl font-semibold rounded">{@tournament.name}</h1>
         </.link>
 
         <h2 class="text-normal font-medium mt-1">
