@@ -29,7 +29,7 @@ defmodule OPWeb.Endpoint do
   # Serve uploaded files from persistent storage directory
   plug Plug.Static,
     at: "/uploads",
-    from: Application.compile_env(:op, :uploads_dir),
+    from: {Application, :get_env, [:op, :uploads_dir]},
     gzip: false
 
   # Code reloading can be explicitly enabled under the
