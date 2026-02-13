@@ -15,6 +15,15 @@ defmodule OPWeb.UserLive.LoginTest do
   end
 
   describe "user login - magic link" do
+    setup do
+      Application.put_env(:op, :feature_flags,
+        registration_enabled: true,
+        tournament_submission_enabled: true,
+        magic_link_login_enabled: true,
+        tournaments_only: false
+      )
+    end
+
     test "sends magic link email when user exists", %{conn: conn} do
       user = user_fixture()
 
