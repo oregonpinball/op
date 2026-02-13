@@ -1,5 +1,14 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <div class="container mx-auto p-4">
+    <%!-- Banner Image --%>
+    <div :if={@location.banner_image} class="mb-6 -mx-4 sm:mx-0">
+      <img
+        src={"/uploads/#{@location.banner_image}"}
+        alt={"Banner for #{@location.name}"}
+        class="w-full max-h-96 object-cover rounded-lg shadow-lg"
+      />
+    </div>
+
     <.header>
       {@location.name}
       <:subtitle>Location</:subtitle>

@@ -13,6 +13,7 @@
   --animate-in: in 0.15s ease-in forwards;
   --animate-out: out 0.15s ease-in forwards;
   --animate-pop-in: pop-in 0.05s ease-out forwards;
+  
 
   @keyframes slide-in-right {
     from {

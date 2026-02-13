@@ -67,26 +67,53 @@ defmodule OPWeb.Tournaments do
     """
   end
 
-  def banner_url(%Tournament{banner_image: nil}), do: "/images/wedgehead.webp"
-  def banner_url(%Tournament{banner_image: img}), do: "/uploads/tournaments/#{img}"
+  def banner_url(%Tournament{} = tournament) do
+    if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) &&
+         !is_nil(tournament.location.banner_image) do
+      "/uploads/#{tournament.location.banner_image}"
+    else
+      nil
+    end
+  end
 
   attr :tournament, Tournament, required: true
 
   def card(assigns) do
+    banner_url = banner_url(assigns.tournament)
+    now = DateTime.utc_now()
+    is_past? = DateTime.compare(assigns.tournament.start_at, now) == :lt
+
+    assigns =
+      assigns
+      |> assign(:banner_url, banner_url)
+      |> assign(:has_banner?, !is_nil(banner_url))
+      |> assign(:is_past?, is_past?)
+
     ~H"""
-    <div class="rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600">
-      <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
+    <div class={[
+      "group rounded-lg bg-white shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-emerald-600",
+      @is_past? && "opacity-75 hover:opacity-100 border-slate-500 border-dotted"
+    ]}>
+      <.link navigate={~p"/tournaments/#{@tournament.slug}"} class="relative">
         <div
-          class="h-30 rounded-t bg-cover"
-          style={"background-image: url('#{banner_url(@tournament)}')"}
-        />
+          class={[
+            "rounded-t",
+            @has_banner? && "h-16 bg-center bg-cover text-white halftone",
+            !@has_banner? &&
+              "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
+          ]}
+          style={@has_banner? && "background-image: url('#{@banner_url}')"}
+        >
+          <img :if={@has_banner?} src={@banner_url} />
+        </div>
       </.link>
       <div class="p-4">
         <.link navigate={~p"/tournaments/#{@tournament.slug}"}>
-          <h1 class="text-2xl font-semibold rounded mt-1">{@tournament.name}</h1>
+          <h1 class="text-2xl font-semibold rounded">{@tournament.name}</h1>
         </.link>
 
         <h2 class="text-normal font-medium mt-1">
+          <.badge :if={@is_past?} color="warning" class="mr-2">Past</.badge>
           {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %-I:%M %p %Z")}
         </h2>
 
