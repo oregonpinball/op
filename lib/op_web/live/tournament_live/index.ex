@@ -182,6 +182,7 @@ defmodule OPWeb.TournamentLive.Index do
                     ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "calendar"})}"
                   }
                   class="flex items-center space-x-2"
+                  aria-label="Calendar view"
                 >
                   <.icon name="hero-calendar-days" class="w-4 h-4" />
 
@@ -195,6 +196,7 @@ defmodule OPWeb.TournamentLive.Index do
                     ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "list"})}"
                   }
                   class="flex items-center space-x-2"
+                  aria-label="List view"
                 >
                   <.icon name="hero-squares-2x2" class="w-4 h-4" />
 
