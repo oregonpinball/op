@@ -111,7 +111,14 @@ defmodule OPWeb.Tournaments do
 
         <h2 class="text-normal font-medium mt-1">
           <.badge :if={@is_past?} color="warning" class="mr-2">Past</.badge>
-          {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %-I:%M %p %Z")}
+          <time
+            id={"tournament-time-#{@tournament.id}"}
+            phx-hook="LocalTime"
+            data-datetime={DateTime.to_iso8601(@tournament.start_at)}
+            data-format="full"
+          >
+            <div class="w-full bg-slate-100 rounded h-4" />
+          </time>
         </h2>
 
         <h3

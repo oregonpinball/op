@@ -42,7 +42,14 @@ defmodule OPWeb.Admin.TournamentLive.Show do
               <div :if={@tournament.start_at}>
                 <dt class="text-sm text-zinc-500">Start Date</dt>
                 <dd class="text-zinc-900">
-                  {Calendar.strftime(@tournament.start_at, "%B %d, %Y at %I:%M %p")}
+                  <time
+                    id="tournament-admin-time"
+                    phx-hook="LocalTime"
+                    data-datetime={DateTime.to_iso8601(@tournament.start_at)}
+                    data-format="full"
+                  >
+                    <div class="w-full bg-slate-100 rounded h-4" />
+                  </time>
                 </dd>
               </div>
               <div>

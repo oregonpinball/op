@@ -99,9 +99,15 @@
                 </.link>
               </td>
               <td class="py-3 text-right text-slate-600">
-                <span :if={tournament.start_at}>
-                  {Calendar.strftime(tournament.start_at, "%b %d, %Y")}
-                </span>
+                <time
+                  :if={tournament.start_at}
+                  id={"location-tournament-#{tournament.id}-time"}
+                  phx-hook="LocalTime"
+                  data-datetime={DateTime.to_iso8601(tournament.start_at)}
+                  data-format="date"
+                >
+                  <div class="w-full bg-slate-100 rounded h-4" />
+                </time>
               </td>
             </tr>
           </tbody>
@@ -129,7 +135,14 @@
             </.link>
           </div>
           <div :if={tournament.start_at} class="mt-1 text-sm text-slate-500">
-            {Calendar.strftime(tournament.start_at, "%b %d, %Y")}
+            <time
+              id={"location-tournament-mobile-#{tournament.id}-time"}
+              phx-hook="LocalTime"
+              data-datetime={DateTime.to_iso8601(tournament.start_at)}
+              data-format="date"
+            >
+              {Calendar.strftime(tournament.start_at, "%b %d, %Y")}
+            </time>
           </div>
         </div>
       </div>
