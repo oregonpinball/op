@@ -2,6 +2,9 @@
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
+#
+# Note: `name` for mount needs to be "name" unless we want to re-seed in the future.
+#
 
 app = 'staging-op'
 primary_region = 'sjc'
@@ -16,7 +19,7 @@ kill_signal = 'SIGTERM'
   UPLOADS_DIR = '/mnt/staging-op/uploads'
 
 [[mounts]]
-  source = 'staging-op'
+  source = 'name'
   destination = '/mnt/staging-op'
   auto_extend_size_threshold = 80
   auto_extend_size_increment = '1GB'
