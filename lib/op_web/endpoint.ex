@@ -26,6 +26,12 @@ defmodule OPWeb.Endpoint do
     gzip: not code_reloading?,
     only: OPWeb.static_paths()
 
+  # Serve uploaded files from persistent storage directory
+  plug Plug.Static,
+    at: "/uploads",
+    from: Application.compile_env(:op, :uploads_dir),
+    gzip: false
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
