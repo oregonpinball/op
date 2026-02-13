@@ -95,14 +95,12 @@ defmodule OPWeb.Tournaments do
       @is_past? && "opacity-75 hover:opacity-100 border-slate-500 border-dotted"
     ]}>
       <.link navigate={~p"/tournaments/#{@tournament.slug}"} class="relative">
-        <div
-          class={[
-            "rounded-t",
-            @has_banner? && "h-16 bg-center bg-cover text-white halftone",
-            !@has_banner? &&
-              "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
-          ]}
-        >
+        <div class={[
+          "rounded-t",
+          @has_banner? && "h-16 bg-center bg-cover text-white halftone",
+          !@has_banner? &&
+            "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
+        ]}>
           <img :if={@has_banner?} src={@banner_url} />
         </div>
       </.link>
