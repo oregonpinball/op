@@ -16,6 +16,7 @@ kill_signal = 'SIGTERM'
   DATABASE_PATH = '/mnt/name/op.db'
   PHX_HOST = 'staging-op.fly.dev'
   PORT = '8080'
+  UPLOADS_DIR = '/mnt/name/uploads'
 
 [[mounts]]
   source = 'name'
