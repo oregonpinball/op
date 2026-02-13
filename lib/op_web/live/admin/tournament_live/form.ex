@@ -783,7 +783,8 @@ defmodule OPWeb.Admin.TournamentLive.Form do
   defp consume_banner_upload(socket, tournament, old_banner) do
     uploaded_files =
       consume_uploaded_entries(socket, :banner_image, fn %{path: path}, entry ->
-        upload_dir = Path.join([:code.priv_dir(:op), "static", "uploads", "tournaments"])
+        uploads_base = Application.get_env(:op, :uploads_dir)
+        upload_dir = Path.join(uploads_base, "tournaments")
         File.mkdir_p!(upload_dir)
 
         ext = Path.extname(entry.client_name)

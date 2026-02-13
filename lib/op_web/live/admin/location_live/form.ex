@@ -241,7 +241,8 @@ defmodule OPWeb.Admin.LocationLive.Form do
         filename = "#{Nanoid.generate()}-#{entry.client_name}"
 
         # Ensure upload directory exists
-        upload_dir = Path.join([:code.priv_dir(:op), "static", "uploads", "locations"])
+        uploads_base = Application.get_env(:op, :uploads_dir)
+        upload_dir = Path.join(uploads_base, "locations")
         File.mkdir_p!(upload_dir)
 
         # Copy file to destination

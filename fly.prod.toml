@@ -13,6 +13,7 @@ kill_signal = 'SIGTERM'
   DATABASE_PATH = '/mnt/op_prod_data/op.db'
   PHX_HOST = 'oregonpinball.org'
   PORT = '8080'
+  UPLOADS_DIR = '/mnt/op_prod_data/uploads'
 
 [[mounts]]
   source = 'op_prod_data'
