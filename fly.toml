@@ -10,14 +10,13 @@ kill_signal = 'SIGTERM'
 [build]
 
 [env]
-  DATABASE_PATH = '/mnt/staging-op/staging.db'
+  DATABASE_PATH = '/mnt/name/op.db'
   PHX_HOST = 'staging-op.fly.dev'
   PORT = '8080'
-  UPLOADS_DIR = '/mnt/staging-op/uploads'
 
 [[mounts]]
-  source = 'staging-op'
-  destination = '/mnt/staging-op'
+  source = 'name'
+  destination = '/mnt/name'
   auto_extend_size_threshold = 80
   auto_extend_size_increment = '1GB'
   auto_extend_size_limit = '10GB'
