@@ -59,7 +59,7 @@ defmodule OPWeb.Admin.LocationLive.Form do
                 <p class="text-sm text-zinc-600 mb-2">Current banner:</p>
                 <div class="relative inline-block">
                   <img
-                    src={"/uploads/#{@location.banner_image}"}
+                    src={"/uploads/locations/#{@location.banner_image}"}
                     alt="Banner preview"
                     class="max-w-md rounded-lg border border-zinc-300 shadow-sm"
                   />

@@ -70,7 +70,7 @@ defmodule OPWeb.Tournaments do
   def banner_url(%Tournament{} = tournament) do
     if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) &&
          !is_nil(tournament.location.banner_image) do
-      "/uploads/#{tournament.location.banner_image}"
+      "/uploads/tournaments/#{tournament.location.banner_image}"
     else
       nil
     end

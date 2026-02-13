@@ -3,7 +3,7 @@
     <%!-- Banner Image --%>
     <div :if={@location.banner_image} class="mb-6 -mx-4 sm:mx-0">
       <img
-        src={"/uploads/#{@location.banner_image}"}
+        src={"/uploads/locations/#{@location.banner_image}"}
         alt={"Banner for #{@location.name}"}
         class="w-full max-h-96 object-cover rounded-lg shadow-lg"
       />
