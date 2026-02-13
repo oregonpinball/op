@@ -119,8 +119,8 @@ defmodule OPWeb.TournamentLive.Index do
               class=""
             >
               <div class="flex flex-col mt-4">
-                <div class="grid grid-cols-5 gap-4">
-                  <div class="col-span-3">
+                <div class="grid grid-cols-7 gap-4">
+                  <div class="col-span-4">
                     <div class="flex items-center space-x-2">
                       <div class="grow">
                         <.input
@@ -134,13 +134,23 @@ defmodule OPWeb.TournamentLive.Index do
                     </div>
                   </div>
 
-                  <div class="col-span-2">
+                  <div class="col-span-3 flex items-center space-x-2">
                     <.input
                       field={@filter_form[:status]}
                       type="select"
                       label="When?"
                       options={@status_options}
                     />
+                    <.button
+                      type="button"
+                      color="invisible"
+                      size="sm"
+                      phx-click="clear_filters"
+                      class="flex items-center space-x-0.5 mt-2"
+                    >
+                      <.icon name="hero-x-mark" class="w-4 h-4" />
+                      <span class="hidden md:block">Clear</span>
+                    </.button>
                   </div>
                 </div>
               </div>
@@ -164,35 +174,33 @@ defmodule OPWeb.TournamentLive.Index do
             </div>
 
             <div class="flex items-center space-x-2">
-              <div class="flex items-center border rounded-lg overflow-hidden">
-                <.link
-                  patch={
-                    ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "list"})}"
-                  }
-                  class={[
-                    "p-2 flex items-center",
-                    @view_mode == "list" && "bg-emerald-100 text-emerald-700",
-                    @view_mode != "list" && "text-gray-500 hover:bg-gray-100"
-                  ]}
-                  aria-label="List view"
-                >
-                  <.icon name="hero-squares-2x2" class="w-4 h-4" />
-                </.link>
-                <.link
+              <%= if @view_mode == "list" do %>
+                <.button
+                  color="secondary"
+                  variant="outline"
                   patch={
                     ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "calendar"})}"
                   }
-                  class={[
-                    "p-2 flex items-center",
-                    @view_mode == "calendar" && "bg-emerald-100 text-emerald-700",
-                    @view_mode != "calendar" && "text-gray-500 hover:bg-gray-100"
-                  ]}
-                  aria-label="Calendar view"
+                  class="flex items-center space-x-2"
                 >
                   <.icon name="hero-calendar-days" class="w-4 h-4" />
-                </.link>
-              </div>
 
+                  <span class="hidden md:block">View calendar</span>
+                </.button>
+              <% else %>
+                <.button
+                  color="secondary"
+                  variant="outline"
+                  patch={
+                    ~p"/tournaments?#{Map.merge(filter_params_for_pagination(@filter_form), %{"view" => "list"})}"
+                  }
+                  class="flex items-center space-x-2"
+                >
+                  <.icon name="hero-squares-2x2" class="w-4 h-4" />
+
+                  <span class="hidden md:block">View grid</span>
+                </.button>
+              <% end %>
               <.button
                 phx-click={toggle("#filters-advanced")}
                 type="button"
@@ -200,16 +208,7 @@ defmodule OPWeb.TournamentLive.Index do
                 class="flex items-center space-x-0.5"
               >
                 <.icon name="hero-funnel" class="w-4 h-4" />
-                <span class="hidden md:inline">Advanced Filters</span>
-              </.button>
-              <.button
-                type="button"
-                color="secondary"
-                phx-click="clear_filters"
-                class="flex items-center space-x-0.5"
-              >
-                <.icon name="hero-x-mark" class="w-4 h-4 mr-1" />
-                <span>Clear</span>
+                <span class="hidden md:block">Filter</span>
               </.button>
             </div>
           </div>
@@ -330,8 +329,8 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || "all"
-    sort_dir = if status == "all", do: :asc, else: :desc
+    status = params["status"] || "upcoming"
+    sort_dir = if status == "upcoming", do: :asc, else: :desc
 
     start_date = Date.to_iso8601(calendar_date)
 
@@ -421,10 +420,10 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || "all"
+    status = params["status"] || "upcoming"
     start_date = params["start_date"] || ""
     end_date = params["end_date"] || ""
-    sort_dir = if status == "all", do: :asc, else: :desc
+    sort_dir = if status == "upcoming", do: :asc, else: :desc
 
     filter_params = %{
       "search" => search,
