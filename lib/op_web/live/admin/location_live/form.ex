@@ -76,7 +76,10 @@ defmodule OPWeb.Admin.LocationLive.Form do
               <%!-- Upload input --%>
               <div :if={!@location.banner_image || @uploads.banner_image.entries != []}>
                 <div class="mt-2">
-                  <.live_file_input upload={@uploads.banner_image} class="block w-full text-sm text-zinc-900 border border-zinc-300 rounded-lg cursor-pointer bg-zinc-50 focus:outline-none" />
+                  <.live_file_input
+                    upload={@uploads.banner_image}
+                    class="block w-full text-sm text-zinc-900 border border-zinc-300 rounded-lg cursor-pointer bg-zinc-50 focus:outline-none"
+                  />
                   <p class="mt-1 text-sm text-zinc-500">
                     Accepted formats: JPG, PNG, GIF, WebP (max 5 MB)
                   </p>
@@ -85,7 +88,10 @@ defmodule OPWeb.Admin.LocationLive.Form do
                 <%!-- Upload preview --%>
                 <div :for={entry <- @uploads.banner_image.entries} class="mt-4">
                   <div class="relative inline-block">
-                    <.live_img_preview entry={entry} class="max-w-md rounded-lg border border-zinc-300 shadow-sm" />
+                    <.live_img_preview
+                      entry={entry}
+                      class="max-w-md rounded-lg border border-zinc-300 shadow-sm"
+                    />
                     <button
                       type="button"
                       phx-click="cancel_upload"

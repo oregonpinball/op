@@ -68,7 +68,8 @@ defmodule OPWeb.Tournaments do
   end
 
   def banner_url(%Tournament{} = tournament) do
-    if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) && !is_nil(tournament.location.banner_image) do
+    if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) &&
+         !is_nil(tournament.location.banner_image) do
       "/uploads/#{tournament.location.banner_image}"
     else
       nil
@@ -98,12 +99,12 @@ defmodule OPWeb.Tournaments do
           class={[
             "rounded-t",
             @has_banner? && "h-16 bg-center bg-cover text-white halftone",
-            !@has_banner? && "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
+            !@has_banner? &&
+              "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
           ]}
           style={@has_banner? && "background-image: url('#{@banner_url}')"}
         >
-
-            <img src={@banner_url} :if={@has_banner?} />
+          <img :if={@has_banner?} src={@banner_url} />
         </div>
       </.link>
       <div class="p-4">
@@ -112,7 +113,7 @@ defmodule OPWeb.Tournaments do
         </.link>
 
         <h2 class="text-normal font-medium mt-1">
-          <.badge color="warning" :if={@is_past?} class="mr-2">Past</.badge>
+          <.badge :if={@is_past?} color="warning" class="mr-2">Past</.badge>
           {Calendar.strftime(@tournament.start_at, "%a, %b %d, %Y at %-I:%M %p %Z")}
         </h2>
 
