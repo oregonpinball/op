@@ -25,6 +25,9 @@ defmodule OP.Locations.Location do
 
     field :pinball_map_id, :integer
 
+    # Path to uploaded banner image
+    field :banner_image, :string
+
     timestamps(type: :utc_datetime)
   end
 
@@ -43,7 +46,8 @@ defmodule OP.Locations.Location do
       :postal_code,
       :latitude,
       :longitude,
-      :pinball_map_id
+      :pinball_map_id,
+      :banner_image
     ])
     |> generate_slug()
     |> validate_required([:name])

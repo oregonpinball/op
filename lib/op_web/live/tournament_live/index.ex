@@ -330,8 +330,8 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || "upcoming"
-    sort_dir = if status == "upcoming", do: :asc, else: :desc
+    status = params["status"] || "all"
+    sort_dir = if status == "all", do: :asc, else: :desc
 
     start_date = Date.to_iso8601(calendar_date)
 
@@ -421,10 +421,10 @@ defmodule OPWeb.TournamentLive.Index do
     location_id = params["location_id"] || ""
     season_id = params["season_id"] || ""
     league_id = params["league_id"] || ""
-    status = params["status"] || "upcoming"
+    status = params["status"] || "all"
     start_date = params["start_date"] || ""
     end_date = params["end_date"] || ""
-    sort_dir = if status == "upcoming", do: :asc, else: :desc
+    sort_dir = if status == "all", do: :asc, else: :desc
 
     filter_params = %{
       "search" => search,
