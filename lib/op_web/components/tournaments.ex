@@ -70,7 +70,7 @@ defmodule OPWeb.Tournaments do
   def banner_url(%Tournament{} = tournament) do
     if Ecto.assoc_loaded?(tournament.location) && !is_nil(tournament.location) &&
          !is_nil(tournament.location.banner_image) do
-      "/uploads/tournaments/#{tournament.location.banner_image}"
+      "/uploads/locations/#{tournament.location.banner_image}"
     else
       nil
     end
@@ -102,7 +102,6 @@ defmodule OPWeb.Tournaments do
             !@has_banner? &&
               "h-6 bg-linear-to-t from-slate-100 to-slate-300 group-hover:from-green-950 group-hover:to-emerald-700 transition-colors group-hover:text-white"
           ]}
-          style={@has_banner? && "background-image: url('#{@banner_url}')"}
         >
           <img :if={@has_banner?} src={@banner_url} />
         </div>
