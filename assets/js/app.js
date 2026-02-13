@@ -47,13 +47,15 @@ const csrfToken = document
 import BackgroundColorWatcher from "./hooks/background_color_watcher";
 import Clipboard from "./hooks/clipboard";
 import PageEditor from "./hooks/page_editor";
+import LocalTime from "./hooks/local_time";
 
 const Hooks = {
   ...colocatedHooks,
   SaladUI: SaladUI.SaladUIHook,
   BackgroundColorWatcher,
   Clipboard,
-  PageEditor
+  PageEditor,
+  LocalTime
   //ReactMount
 }
 

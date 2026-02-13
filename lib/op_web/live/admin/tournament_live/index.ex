@@ -170,7 +170,15 @@ defmodule OPWeb.Admin.TournamentLive.Index do
                   </.link>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                  {if tournament.start_at, do: Calendar.strftime(tournament.start_at, "%b %d, %Y")}
+                  <time
+                    :if={tournament.start_at}
+                    id={"tournament-admin-#{tournament.id}-time"}
+                    phx-hook="LocalTime"
+                    data-datetime={DateTime.to_iso8601(tournament.start_at)}
+                    data-format="date"
+                  >
+                    <div class="w-full bg-slate-100 rounded h-4" />
+                  </time>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-500">
                   {if tournament.location, do: tournament.location.name}

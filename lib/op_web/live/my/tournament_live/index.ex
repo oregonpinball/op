@@ -230,7 +230,14 @@ defmodule OPWeb.My.TournamentLive.Index do
             <h3 class="text-xl font-semibold mt-1">{tournament.name}</h3>
           </.link>
           <p :if={tournament.start_at} class="text-sm font-medium mt-1">
-            {Calendar.strftime(tournament.start_at, "%a, %b %d, %Y")}
+            <time
+              id={"my-registered-tournament-#{tournament.id}-time"}
+              phx-hook="LocalTime"
+              data-datetime={DateTime.to_iso8601(tournament.start_at)}
+              data-format="date"
+            >
+              <div class="w-full bg-slate-100 rounded h-4" />
+            </time>
           </p>
           <p :if={tournament.location} class="text-sm text-gray-500">
             @ {tournament.location.name}
@@ -278,7 +285,14 @@ defmodule OPWeb.My.TournamentLive.Index do
             <h3 class="text-xl font-semibold mt-1">{tournament.name}</h3>
           </.link>
           <p :if={tournament.start_at} class="text-sm font-medium mt-1">
-            {Calendar.strftime(tournament.start_at, "%a, %b %d, %Y")}
+            <time
+              id={"my-played-tournament-#{tournament.id}-time"}
+              phx-hook="LocalTime"
+              data-datetime={DateTime.to_iso8601(tournament.start_at)}
+              data-format="date"
+            >
+              <div class="w-full bg-slate-100 rounded h-4" />
+            </time>
           </p>
           <p :if={tournament.location} class="text-sm text-gray-500">
             @ {tournament.location.name}
